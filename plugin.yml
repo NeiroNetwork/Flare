@@ -1,5 +1,5 @@
-name: PluginTemplate
+name: Flare
 version: 0.0.1
-main: NeiroNetwork\PluginTemplate\Main
+main: NeiroNetwork\Flare\Main
 api: 4.0.0
-src-namespace-prefix: NeiroNetwork\PluginTemplate
+src-namespace-prefix: NeiroNetwork\Flare

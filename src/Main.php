@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeiroNetwork\PluginTemplate;
+namespace NeiroNetwork\Flare;
 
 use pocketmine\plugin\PluginBase;
 
