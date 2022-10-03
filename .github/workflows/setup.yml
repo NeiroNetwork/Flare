@@ -1,0 +1,30 @@
+name: Repository Setup Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    
+    runs-on: ubuntu-latest
+
+    if: github.event.created
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Rewrite the plugin files
+      run: sed -i -e "s/PluginTemplate/${{ github.event.repository.name }}/" plugin.yml src/Main.php .poggit.yml
+
+    - name: Delete itself
+      run: rm .github/workflows/setup.yml
+
+    - name: Commit and push changes
+      run: |
+        git config user.name github-actions[bot]
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git add -A
+        git commit -m "Setup the repository"
+        git push
