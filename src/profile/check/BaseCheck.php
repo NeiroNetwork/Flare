@@ -37,8 +37,8 @@ abstract class BaseCheck implements ICheck {
 		return $this->observer;
 	}
 
-	public function preFail(int $level = 1): bool {
-		$this->pvl += $level * 100;
+	public function preFail(): bool {
+		$this->pvl = max(0, $this->pvl + 100);
 
 		if ($this->pvl >= $this->pvlMax) {
 			$this->pvl *= 0.5;
@@ -46,6 +46,10 @@ abstract class BaseCheck implements ICheck {
 		}
 
 		return false;
+	}
+
+	public function preReward(int $multiplier = 1): void {
+		$this->pvl = max(0, $this->pvl - $multiplier);
 	}
 
 	public function fail(FailReason $reason): void {
@@ -56,7 +60,7 @@ abstract class BaseCheck implements ICheck {
 		}
 
 		if ($reason instanceof ViolationFailReason) {
-			$this->violate($reason->level);
+			$this->violate();
 		}
 	}
 

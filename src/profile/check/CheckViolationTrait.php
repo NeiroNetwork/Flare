@@ -6,13 +6,19 @@ namespace NeiroNetwork\Flare\profile\check;
 
 trait CheckViolationTrait {
 
-	protected float $vl = 0;
+	protected int $vl = 0;
 
-	public function violate(float $level = 1): void {
-		$this->vl += $level * 100;
+	protected int $punishVl = (100 * 15);
+
+	public function getVL(): int {
+		return $this->vl;
 	}
 
-	public function reward(float $level = 0.01): void {
-		$this->vl = max(0, $this->vl - $level * 100);
+	public function violate(): void {
+		$this->vl += 100;
+	}
+
+	public function reward(): void {
+		$this->vl = max(0, $this->vl - 1);
 	}
 }
