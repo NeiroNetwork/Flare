@@ -10,6 +10,7 @@ use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionC;
+use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedA;
 use NeiroNetwork\Flare\profile\check\Observer;
 use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
@@ -58,6 +59,7 @@ class Profile {
 		$o->registerCheck(new MotionA($o));
 		$o->registerCheck(new MotionB($o));
 		$o->registerCheck(new MotionC($o));
+		$o->registerCheck(new SpeedA($o));
 	}
 
 	public function start(): void {
