@@ -49,6 +49,8 @@ class TransactionData {
 			false,
 			EventPriority::LOW
 		);
+
+		ProfileData::autoPropertyValue($this);
 	}
 
 	protected function handleContainerOpen(ContainerOpenPacket $packet): void {
