@@ -230,6 +230,11 @@ class MovementData {
 
 		$this->clientTick = 0;
 
+		$this->deltaXZ = 0.0;
+		$this->lastDeltaXZ = 0.0;
+		$this->realDeltaXZ = 0.0;
+		$this->lastRealDeltaXZ = 0.0;
+
 		ProfileData::autoPropertyValue($this);
 
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
@@ -267,10 +272,7 @@ class MovementData {
 
 		$rawRot = EntityRotation::create($packet->getYaw(), $packet->getPitch(), $packet->getHeadYaw());
 		$rot = EntityRotation::create(fmod($rawRot->yaw, 360), fmod($rawRot->pitch, 360), fmod($rawRot->headYaw, 360));
-		if ($rot->yaw < 0) {
-			$rot->yaw += 360;
-		}
-
+		EntityRotation::check($rot);
 
 		$this->lastFrom = clone $this->from;
 		$this->from = clone $this->to;
@@ -321,7 +323,7 @@ class MovementData {
 
 		$this->fly->update($player->getAllowFlight());
 
-		$roundedY = round($position->y, 6);
+		$roundedY = $this->roundedPosition->y;
 		$m = fmod($roundedY, 1 / 64);
 		$step = round($roundedY - floor($roundedY), 4);
 		if (
