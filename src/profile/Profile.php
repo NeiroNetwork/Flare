@@ -8,6 +8,8 @@ use Closure;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
+use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
+use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionC;
 use NeiroNetwork\Flare\profile\check\Observer;
 use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
@@ -54,6 +56,8 @@ class Profile {
 
 	protected function registerChecks(Observer $o): void {
 		$o->registerCheck(new MotionA($o));
+		$o->registerCheck(new MotionB($o));
+		$o->registerCheck(new MotionC($o));
 	}
 
 	public function start(): void {
