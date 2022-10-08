@@ -41,7 +41,6 @@ abstract class BaseCheck implements ICheck {
 		$this->pvl = max(0, $this->pvl + 100);
 
 		if ($this->pvl >= $this->pvlMax) {
-			$this->pvl *= 0.5;
 			return true;
 		}
 
