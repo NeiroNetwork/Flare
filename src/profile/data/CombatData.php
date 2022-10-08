@@ -85,7 +85,7 @@ class CombatData {
 
 		$emitter->registerPacketHandler(
 			$uuid,
-			AddPlayerPacket::NETWORK_ID,
+			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
 			EventPriority::LOW
