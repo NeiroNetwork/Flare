@@ -71,7 +71,7 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 
 				$diff = abs($expectedDeltaY - $deltaY);
 				$squaredDiff = $diff * 100;
-				$player->sendMessage("diff: $squaredDiff");
+				// $player->sendMessage("diff: $squaredDiff");
 				if ($squaredDiff > 0.6) {
 					if ($this->preFail()) {
 						$this->fail(new ViolationFailReason("Diff: $diff"));
