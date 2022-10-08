@@ -71,6 +71,11 @@ class CombatData {
 	 */
 	protected InstantActionRecord $swing;
 
+	/**
+	 * @var InstantActionRecord
+	 */
+	protected InstantActionRecord $knockback;
+
 	protected float $lastClickTime = 0;
 
 	public function __construct(protected Profile $profile) {
@@ -135,6 +140,17 @@ class CombatData {
 		);
 
 		$this->clickDelta = new NumericalSampling(20);
+
+		ProfileData::autoPropertyValue($this);
+
+		$this->clientAiming = null;
+		$this->clientAimingAt = new Vector3(0, 0, 0);
+
+		$this->lastHitEntity = null;
+		$this->hitEntity = null;
+
+		$this->hurtBy = null;
+		$this->lastHurtBy = null;
 	}
 
 	protected function handleSendAddPlayer(AddPlayerPacket $packet): void {
@@ -203,6 +219,7 @@ class CombatData {
 		$this->attack->update();
 		$this->swing->update();
 		$this->aim->update($this->clientAiming !== null);
+		$this->knockback->update();
 
 		$this->hurt->update();
 
@@ -223,6 +240,10 @@ class CombatData {
 		$entity = $event->getDamager();
 		$this->lastHurtBy = $this->hurtBy;
 		$this->hurtBy = $entity;
+
+		if ($event->getKnockBack() > 0.0) {
+			$this->knockback->onAction();
+		}
 	}
 
 	/**
@@ -318,5 +339,14 @@ class CombatData {
 
 	public function getClickDelta(): NumericalSampling {
 		return $this->clickDelta;
+	}
+
+	/**
+	 * Get the value of knockback
+	 *
+	 * @return InstantActionRecord
+	 */
+	public function getKnockbackRecord(): InstantActionRecord {
+		return $this->knockback;
 	}
 }

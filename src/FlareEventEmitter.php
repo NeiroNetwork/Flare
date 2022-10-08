@@ -59,6 +59,7 @@ class FlareEventEmitter {
 		$this->packetHandlers = [];
 		$this->eventHandlers = [];
 		$this->eventListeners = [];
+		$this->sendPacketHandlers = [];
 
 		$this->timings = FlareTimings::global()->eventEmitter;
 
@@ -129,8 +130,6 @@ class FlareEventEmitter {
 				}
 			}
 		}, true);
-
-		#print_r($this->eventHandlers);
 	}
 
 	public function registerEventHandler(string $event, ?Closure $handler = null, ?bool $handleCancelled = null, int $priority = EventPriority::NORMAL): ?RegisteredListener {
@@ -214,9 +213,6 @@ class FlareEventEmitter {
 		if ($handler !== null && $handleCancelled !== null) {
 			$sig = $handleCancelled ? 1 : 0;
 
-			$this->eventHandlers[$priority] ?? $this->eventHandlers[$priority] = [];
-			$this->eventHandlers[$priority][$event] ?? $this->eventHandlers[$priority][$event] = [];
-			$this->eventHandlers[$priority][$event][$sig] ?? $this->eventHandlers[$priority][$event][$sig] = [];
 			$this->eventHandlers[$priority][$event][$sig][] = $handler;
 
 			if ($handleCancelled) {
@@ -236,14 +232,10 @@ class FlareEventEmitter {
 		$rt->startTiming();
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->packetHandlers[$priority] ?? $this->packetHandlers[$priority] = [];
-		$this->packetHandlers[$priority][$playerUuid] ?? $this->packetHandlers[$priority][$playerUuid] = [];
-		$this->packetHandlers[$priority][$playerUuid][$networkId] ?? $this->packetHandlers[$priority][$playerUuid][$networkId] = [];
-		$this->packetHandlers[$priority][$playerUuid][$networkId][$sig] ?? $this->packetHandlers[$priority][$playerUuid][$networkId][$sig] = [];
 		$this->packetHandlers[$priority][$playerUuid][$networkId][$sig][] = $handler;
 
 		if ($handleCancelled) {
-			$this->packetHandlers[$priority][$playerUuid][$networkId][$sig][0] = $handler;
+			$this->packetHandlers[$priority][$playerUuid][$networkId][0][] = $handler;
 		}
 
 		$t->stopTiming();
@@ -257,14 +249,10 @@ class FlareEventEmitter {
 		$rt->startTiming();
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->sendPacketHandlers[$priority] ?? $this->packetHandlers[$priority] = [];
-		$this->sendPacketHandlers[$priority][$playerUuid] ?? $this->packetHandlers[$priority][$playerUuid] = [];
-		$this->sendPacketHandlers[$priority][$playerUuid][$networkId] ?? $this->packetHandlers[$priority][$playerUuid][$networkId] = [];
-		$this->sendPacketHandlers[$priority][$playerUuid][$networkId][$sig] ?? $this->packetHandlers[$priority][$playerUuid][$networkId][$sig] = [];
 		$this->sendPacketHandlers[$priority][$playerUuid][$networkId][$sig][] = $handler;
 
 		if ($handleCancelled) {
-			$this->sendPacketHandlers[$priority][$playerUuid][$networkId][$sig][0] = $handler;
+			$this->sendPacketHandlers[$priority][$playerUuid][$networkId][0][] = $handler;
 		}
 
 		$t->stopTiming();
@@ -279,15 +267,20 @@ class FlareEventEmitter {
 
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->playerEventHandlers[$priority] ?? $this->packetHandlers[$priority] = [];
-		$this->playerEventHandlers[$priority][$playerUuid] ?? $this->packetHandlers[$priority][$playerUuid] = [];
-		$this->playerEventHandlers[$priority][$playerUuid][$event] ?? $this->packetHandlers[$priority][$playerUuid][$event] = [];
-		$this->playerEventHandlers[$priority][$playerUuid][$event][$sig] ?? $this->packetHandlers[$priority][$playerUuid][$event][$sig] = [];
 		$this->playerEventHandlers[$priority][$playerUuid][$event][$sig][] = $handler;
 
 		if ($handleCancelled) {
 			$this->playerEventHandlers[$priority][$playerUuid][$event][0][] = $handler;
 		}
 		$rt->stopTiming();
+	}
+
+	/**
+	 * Get the value of packetHandlers
+	 *
+	 * @return array
+	 */
+	public function getPacketHandlers(): array {
+		return $this->packetHandlers;
 	}
 }

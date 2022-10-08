@@ -50,9 +50,19 @@ class MovementData {
 	protected Vector3 $delta;
 
 	/**
+	 * @var float
+	 */
+	protected float $deltaXZ;
+
+	/**
 	 * @var Vector3
 	 */
 	protected Vector3 $lastDelta;
+
+	/**
+	 * @var float
+	 */
+	protected float $lastDeltaXZ;
 
 	/**
 	 * @var Vector3
@@ -60,9 +70,24 @@ class MovementData {
 	protected Vector3 $realDelta;
 
 	/**
+	 * @var float
+	 */
+	protected float $realDeltaXZ;
+
+	/**
 	 * @var Vector3
 	 */
 	protected Vector3 $lastRealDelta;
+
+	/**
+	 * @var float
+	 */
+	protected float $lastRealDeltaXZ;
+
+	/**
+	 * @var Vector3
+	 */
+	protected Vector3 $lastFrom;
 
 	/**
 	 * @var Vector3
@@ -166,6 +191,8 @@ class MovementData {
 			EventPriority::LOWEST
 		);
 
+
+
 		$plugin->getServer()->getPluginManager()->registerEvent(
 			EntityMotionEvent::class,
 			Closure::fromCallable([$this, "handleMotion"]),
@@ -245,6 +272,7 @@ class MovementData {
 		}
 
 
+		$this->lastFrom = clone $this->from;
 		$this->from = clone $this->to;
 		$this->to = clone $position;
 
@@ -258,6 +286,9 @@ class MovementData {
 		$this->lastDelta = clone $this->delta;
 		$this->delta = clone $packet->getDelta();
 
+		$this->lastDeltaXZ = $this->deltaXZ;
+		$this->deltaXZ = $this->delta->x ** 2 + $this->delta->z ** 2;
+
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
 		$this->rotDelta = $this->rotation->subtract($this->lastRotation);
@@ -265,14 +296,17 @@ class MovementData {
 		$this->lastRealDelta = clone $this->realDelta;
 		$this->realDelta = clone $d;
 
+		$this->lastRealDeltaXZ = $this->realDeltaXZ;
+		$this->realDeltaXZ = $this->realDelta->x ** 2 + $this->realDelta->z ** 2;
+
 		if (!$player->hasBlockCollision()) {
 			$this->onGround->update(false);
 		} else {
-			$bb = clone $player->getBoundingBox();
+			$bb = clone $this->boundingBox;
 			$bb->minY = $position->y - 0.2;
 			$bb->maxY = $position->y + 0.1;
 
-			$bb = $bb->addCoord(-$d->x, -$d->y, -$d->z);
+			// $bb = $bb->addCoord(-$d->x, -$d->y, -$d->z);
 
 			$this->onGround->update(
 				count(BlockUtil::getFixedCollisionBlocks($player->getWorld(), $bb, true)) > 0
@@ -570,5 +604,50 @@ class MovementData {
 	 */
 	public function getRotationDelta(): EntityRotation {
 		return $this->rotDelta;
+	}
+
+	/**
+	 * Get the value of lastFrom
+	 *
+	 * @return Vector3
+	 */
+	public function getLastFrom(): Vector3 {
+		return $this->lastFrom;
+	}
+
+	/**
+	 * Get the value of deltaXZ
+	 *
+	 * @return float
+	 */
+	public function getDeltaXZ(): float {
+		return $this->deltaXZ;
+	}
+
+	/**
+	 * Get the value of lastDeltaXZ
+	 *
+	 * @return float
+	 */
+	public function getLastDeltaXZ(): float {
+		return $this->lastDeltaXZ;
+	}
+
+	/**
+	 * Get the value of realDeltaXZ
+	 *
+	 * @return float
+	 */
+	public function getRealDeltaXZ(): float {
+		return $this->realDeltaXZ;
+	}
+
+	/**
+	 * Get the value of lastRealDeltaXZ
+	 *
+	 * @return float
+	 */
+	public function getLastRealDeltaXZ(): float {
+		return $this->lastRealDeltaXZ;
 	}
 }

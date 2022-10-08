@@ -24,6 +24,8 @@ final class ProfileData {
 				$prop->setValue($obj, EntityRotation::create(0, 0));
 			} elseif ($name === "bool") {
 				$prop->setValue($obj, false);
+			} elseif ($name === "array") {
+				$prop->setValue($obj, []);
 			}
 		}
 	}

@@ -9,9 +9,14 @@ use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\Observer;
+use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
 use NeiroNetwork\Flare\profile\data\MovementData;
 use NeiroNetwork\Flare\profile\data\SurroundData;
+use NeiroNetwork\Flare\profile\data\TransactionData;
+use pocketmine\event\EventPriority;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\player\Player;
 
 class Profile {
@@ -27,6 +32,8 @@ class Profile {
 	protected ?KeyInputs $keyInputs;
 	protected ?MovementData $movementData;
 	protected ?SurroundData $surroundData;
+	protected ?CombatData $combatData;
+	protected ?TransactionData $transactionData;
 
 	protected bool $started;
 
@@ -38,6 +45,8 @@ class Profile {
 
 		$this->movementData = null;
 		$this->surroundData = null;
+		$this->combatData = null;
+		$this->transactionData = null;
 		$this->keyInputs = null;
 
 		$this->observer = new Observer($this);
@@ -60,7 +69,10 @@ class Profile {
 
 			$this->movementData = new MovementData($this);
 			$this->surroundData = new SurroundData($this);
+			$this->combatData = new CombatData($this);
+			$this->transactionData = new TransactionData($this);
 			$this->keyInputs = new KeyInputs($this);
+
 
 			$this->registerChecks($this->observer);
 		}
@@ -97,9 +109,27 @@ class Profile {
 	/**
 	 * Get the value of surroundData
 	 *
-	 * @return ?SurroundData
+	 * @return SurroundData
 	 */
-	public function getSurroundData(): ?SurroundData {
-		return $this->surroundData;
+	public function getSurroundData(): SurroundData {
+		return $this->surroundData ?? throw new \Exception("must not be called before start");
+	}
+
+	/**
+	 * Get the value of combatData
+	 *
+	 * @return CombatData
+	 */
+	public function getCombatData(): CombatData {
+		return $this->combatData ?? throw new \Exception("must not be called before start");
+	}
+
+	/**
+	 * Get the value of transactionData
+	 *
+	 * @return TransactionData
+	 */
+	public function getTransactionData(): TransactionData {
+		return $this->transactionData ?? throw new \Exception("must not be called before start");
 	}
 }
