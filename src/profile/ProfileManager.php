@@ -27,4 +27,8 @@ class ProfileManager {
 	public function remove(string $uuid) {
 		unset($this->list[$uuid]);
 	}
+
+	public function fetch(string $uuid): ?Profile {
+		return $this->list[$uuid] ?? null;
+	}
 }
