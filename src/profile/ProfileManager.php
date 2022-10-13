@@ -10,7 +10,7 @@ use pocketmine\player\Player;
 class ProfileManager {
 
 	/**
-	 * @var Profile[]
+	 * @var PlayerProfile[]
 	 */
 	protected array $list;
 
@@ -20,7 +20,7 @@ class ProfileManager {
 
 	public function start(Player $player): void {
 		$uuid = $player->getUniqueId()->toString();
-		$this->list[$uuid] = new Profile($this->flare, $player);
+		$this->list[$uuid] = new PlayerProfile($this->flare, $player);
 		$this->list[$uuid]->start();
 	}
 
@@ -28,7 +28,7 @@ class ProfileManager {
 		unset($this->list[$uuid]);
 	}
 
-	public function fetch(string $uuid): ?Profile {
+	public function fetch(string $uuid): ?PlayerProfile {
 		return $this->list[$uuid] ?? null;
 	}
 }

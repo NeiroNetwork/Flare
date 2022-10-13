@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
@@ -75,31 +75,33 @@ class SurroundData {
 	 */
 	protected ActionRecord $climb;
 
-	public function __construct(protected Profile $profile) {
+	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$emitter = $this->profile->getFlare()->getEventEmitter();
 		$plugin = $this->profile->getFlare()->getPlugin();
-		$emitter->registerPacketHandler(
+		$links = $this->profile->getEventHandlerLink();
+		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
 			EventPriority::LOW
-		);
+		));
 
-		$emitter->registerEventHandler(
+		($hash = $emitter->registerEventHandler(
 			BlockUpdateEvent::class,
 			Closure::fromCallable([$this, "handleBlockUpdate"]),
 			false,
 			EventPriority::MONITOR
-		);
+		)) !== null ? $links->add($hash) : null;
+		// fixme: E?
 
-		$emitter->registerEventHandler(
+		($hash = $emitter->registerEventHandler(
 			BlockFormEvent::class,
 			Closure::fromCallable([$this, "handleBlockForm"]),
 			false,
 			EventPriority::MONITOR
-		);
+		)) !== null ? $links->add($hash) : null;
 
 		ProfileData::autoPropertyValue($this);
 
@@ -153,9 +155,9 @@ class SurroundData {
 
 		$headBB = clone $playerBB;
 		$headBB->minY = $headBB->maxY; #bbのminYとmaxYを同じにする (意味はあまりないけど軽量化)
-		$headBB->maxY += 0.05; #maxYを上にずらす
+		$headBB->maxY += 0.12; #maxYを上にずらす
 		$headBB->expand(0.1, 0.0, 0.1); #少し横をかくちょうする
-		$headBB = $headBB->addCoord($d->x, max($d->y, 0), $d->z); #早い移動に対応、minYを伸ばさないようにする
+		// $headBB = $headBB->addCoord($d->x, max($d->y, 0), $d->z); #早い移動に対応、minYを伸ばさないようにする
 
 		foreach ($this->nearbyBlocks as $block) {
 			if ($block instanceof Cobweb) {

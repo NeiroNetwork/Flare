@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
 use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -78,66 +78,67 @@ class CombatData {
 
 	protected float $lastClickTime = 0;
 
-	public function __construct(protected Profile $profile) {
+	public function __construct(protected PlayerProfile $profile) {
 		$emitter = $this->profile->getFlare()->getEventEmitter();
 		$player = $profile->getPlayer();
 		$uuid = $player->getUniqueId()->toString();
+		$links = $this->profile->getEventHandlerLink();
 
-		$emitter->registerPacketHandler(
+		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
 			EventPriority::LOW
-		);
+		));
 
-		$emitter->registerSendPacketHandler(
+		$links->add($emitter->registerSendPacketHandler(
 			$uuid,
 			AddPlayerPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleSendAddPlayer"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-		$emitter->registerPacketHandler(
+		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			InteractPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInteract"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-		$emitter->registerPacketHandler(
+		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			LevelSoundEventPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleLevelSound"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-		$emitter->registerPlayerEventHandler(
+		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			EntityDamageEvent::class,
 			Closure::fromCallable([$this, "handleDamage"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-		$emitter->registerPlayerEventHandler(
+		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			EntityDamageByEntityEvent::class,
 			Closure::fromCallable([$this, "handleDamageByEntity"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-		$emitter->registerPlayerEventHandler(
+		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			PlayerAttackEvent::class,
 			Closure::fromCallable([$this, "handleAttack"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
 		$this->clickDelta = new NumericalSampling(20);
 

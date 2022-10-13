@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
@@ -22,7 +22,7 @@ class TransactionData {
 	 */
 	protected InstantActionRecord $inventoryClose;
 
-	public function __construct(protected Profile $profile) {
+	public function __construct(protected PlayerProfile $profile) {
 		$player = $profile->getPlayer();
 		$emitter = $profile->getFlare()->getEventEmitter();
 		$uuid = $player->getUniqueId()->toString();

@@ -30,7 +30,18 @@ interface ICheck {
 
 	public function onLoad(): void;
 
+	public function onUnload(): void;
+
 	public function setEnabled(bool $enabled = true): void;
 
 	public function isEnabled(): bool;
+
+	public function isExperimental(): bool;
+
+	/**
+	 * @return Observer
+	 * 
+	 * todo: remove this
+	 */
+	public function getObserver(): Observer;
 }

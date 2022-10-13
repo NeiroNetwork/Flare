@@ -10,6 +10,10 @@ trait CheckViolationTrait {
 
 	protected int $punishVl = (100 * 15);
 
+	public function getPunishVL(): int {
+		return $this->punishVl;
+	}
+
 	public function getVL(): int {
 		return $this->vl;
 	}

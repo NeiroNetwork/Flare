@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
@@ -18,15 +18,16 @@ class KeyInputs {
 	protected bool $d;
 	protected bool $jump;
 
-	public function __construct(protected Profile $profile) {
+	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
-		$this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
+		$links = $this->profile->getEventHandlerLink();
+		$links->add($this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
 		ProfileData::autoPropertyValue($this);
 	}

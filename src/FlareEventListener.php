@@ -58,6 +58,8 @@ class FlareEventListener implements Listener {
 		$this->playerFromAddress[$address] = $player;
 
 		$this->flare->getProfileManager()->start($player);
+
+		$this->flare->getReporter()->autoSubscribe($player);
 	}
 
 	public function onQuit(PlayerQuitEvent $event) {
@@ -68,6 +70,8 @@ class FlareEventListener implements Listener {
 		unset($this->playerFromAddress[$address]);
 
 		$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
+
+		$this->flare->getReporter()->autoUnsubscribe($player);
 	}
 
 	public function onNackReceive(NackReceiveEvent $event) {

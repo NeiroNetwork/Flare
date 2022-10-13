@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
 use NeiroNetwork\Flare\math\EntityRotation;
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
 use NeiroNetwork\Flare\utils\PlayerUtil;
 use pocketmine\event\entity\EntityMotionEvent;
@@ -179,54 +179,56 @@ class MovementData {
 	 */
 	protected InstantActionRecord $death;
 
-	public function __construct(protected Profile $profile) {
+	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$emitter = $this->profile->getFlare()->getEventEmitter();
 		$plugin = $this->profile->getFlare()->getPlugin();
-		$emitter->registerPacketHandler(
+
+
+		$links = $profile->getEventHandlerLink();
+
+		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
 			EventPriority::LOWEST
-		);
+		));
 
-
-
-		$plugin->getServer()->getPluginManager()->registerEvent(
+		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			EntityMotionEvent::class,
 			Closure::fromCallable([$this, "handleMotion"]),
 			EventPriority::MONITOR,
 			$plugin,
 			false
-		);
+		));
 
 		//todo: EventEmitter を改良する。 (軽量化)
 		// eventListenersにpriorityのキーを作って引数にそれも追加
 
-		$plugin->getServer()->getPluginManager()->registerEvent(
+		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			EntityTeleportEvent::class,
 			Closure::fromCallable([$this, "handleTeleport"]),
 			EventPriority::MONITOR,
 			$plugin,
 			false
-		);
+		));
 
-		$plugin->getServer()->getPluginManager()->registerEvent(
+		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerDeathEvent::class,
 			Closure::fromCallable([$this, "handleDeath"]),
 			EventPriority::MONITOR,
 			$plugin,
 			false
-		);
+		));
 
-		$plugin->getServer()->getPluginManager()->registerEvent(
+		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerRespawnEvent::class,
 			Closure::fromCallable([$this, "handleRespawn"]),
 			EventPriority::MONITOR,
 			$plugin,
 			false
-		);
+		));
 
 		$this->clientTick = 0;
 
@@ -305,8 +307,8 @@ class MovementData {
 			$this->onGround->update(false);
 		} else {
 			$bb = clone $this->boundingBox;
-			$bb->minY = $position->y - 0.2;
-			$bb->maxY = $position->y + 0.1;
+			$bb->minY = $bb->minY - 0.2;
+			$bb->maxY = $bb->maxY + 0.1;
 
 			// $bb = $bb->addCoord(-$d->x, -$d->y, -$d->z);
 

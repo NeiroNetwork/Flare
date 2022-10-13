@@ -10,14 +10,15 @@ use NeiroNetwork\Flare\profile\check\FailReason;
 use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\Profile;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 use pocketmine\world\biome\IcePlainsBiome;
 
-class FailReportContext implements ReportContext {
+class FailReportContent implements ReportContent {
 
 	public function __construct(
-		protected BaseCheck $cause,
+		protected ICheck $cause,
 		protected FailReason $failReason
 	) {
 		/*
@@ -26,17 +27,10 @@ class FailReportContext implements ReportContext {
 		*/
 	}
 
-	public function getText(Reporter $reporter, CommandSender $target): string {
-		$style = function (Profile $profile, ICheck $cause, FailReason $failReason): string {
-			$name = $profile->getPlayer()->getName();
-
-			$type = $cause instanceof BaseCheck ? $cause->getType() : "";
-			$typeStr = $type !== "" ? " ({$type})" : "";
-			return "§7$name / §f{$cause->getName()}{$typeStr}";
-		};
-
+	public function getText(CommandSender $target): string|Translatable {
 		$profile = $this->cause->getObserver()->getProfile();
+		$targetProfile = $target instanceof Player ? $profile->getFlare()->getProfileManager()->fetch($target->getUniqueId()->toString()) : $profile->getFlare()->getConsoleProfile();
 
-		return $style($target, $profile, $this->cause, $this->failReason);
+		return $targetProfile->getLogStyle()->fail($profile, $this->cause, $this->failReason);
 	}
 }

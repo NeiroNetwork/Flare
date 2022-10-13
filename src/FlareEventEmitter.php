@@ -45,10 +45,6 @@ class FlareEventEmitter {
 	 */
 	protected array $eventListeners;
 
-	protected RegisteredListener $packetListener;
-
-	protected RegisteredListener $sendPacketListener;
-
 	protected EventEmitterTimings $timings;
 
 	protected Flare $flare;
@@ -63,7 +59,7 @@ class FlareEventEmitter {
 
 		$this->timings = FlareTimings::global()->eventEmitter;
 
-		$this->packetListener = $this->registerEventHandler(DataPacketReceiveEvent::class, function (DataPacketReceiveEvent $event): void {
+		$this->registerEventHandler(DataPacketReceiveEvent::class, function (DataPacketReceiveEvent $event): void {
 			$packet = $event->getPacket();
 			$networkId = $packet->pid();
 			$origin = $event->getOrigin();
@@ -97,7 +93,7 @@ class FlareEventEmitter {
 			}
 		}, true);
 
-		$this->sendPacketListener = $this->registerEventHandler(DataPacketSendEvent::class, function (DataPacketSendEvent $event): void {
+		$this->registerEventHandler(DataPacketSendEvent::class, function (DataPacketSendEvent $event): void {
 			$t = $this->timings->summarizeHandler;
 			$t->startTiming();
 			$list = $this->sendPacketHandlers;
@@ -132,7 +128,68 @@ class FlareEventEmitter {
 		}, true);
 	}
 
-	public function registerEventHandler(string $event, ?Closure $handler = null, ?bool $handleCancelled = null, int $priority = EventPriority::NORMAL): ?RegisteredListener {
+	public function unregisterAll(string $hash): void {
+		// パンパンですよパンパン！(foreachが)
+		$runPlayerPacketHandler = function (array $handlers) use ($hash): array {
+			foreach ($handlers as $priority => $_d1) {
+				foreach ($_d1 as $playerUuid => $_d2) {
+					foreach ($_d2 as $networkId => $_d3) {
+						foreach ($_d3 as $sig => $_d4) {
+							foreach ($_d4 as $targetHash => $handler) { // エグいて
+								if ($hash === $targetHash) {
+									unset($handlers[$priority][$playerUuid][$networkId][$sig][$targetHash]);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return $handlers;
+		};
+
+		$runEventHandler = function (array $handlers) use ($hash): array {
+			foreach ($handlers as $priority => $_d1) {
+				foreach ($_d1 as $event => $_d2) {
+					foreach ($_d2 as $sig => $_d3) {
+						foreach ($_d3 as $targetHash => $handler) {
+							if ($hash === $targetHash) {
+								unset($handlers[$priority][$event][$sig][$targetHash]);
+							}
+						}
+					}
+				}
+			}
+
+			return $handlers;
+		};
+
+		$runPlayerEventHandler = function (array $handlers) use ($hash): array {
+			foreach ($handlers as $priority => $_d1) {
+				foreach ($_d1 as $playerUuid => $_d2) {
+					foreach ($_d2 as $event => $_d3) {
+						foreach ($_d3 as $sig => $_d4) {
+							foreach ($_d4 as $targetHash => $handler) {
+								if ($hash === $targetHash) {
+									unset($handlers[$priority][$playerUuid][$event][$sig][$targetHash]);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return $handlers;
+		};
+
+		$this->sendPacketHandlers = $runPlayerPacketHandler($this->sendPacketHandlers);
+		$this->packetHandlers = $runPlayerPacketHandler($this->packetHandlers);
+
+		$this->eventHandlers = $runEventHandler($this->eventHandlers);
+		$this->playerEventHandlers = $runPlayerEventHandler($this->playerEventHandlers);
+	}
+
+	public function registerEventHandler(string $event, ?Closure $handler = null, ?bool $handleCancelled = null, int $priority = EventPriority::NORMAL): ?string {
 		$rt = $this->timings->register;
 		$rt->startTiming();
 		// handleCancelled ではなく、 handleCancelled, handleUncancelled, handleAll のほうがいいのでは？
@@ -213,66 +270,91 @@ class FlareEventEmitter {
 		if ($handler !== null && $handleCancelled !== null) {
 			$sig = $handleCancelled ? 1 : 0;
 
-			$this->eventHandlers[$priority][$event][$sig][] = $handler;
+			$this->eventHandlers[$priority][$event][$sig][spl_object_hash($handler)] = $handler;
 
 			if ($handleCancelled) {
-				$this->eventHandlers[$priority][$event][0][] = $handler;
+				$this->eventHandlers[$priority][$event][0][spl_object_hash($handler)] = $handler;
 			}
 
 			// ここもなかなかエグい
+			return spl_object_hash($handler);
 		}
 
 		$rt->stopTiming();
 
-		return $listener;
+		return null;
 	}
 
-	public function registerPacketHandler(string $playerUuid, int $networkId, Closure $handler, bool $handleCancelled, int $priority = EventPriority::NORMAL): void {
+	public function registerPacketHandler(string $playerUuid, int $networkId, Closure $handler, bool $handleCancelled, int $priority = EventPriority::NORMAL): string {
 		$rt = $t = $this->timings->register;
 		$rt->startTiming();
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->packetHandlers[$priority][$playerUuid][$networkId][$sig][] = $handler;
+		$this->packetHandlers[$priority][$playerUuid][$networkId][$sig][spl_object_hash($handler)] = $handler;
 
 		if ($handleCancelled) {
-			$this->packetHandlers[$priority][$playerUuid][$networkId][0][] = $handler;
+			$this->packetHandlers[$priority][$playerUuid][$networkId][0][spl_object_hash($handler)] = $handler;
 		}
 
 		$t->stopTiming();
 
+		return spl_object_hash($handler);
+
 		// エグいて
 	}
 
+	public function unregisterPacketHandler(string $playerUuid, int $networkId, string $hash, ?int $priority = null): void {
+		$search = $priority !== null ? [$priority] : EventPriority::ALL;
 
-	public function registerSendPacketHandler(string $playerUuid, int $networkId, Closure $handler, bool $handleCancelled, int $priority = EventPriority::NORMAL): void {
+		foreach ($search as $priority) {
+			unset($this->packetHandlers[$priority][$playerUuid][$networkId][0][$hash]);
+			unset($this->packetHandlers[$priority][$playerUuid][$networkId][1][$hash]);
+		}
+	}
+
+	public function unregisterSendPacketHandler(string $playerUuid, int $networkId, string $hash, ?int $priority = null): void {
+		$search = $priority !== null ? [$priority] : EventPriority::ALL;
+
+		foreach ($search as $priority) {
+			unset($this->sendPacketHandlers[$priority][$playerUuid][$networkId][0][$hash]);
+			unset($this->sendPacketHandlers[$priority][$playerUuid][$networkId][1][$hash]);
+		}
+	}
+
+
+	public function registerSendPacketHandler(string $playerUuid, int $networkId, Closure $handler, bool $handleCancelled, int $priority = EventPriority::NORMAL): string {
 		$rt = $t = $this->timings->register;
 		$rt->startTiming();
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->sendPacketHandlers[$priority][$playerUuid][$networkId][$sig][] = $handler;
+		$this->sendPacketHandlers[$priority][$playerUuid][$networkId][$sig][spl_object_hash($handler)] = $handler;
 
 		if ($handleCancelled) {
-			$this->sendPacketHandlers[$priority][$playerUuid][$networkId][0][] = $handler;
+			$this->sendPacketHandlers[$priority][$playerUuid][$networkId][0][spl_object_hash($handler)] = $handler;
 		}
 
 		$t->stopTiming();
 
+		return spl_object_hash($handler);
+
 		// エグいて
 	}
 
-	public function registerPlayerEventHandler(string $playerUuid, string $event, Closure $handler, bool $handleCancelled = false, int $priority = EventPriority::NORMAL) {
+	public function registerPlayerEventHandler(string $playerUuid, string $event, Closure $handler, bool $handleCancelled = false, int $priority = EventPriority::NORMAL): string {
 		$this->registerEventHandler($event);
 		$rt = $t = $this->timings->register;
 		$rt->startTiming();
 
 		$sig = $handleCancelled ? 1 : 0;
 
-		$this->playerEventHandlers[$priority][$playerUuid][$event][$sig][] = $handler;
+		$this->playerEventHandlers[$priority][$playerUuid][$event][$sig][spl_object_hash($handler)] = $handler;
 
 		if ($handleCancelled) {
-			$this->playerEventHandlers[$priority][$playerUuid][$event][0][] = $handler;
+			$this->playerEventHandlers[$priority][$playerUuid][$event][0][spl_object_hash($handler)] = $handler;
 		}
 		$rt->stopTiming();
+
+		return spl_object_hash($handler);
 	}
 
 	/**

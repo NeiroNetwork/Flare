@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check;
 
-use NeiroNetwork\Flare\profile\Profile;
+use NeiroNetwork\Flare\profile\PlayerProfile;
 
 abstract class BaseCheck implements ICheck {
 	use CheckViolationTrait;
@@ -23,9 +23,9 @@ abstract class BaseCheck implements ICheck {
 	protected Observer $observer;
 
 	/**
-	 * @var Profile
+	 * @var PlayerProfile
 	 */
-	protected Profile $profile;
+	protected PlayerProfile $profile;
 
 	public function __construct(Observer $observer) {
 		$this->observer = $observer;
@@ -52,11 +52,13 @@ abstract class BaseCheck implements ICheck {
 	}
 
 	public function fail(FailReason $reason): void {
-		$ok = $this->observer->fail($this, $reason);
+		$ok = $this->observer->requestFail($this, $reason);
 
 		if (!$ok) {
 			return;
 		}
+
+		$this->observer->reportFail($this, $reason);
 
 		if ($reason instanceof ViolationFailReason) {
 			$this->violate();
@@ -88,5 +90,9 @@ abstract class BaseCheck implements ICheck {
 	}
 
 	public function onLoad(): void {
+	}
+
+	public function isExperimental(): bool {
+		return false;
 	}
 }
