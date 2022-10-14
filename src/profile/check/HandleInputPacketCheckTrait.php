@@ -13,11 +13,16 @@ trait HandleInputPacketCheckTrait {
 	private static string $hash = "";
 
 	protected function registerInputPacketHandler(): void {
-		$closure = Closure::fromCallable([$this, "handle"]);
 		self::$hash = $this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
 			$this->profile->getPlayer()->getUniqueId()->toString(),
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handle"]),
+			function (PlayerAuthInputPacket $packet): void {
+				if ($this->observer->isClosed()) {
+					return;
+				}
+
+				$this->handle($packet);
+			},
 			false,
 			EventPriority::HIGH
 		);

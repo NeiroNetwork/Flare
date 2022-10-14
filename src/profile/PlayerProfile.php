@@ -62,7 +62,7 @@ class PlayerProfile implements Profile {
 		$this->transactionData = null;
 		$this->keyInputs = null;
 
-		$this->logStyle = new PeekAntiCheatStyle;
+		$this->logStyle = new FlareStyle;
 
 		$this->observer = new Observer($this);
 	}
@@ -108,15 +108,15 @@ class PlayerProfile implements Profile {
 		if ($this->started) {
 			$this->eventLink->unregisterAll();
 
+			if (!$this->observer->isClosed()) {
+				$this->observer->close();
+			}
+
 			$this->movementData = null;
 			$this->surroundData = null;
 			$this->combatData = null;
 			$this->transactionData = null;
 			$this->keyInputs = null;
-
-			if (!$this->observer->isClosed()) {
-				$this->observer->close();
-			}
 		}
 	}
 

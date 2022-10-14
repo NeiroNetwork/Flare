@@ -17,6 +17,24 @@ class FlareStyle extends LogStyle {
 
 		$type = $cause instanceof BaseCheck ? $cause->getType() : "";
 		$typeStr = $type !== "" ? " ({$type})" : "";
-		return "§7$name §8/ §f{$cause->getName()}{$typeStr} ";
+
+
+		$percText = "";
+		if ($cause instanceof BaseCheck) {
+			$percentage = $cause->getVL() / $cause->getPunishVL();
+
+			$baseColor = "§f";
+			$base = str_repeat("|", 18);
+			if ($percentage < 1.0) {
+				$body = substr_replace($base, "§8", (int) (strlen($base) * $percentage), 0);
+			} else {
+				$baseColor = "§c";
+				$body = $base;
+			}
+
+
+			$percText = "§7[" . $baseColor . $body . "§7]";
+		}
+		return "§3$name §8/ §f{$cause->getName()}{$typeStr} {$percText}";
 	}
 }
