@@ -6,6 +6,7 @@ namespace NeiroNetwork\Flare;
 
 use Closure;
 use Exception;
+use NeiroNetwork\Flare\player\WatchBotTask;
 use NeiroNetwork\Flare\profile\ConsoleProfile;
 use NeiroNetwork\Flare\profile\ProfileManager;
 use NeiroNetwork\Flare\reporter\Reporter;
@@ -33,6 +34,8 @@ class Flare {
 
 	protected Reporter $reporter;
 
+	protected WatchBotTask $watchBotTask;
+
 	protected bool $started;
 
 	public function __construct(PluginBase $plugin) {
@@ -51,6 +54,8 @@ class Flare {
 		$this->eventListener = new FlareEventListener($this);
 
 		$this->profileManager = new ProfileManager($this);
+
+		$this->watchBotTask = new WatchBotTask();
 	}
 
 	public function start(): void {
@@ -58,7 +63,7 @@ class Flare {
 			$this->started = true;
 
 			$this->plugin->getServer()->getPluginManager()->registerEvents($this->eventListener, $this->plugin);
-
+			$this->plugin->getScheduler()->scheduleRepeatingTask($this->watchBotTask, 1);
 			$console = null;
 			foreach ($this->plugin->getServer()->getBroadcastChannelSubscribers(Server::BROADCAST_CHANNEL_ADMINISTRATIVE) as $subscriber) {
 				if ($subscriber instanceof ConsoleCommandSender) {
@@ -69,7 +74,6 @@ class Flare {
 			assert($console instanceof ConsoleCommandSender, new Exception("ConsoleCommandSender not subscribed in ADMINISTRATIVE"));
 
 			$this->consoleProfile = new ConsoleProfile($this, $console);
-
 
 			$this->reporter = new Reporter($this->plugin, $console);
 		}
@@ -101,5 +105,14 @@ class Flare {
 	 */
 	public function getReporter(): Reporter {
 		return $this->started ? $this->reporter : Utils::mustStartedException();
+	}
+
+	/**
+	 * Get the value of watchBotTask
+	 *
+	 * @return WatchBotTask
+	 */
+	public function getWatchBotTask(): WatchBotTask {
+		return $this->started ? $this->watchBotTask : Utils::mustStartedException();
 	}
 }

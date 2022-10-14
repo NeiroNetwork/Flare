@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\check;
 
 use Closure;
+use NeiroNetwork\Flare\player\WatchBot;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\reporter\FailReportContent;
@@ -18,6 +19,8 @@ use pocketmine\plugin\PluginManager;
 class Observer {
 
 	protected PlayerProfile $profile;
+
+	protected ?WatchBot $watchBot;
 
 	/**
 	 * @var ICheck[]
@@ -33,6 +36,13 @@ class Observer {
 		$this->profile = $profile;
 		$this->list = [];
 		$this->closed = false;
+		$this->watchBot = null;
+	}
+
+	public function spawnWatchBot(int $duration): void {
+		$this->watchBot = new WatchBot(WatchBot::createFakePlayer($this->profile->getPlayer()->getEyePos()->add(0, 0.3, 0)), $this->profile->getPlayer());
+
+		$this->profile->getFlare()->getWatchBotTask()->addBot($this->watchBot, $duration);
 	}
 
 	public function setEnabled(bool $enabled): void {
@@ -103,7 +113,7 @@ class Observer {
 		return $vl;
 	}
 
-	public function punish(): void {
+	public function doPunish(): void {
 		$this->profile->getPlayer()->kick("§7(Flare) §cKicked for §lUnfair Advantage");
 		$this->profile->close();
 	}
@@ -112,7 +122,11 @@ class Observer {
 		return true;
 	}
 
-	public function reportFail(ICheck $cause, FailReason $reason): void {
+	public function doFail(ICheck $cause, FailReason $reason): void {
 		$this->profile->getFlare()->getReporter()->report(new FailReportContent($cause, $reason));
+
+		if ($cause->getCheckGroup() === CheckGroup::COMBAT) {
+			$this->spawnWatchBot(120);
+		}
 	}
 }

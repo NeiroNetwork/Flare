@@ -10,14 +10,14 @@ use pocketmine\scheduler\Task;
 class WatchBotTask extends Task {
 
 	/**
-	 * @var (array{0: WatchBot, 1: int, 2: int})[]
+	 * @var (array{0: WatchBot, 1: int})[]
 	 */
 	private array $bots;
 
 	private array $sq;
 
-	public function addBot(WatchBot $bot, int $type, int $tick) {
-		$this->bots[] = [$bot, $type, $tick];
+	public function addBot(WatchBot $bot, int $tick) {
+		$this->bots[] = [$bot, $tick];
 		$bot->spawn();
 	}
 
@@ -29,10 +29,9 @@ class WatchBotTask extends Task {
 	public function onRun(): void {
 		foreach ($this->bots as $index => $p) {
 			$bot = $p[0];
-			$type = $p[1];
-			$tick = $p[2];
-			$this->bots[$index][2]--;
-			if ($this->bots[$index][2] <= 0 || !$bot->getPlayer()->isOnline()) {
+			$tick = $p[1];
+			$this->bots[$index][1]--;
+			if ($this->bots[$index][1] <= 0 || !$bot->getPlayer()->isOnline()) {
 				$bot->despawn();
 				$bot->destroyFakePlayer();
 				unset($this->bots[$index]);

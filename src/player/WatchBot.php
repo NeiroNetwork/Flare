@@ -6,6 +6,7 @@ namespace NeiroNetwork\Flare\player;
 
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\world\Position;
 
 class WatchBot {
 
@@ -62,10 +63,10 @@ class WatchBot {
 		$this->player = $player;
 	}
 
-	public function createFakePlayer() {
+	public static function createFakePlayer(Vector3 $position) {
 		$name = self::NAMES[array_rand(self::NAMES)];
 		$name .= mt_rand(0, 999);
-		$this->fakePlayer = FakePlayer::simple($name, $this->getPlayer()->getPosition()->asVector3()->add(0, 3.0, 0));
+		return FakePlayer::simple($name, $position);
 	}
 
 	public function destroyFakePlayer() {
