@@ -27,6 +27,8 @@ use pocketmine\utils\MainLogger;
 
 class Flare {
 
+	public const PREFIX = "§e★ §r";
+
 	protected PluginBase $plugin;
 
 	protected FlareEventEmitter $eventEmitter;

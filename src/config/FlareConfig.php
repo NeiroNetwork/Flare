@@ -76,16 +76,29 @@ class FlareConfig {
 
 	public function close(bool $save = true) {
 		if ($save) {
-			foreach (array_merge(
-				[
-					$this->generic,
-					$this->console,
-					$this->profileDefault
-				],
-				$this->playerConfig->getAll()
-			) as $config) {
+			foreach ($this->getAll() as $config) {
 				$config->save();
 			}
+		}
+	}
+
+	/**
+	 * @return Config[]
+	 */
+	public function getAll(): array {
+		return array_merge(
+			[
+				$this->generic,
+				$this->console,
+				$this->profileDefault
+			],
+			$this->playerConfig->getAll()
+		);
+	}
+
+	public function reloadAll(): void {
+		foreach ($this->getAll() as $config) {
+			$config->reload();
 		}
 	}
 
