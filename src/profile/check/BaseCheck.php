@@ -70,7 +70,7 @@ abstract class BaseCheck implements ICheck {
 	}
 
 	public function tryCheck(): bool {
-		return $this->enabled && !$this->observer->isClosed();
+		return $this->enabled && !$this->observer->isClosed() && $this->profile->getPlayer()->isConnected() && !$this->profile->getPlayer()->isClosed();
 	}
 
 	abstract public function getType(): string;

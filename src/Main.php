@@ -39,7 +39,7 @@ class Main extends PluginBase {
 
 		$map = $this->getServer()->getCommandMap();
 
-		$map->register("*reload", new ReloadCommand("*reload", "フレア全ての設定を再読み込みします"));
+		$map->register("*reload", new ReloadCommand("*reload", "フレアの全ての設定を再読み込みします"));
 		$map->register("*forcedefault", new ForceDefaultCommand("*forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"));
 	}
 
