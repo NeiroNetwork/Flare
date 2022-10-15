@@ -6,13 +6,18 @@ namespace NeiroNetwork\Flare;
 
 use Closure;
 use Exception;
+use NeiroNetwork\Flare\config\FlareConfig;
 use NeiroNetwork\Flare\player\WatchBotTask;
 use NeiroNetwork\Flare\profile\ConsoleProfile;
+use NeiroNetwork\Flare\profile\LogStyle;
 use NeiroNetwork\Flare\profile\ProfileManager;
+use NeiroNetwork\Flare\profile\style\FlareStyle;
+use NeiroNetwork\Flare\profile\style\PeekAntiCheatStyle;
 use NeiroNetwork\Flare\reporter\Reporter;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\event\EventPriority;
+use pocketmine\event\HandlerListManager;
 use pocketmine\event\RegisteredListener;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\plugin\PluginBase;
@@ -36,6 +41,8 @@ class Flare {
 
 	protected WatchBotTask $watchBotTask;
 
+	protected FlareConfig $config;
+
 	protected bool $started;
 
 	public function __construct(PluginBase $plugin) {
@@ -44,6 +51,9 @@ class Flare {
 		}
 
 		FlarePermissionNames::init();
+
+		LogStyle::register(new FlareStyle);
+		LogStyle::register(new PeekAntiCheatStyle);
 
 		$this->started = false;
 
@@ -56,6 +66,8 @@ class Flare {
 		$this->profileManager = new ProfileManager($this);
 
 		$this->watchBotTask = new WatchBotTask();
+
+		$this->config = new FlareConfig($plugin->getDataFolder());
 	}
 
 	public function start(): void {
@@ -76,6 +88,21 @@ class Flare {
 			$this->consoleProfile = new ConsoleProfile($this, $console);
 
 			$this->reporter = new Reporter($this->plugin, $console);
+		}
+	}
+
+	public function shutdown(bool $saveConfig = true): void {
+		if ($this->started) {
+
+			HandlerListManager::global()->unregisterAll($this->eventListener, $this->plugin);
+
+			$this->watchBotTask->getHandler()->cancel();
+
+			// todo: broadcast channel unscribe
+
+			$this->config->close($saveConfig);
+
+			$this->started = false;
 		}
 	}
 
@@ -114,5 +141,14 @@ class Flare {
 	 */
 	public function getWatchBotTask(): WatchBotTask {
 		return $this->started ? $this->watchBotTask : Utils::mustStartedException();
+	}
+
+	/**
+	 * Get the value of config
+	 *
+	 * @return FlareConfig
+	 */
+	public function getConfig(): FlareConfig {
+		return $this->config;
 	}
 }

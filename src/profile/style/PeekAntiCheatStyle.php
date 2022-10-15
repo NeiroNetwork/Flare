@@ -22,4 +22,8 @@ class PeekAntiCheatStyle extends LogStyle {
 		$typeStr = $type !== "" ? " ({$type})" : "";
 		return "§8[§7{$perc}%§8] §b{$profile->getName()}§8<§9{$ping}ms§8> §ffailed §c{$cause->getName()}{$typeStr}" . ($cause->isExperimental() ? "§l§e*§r" : "");
 	}
+
+	public function getAliases(): array {
+		return ["peekanticheatlite", "pac", "pacl"];
+	}
 }

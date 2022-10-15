@@ -6,6 +6,7 @@ namespace NeiroNetwork\Flare\profile;
 
 use Closure;
 use NeiroNetwork\Flare\Flare;
+use NeiroNetwork\Flare\profile\check\ICheck;
 use pocketmine\command\CommandSender;
 
 interface Profile {
@@ -19,4 +20,10 @@ interface Profile {
 	public function getLogStyle(): LogStyle;
 
 	public function getName(): string;
+
+	public function tryAlert(ICheck $check): bool;
+
+	public function tryLog(): bool;
+
+	public function getServerTick(): int;
 }

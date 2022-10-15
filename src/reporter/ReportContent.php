@@ -9,5 +9,5 @@ use pocketmine\lang\Translatable;
 
 interface ReportContent {
 
-	public function getText(CommandSender $target): string|Translatable;
+	public function getText(CommandSender $target): null|string|Translatable;
 }

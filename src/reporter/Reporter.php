@@ -69,7 +69,9 @@ class Reporter {
 		};
 
 		foreach ($this->plugin->getServer()->getBroadcastChannelSubscribers($channelId) as $subscriber) {
-			$subscriber->sendMessage($content->getText($subscriber));
+			if (($text = $content->getText($subscriber)) !== null) {
+				$subscriber->sendMessage($text);
+			}
 		}
 	}
 }

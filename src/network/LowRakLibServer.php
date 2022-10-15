@@ -90,7 +90,7 @@ class LowRakLibServer extends RakLibServer {
 			// 名前はtransparentなのに結局外部から変更できない。
 			$manager->registerRawDatagramHandler(function (Packet $packet, InternetAddress $address): bool {
 				if ($packet instanceof NACK) {
-					$this->nackThreadToMainBuffer->wri
+					$this->nackThreadToMainBuffer->write($packet);
 				}
 
 				return true;

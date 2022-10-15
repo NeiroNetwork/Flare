@@ -37,4 +37,8 @@ class FlareStyle extends LogStyle {
 		}
 		return "§3$name §8/ §f{$cause->getName()}{$typeStr} {$percText}";
 	}
+
+	public function getAliases(): array {
+		return ["flare"];
+	}
 }

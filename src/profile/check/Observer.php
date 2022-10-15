@@ -15,6 +15,7 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\EventPacket;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginManager;
+use pocketmine\utils\Utils;
 
 class Observer {
 
@@ -32,11 +33,26 @@ class Observer {
 	 */
 	protected bool $closed;
 
+	/**
+	 * @var bool
+	 */
+	protected bool $checkEnabled;
+
+	/**
+	 * @var bool
+	 */
+	protected bool $punishEnabled;
+
 	public function __construct(PlayerProfile $profile) {
 		$this->profile = $profile;
 		$this->list = [];
 		$this->closed = false;
 		$this->watchBot = null;
+
+		$conf = $profile->getConfig();
+
+		$this->checkEnabled = $conf->get("check");
+		$this->punishEnabled = $conf->get("punish");
 	}
 
 	public function spawnWatchBot(int $duration): void {
@@ -47,8 +63,10 @@ class Observer {
 
 	public function setEnabled(bool $enabled): void {
 		foreach ($this->list as $check) {
-			$enabled ? $check->onEnable() : $check->onDisable();
+			$check->setEnabled($enabled);
 		}
+
+		$this->checkEnabled = $enabled;
 	}
 
 	public function isClosed(): bool {
@@ -83,6 +101,8 @@ class Observer {
 		$this->list[$check->getFullId()] = $check;
 
 		$check->onLoad();
+
+		$check->setEnabled($this->checkEnabled);
 	}
 
 	public function getCheck(string $fullId): ?ICheck {
@@ -114,6 +134,10 @@ class Observer {
 	}
 
 	public function doPunish(): void {
+		// requestPunish に移動するべき？
+		if (!$this->punishEnabled) {
+			return;
+		}
 		$this->profile->getPlayer()->kick("§7(Flare) §cKicked for §lUnfair Advantage");
 		$this->profile->close();
 	}
@@ -128,5 +152,49 @@ class Observer {
 		if ($cause->getCheckGroup() === CheckGroup::COMBAT) {
 			$this->spawnWatchBot(120);
 		}
+	}
+
+	/**
+	 * Get the value of alertCooldown
+	 *
+	 * @return int
+	 */
+	public function getAlertCooldown(): int {
+		return $this->alertCooldown;
+	}
+
+	/**
+	 * Set the value of alertCooldown
+	 *
+	 * @param int $alertCooldown
+	 *
+	 * @return self
+	 */
+	public function setAlertCooldown(int $alertCooldown): self {
+		if ($alertCooldown < 0) {
+			throw new \Exception("alertCooldown range: 0 ~ PHP_INT_MAX");
+		}
+		Utils::checkFloatNotInfOrNaN("alertCooldown", $alertCooldown);
+		$this->alertCooldown = $alertCooldown;
+
+		return $this;
+	}
+
+	/**
+	 * Get the value of checkEnabled
+	 *
+	 * @return bool
+	 */
+	public function isCheckEnabled(): bool {
+		return $this->checkEnabled;
+	}
+
+	/**
+	 * Get the value of punishEnabled
+	 *
+	 * @return bool
+	 */
+	public function isPunishEnabled(): bool {
+		return $this->punishEnabled;
 	}
 }

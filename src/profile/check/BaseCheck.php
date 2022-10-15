@@ -69,6 +69,10 @@ abstract class BaseCheck implements ICheck {
 		}
 	}
 
+	public function tryCheck(): bool {
+		return $this->enabled && !$this->observer->isClosed();
+	}
+
 	abstract public function getType(): string;
 
 	final public function getFullId(): string {

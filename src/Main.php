@@ -25,4 +25,8 @@ class Main extends PluginBase {
 
 		$notifier->wakeupSleeper(); // ??? main -> main
 	}
+
+	protected function onDisable(): void {
+		$this->flare->shutdown();
+	}
 }

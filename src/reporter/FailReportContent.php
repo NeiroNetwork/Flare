@@ -27,10 +27,14 @@ class FailReportContent implements ReportContent {
 		*/
 	}
 
-	public function getText(CommandSender $target): string|Translatable {
+	public function getText(CommandSender $target): null|string|Translatable {
 		$profile = $this->cause->getObserver()->getProfile();
 		$targetProfile = $target instanceof Player ? $profile->getFlare()->getProfileManager()->fetch($target->getUniqueId()->toString()) : $profile->getFlare()->getConsoleProfile();
 
-		return $targetProfile->getLogStyle()->fail($profile, $this->cause, $this->failReason);
+		if ($targetProfile->tryAlert($this->cause)) {
+			return $targetProfile->getLogStyle()->fail($profile, $this->cause, $this->failReason);
+		}
+
+		return null;
 	}
 }

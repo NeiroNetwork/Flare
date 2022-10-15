@@ -7,6 +7,7 @@ namespace NeiroNetwork\Flare\profile;
 use Closure;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
+use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionC;
@@ -25,8 +26,11 @@ use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\player\Player;
+use pocketmine\utils\Config;
+use RuntimeException;
 
 class PlayerProfile implements Profile {
+	use CooldownLoggingTrait;
 
 	protected Flare $flare;
 
@@ -37,6 +41,8 @@ class PlayerProfile implements Profile {
 	protected LogStyle $logStyle;
 
 	protected Observer $observer;
+
+	protected Config $config;
 
 	protected ?KeyInputs $keyInputs;
 	protected ?MovementData $movementData;
@@ -51,10 +57,19 @@ class PlayerProfile implements Profile {
 	public function __construct(Flare $flare, Player $player) {
 		$this->flare = $flare;
 		$this->player = $player;
+		$this->config = $flare->getConfig()->getPlayerConfigStore()->get($player);
 		$this->client = Client::create($player->getNetworkSession());
 		$this->started = false;
 
 		$this->eventLink = new EventHandlerLink($flare);
+
+		$conf = $this->getConfig();
+
+		$this->alertCooldown = $conf->get("alert_cooldown");
+		$this->alertEnabled = $conf->get("alert");
+
+		$this->logCooldown = $conf->get("log_cooldown");
+		$this->logEnabled = $conf->get("log");
 
 		$this->movementData = null;
 		$this->surroundData = null;
@@ -62,7 +77,7 @@ class PlayerProfile implements Profile {
 		$this->transactionData = null;
 		$this->keyInputs = null;
 
-		$this->logStyle = new FlareStyle;
+		$this->logStyle = LogStyle::search($this->config->get("log_style")) ?? throw new RuntimeException("log style not found");
 
 		$this->observer = new Observer($this);
 	}
@@ -185,5 +200,16 @@ class PlayerProfile implements Profile {
 
 	public function getPing(): int {
 		return $this->player->getNetworkSession()->getPing() ?? -1; // return null?
+	}
+
+	/**
+	 * Get the value of config
+	 *
+	 * @return Config config
+	 * 
+	 * fixme: delete? internal? protected?
+	 */
+	public function getConfig(): Config {
+		return $this->config;
 	}
 }

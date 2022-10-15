@@ -17,11 +17,9 @@ trait HandleInputPacketCheckTrait {
 			$this->profile->getPlayer()->getUniqueId()->toString(),
 			PlayerAuthInputPacket::NETWORK_ID,
 			function (PlayerAuthInputPacket $packet): void {
-				if ($this->observer->isClosed()) {
-					return;
-				}
+				assert($this instanceof HandleInputPacketCheck);
 
-				$this->handle($packet);
+				if ($this->tryCheck()) $this->handle($packet);
 			},
 			false,
 			EventPriority::HIGH

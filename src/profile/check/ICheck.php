@@ -38,6 +38,8 @@ interface ICheck {
 
 	public function isExperimental(): bool;
 
+	public function tryCheck(): bool;
+
 	/**
 	 * @return Observer
 	 * 

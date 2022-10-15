@@ -38,7 +38,8 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 			$md->getTeleportRecord()->getTickSinceAction() >= 8 &&
 			$md->getGlideRecord()->getTickSinceAction() >= 10 &&
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
-			$sd->getClimbRecord()->getTickSinceAction() >= 5
+			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
+			$md->getFlyRecord()->getTickSinceAction() >= 6
 		) {
 			$predict = MinecraftPhysics::nextAirXZ($lastDist);
 			$diff = $dist - $predict;
