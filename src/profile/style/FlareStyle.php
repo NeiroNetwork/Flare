@@ -18,6 +18,12 @@ class FlareStyle extends LogStyle {
 		$type = $cause instanceof BaseCheck ? $cause->getType() : "";
 		$typeStr = $type !== "" ? " ({$type})" : "";
 
+		$checkColor = "§f";
+
+		if ($cause->isExperimental()) {
+			$checkColor = "§7§o";
+		}
+
 
 		$percText = "";
 		if ($cause instanceof BaseCheck) {
@@ -35,7 +41,7 @@ class FlareStyle extends LogStyle {
 
 			$percText = "§7[" . $baseColor . $body . "§7]";
 		}
-		return "§3$name §8/ §f{$cause->getName()}{$typeStr} {$percText}";
+		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText}";
 	}
 
 	public function getAliases(): array {

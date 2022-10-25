@@ -18,7 +18,7 @@ class Reporter {
 	const BROADCAST_CHANNEL_INSPECTOR = "flare.broadcast.inspector"; // check broadcast
 
 	public function __construct(protected PluginBase $plugin, protected ConsoleCommandSender $console) {
-		$this->subscribeInspector($console);
+		$this->autoSubscribe($console);
 	}
 
 	public function subscribeInspector(CommandSender $commandSender): void {
@@ -65,6 +65,7 @@ class Reporter {
 	public function report(ReportContent $content): void {
 		$channelId = match (true) {
 			$content instanceof FailReportContent => self::BROADCAST_CHANNEL_INSPECTOR,
+			$content instanceof LogReportContent => self::BROADCAST_CHANNEL, // いらない
 			default => self::BROADCAST_CHANNEL
 		};
 

@@ -34,6 +34,7 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck {
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
+		$ki = $this->profile->getKeyInputs();
 		$from = $md->getFrom();
 		$to = $md->getTo();
 
@@ -46,7 +47,7 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck {
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
 			$md->getAirRecord()->getLength() <= 300 && # 空中にいる時間が長くなるにつれて $accel は 0 に近づいてくるため
 			$sd->getFlowRecord()->getTickSinceAction() >= 5 &&
-			$md->getGlideRecord()->getTickSinceAction() >= 7 &&
+			$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
 			$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 3

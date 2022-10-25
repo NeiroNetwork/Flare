@@ -38,6 +38,16 @@ class SurroundData {
 	protected array $overheadBlocks;
 
 	/**
+	 * @var Block[]
+	 */
+	protected array $touchingBlocks;
+
+	/**
+	 * @var Block[]
+	 */
+	protected array $complexBlocks;
+
+	/**
 	 * @var Block
 	 */
 	protected Block $step;
@@ -85,7 +95,7 @@ class SurroundData {
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
-			EventPriority::LOW
+			EventPriority::NORMAL
 		));
 
 		($hash = $emitter->registerEventHandler(
@@ -137,7 +147,7 @@ class SurroundData {
 		$block = $player->getWorld()->getBlock($position);
 
 		$playerBB = $this->profile->getMovementData()->getBoundingBox();
-		$this->nearbyBlocks = BlockUtil::getEntityBlocksAround($playerBB, $player->getWorld());
+		$this->nearbyBlocks = BlockUtil::getEntityBlocksAround($playerBB, $player->getWorld(), -0.2);
 
 		$stepPos = $position->subtract(0, 0.74, 0);
 		$stepBlock = $player->getWorld()->getBlock($stepPos);
@@ -145,6 +155,11 @@ class SurroundData {
 		$this->step = $stepBlock;
 
 		$this->slip->update($stepBlock->getFrictionFactor() > 0.6);
+
+		$this->stepBlocks = [];
+		$this->touchingBlocks = [];
+		$this->overheadBlocks = [];
+		$this->complexBlocks = [];
 
 		$cobweb = false;
 		$flow = false;
@@ -159,6 +174,9 @@ class SurroundData {
 		$headBB->expand(0.1, 0.0, 0.1); #少し横をかくちょうする
 		// $headBB = $headBB->addCoord($d->x, max($d->y, 0), $d->z); #早い移動に対応、minYを伸ばさないようにする
 
+		$touchBB = clone $playerBB;
+		$touchBB->expand(0.14, 0.0, 0.14);
+
 		foreach ($this->nearbyBlocks as $block) {
 			if ($block instanceof Cobweb) {
 				$cobweb = true;
@@ -172,6 +190,10 @@ class SurroundData {
 				$climb = true;
 			}
 
+			if (count($block->getCollisionBoxes()) > 1) {
+				$this->complexBlocks[] = $block;
+			}
+
 			if ($block->getPosition()->y < $position->y) {
 				$this->stepBlocks[] = $block;
 			} elseif ($block->getPosition()->y > ($position->y + $player->size->getHeight())) {
@@ -183,6 +205,10 @@ class SurroundData {
 					$hittingHead = true;
 					$checkHittingHead = false;
 				}
+			}
+
+			if ($block->collidesWithBB($touchBB)) {
+				$this->touchingBlocks[] = $block;
 			}
 		}
 
@@ -266,5 +292,23 @@ class SurroundData {
 	 */
 	public function getStep(): Block {
 		return $this->step;
+	}
+
+	/**
+	 * Get the value of touchingBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getTouchingBlocks(): array {
+		return $this->touchingBlocks;
+	}
+
+	/**
+	 * Get the value of complexBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getComplexBlocks(): array {
+		return $this->complexBlocks;
 	}
 }

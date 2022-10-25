@@ -22,15 +22,12 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function onLoad(): void {
-		$this->registerInputPacketHandler();
-	}
-
 	public function handle(PlayerAuthInputPacket $packet): void {
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
 		$cd = $this->profile->getCombatData();
+		$ki = $this->profile->getKeyInputs();
 		$from = $md->getFrom();
 		$to = $md->getTo();
 		$lastFrom = $md->getLastFrom();
@@ -60,7 +57,7 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 				$md->getMotionRecord()->getTickSinceAction() >= 12 &&
 				$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
 				$sd->getHitHeadRecord()->getTickSinceAction() >= 4 &&
-				$md->getGlideRecord()->getTickSinceAction() >= 7 &&
+				$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
 				$cd->getKnockbackRecord()->getTickSinceAction() >= 20
 			) {
 				$this->preReward();

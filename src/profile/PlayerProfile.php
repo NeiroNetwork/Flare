@@ -8,10 +8,17 @@ use Closure;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\ICheck;
+use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionC;
+use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionD;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedA;
+use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedB;
+use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedC;
+use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedD;
+use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedE;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
 use NeiroNetwork\Flare\profile\check\Observer;
 use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
@@ -20,10 +27,13 @@ use NeiroNetwork\Flare\profile\data\SurroundData;
 use NeiroNetwork\Flare\profile\data\TransactionData;
 use NeiroNetwork\Flare\profile\style\FlareStyle;
 use NeiroNetwork\Flare\profile\style\PeekAntiCheatStyle;
+use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\EventHandlerLink;
+use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\command\CommandSender;
 use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\types\InputMode;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\player\Player;
 use pocketmine\utils\Config;
@@ -52,6 +62,9 @@ class PlayerProfile implements Profile {
 
 	protected EventHandlerLink $eventLink;
 
+	protected int $inputMode;
+	protected string $inputModeName;
+
 	protected bool $started;
 
 	public function __construct(Flare $flare, Player $player) {
@@ -77,9 +90,21 @@ class PlayerProfile implements Profile {
 		$this->transactionData = null;
 		$this->keyInputs = null;
 
+		$this->lastInputMode = -1;
+		$this->inputMode = -1;
+		$this->inputModeName = "unknown";
+
 		$this->logStyle = LogStyle::search($this->config->get("log_style")) ?? throw new RuntimeException("log style not found");
 
 		$this->observer = new Observer($this);
+
+		$this->eventLink->add($this->getFlare()->getEventEmitter()->registerPacketHandler(
+			$this->player->getUniqueId()->toString(),
+			PlayerAuthInputPacket::NETWORK_ID,
+			Closure::fromCallable([$this, "handleInput"]),
+			false,
+			EventPriority::HIGH
+		));
 	}
 
 	public function getEventHandlerLink(): EventHandlerLink {
@@ -91,10 +116,21 @@ class PlayerProfile implements Profile {
 	}
 
 	protected function registerChecks(Observer $o): void {
+		// todo: glob all checks?
 		$o->registerCheck(new MotionA($o));
 		$o->registerCheck(new MotionB($o));
 		$o->registerCheck(new MotionC($o));
+		$o->registerCheck(new MotionD($o));
 		$o->registerCheck(new SpeedA($o));
+		$o->registerCheck(new SpeedB($o));
+		$o->registerCheck(new SpeedC($o));
+		$o->registerCheck(new SpeedD($o));
+		$o->registerCheck(new SpeedE($o));
+		$o->registerCheck(new InvalidD($o));
+		$o->registerCheck(new JumpA($o));
+
+		// todo: Aim(C) の 1.0e-4以下のpitch diffを削除 (たまにある誤検知が直るかな？)
+		// finished: Speed(E) で移動速度の加速度検証 (move length 16 tick以内の時前回と同じ速度だったら検知？)
 	}
 
 	public function start(): void {
@@ -132,6 +168,21 @@ class PlayerProfile implements Profile {
 			$this->combatData = null;
 			$this->transactionData = null;
 			$this->keyInputs = null;
+		}
+	}
+
+	protected function handleInput(PlayerAuthInputPacket $packet): void {
+		$player = $this->player;
+		$inputMode = $packet->getInputMode();
+
+		if ($inputMode !== $this->inputMode) {
+			$toName = Utils::getNiceName(Utils::getEnumName(InputMode::class, $inputMode) ?? "unknown<{$inputMode}>"); // 重い？
+			$fromName = $this->inputModeName;
+
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが入力方法を変更しました §d($fromName -> $toName)", $this->flare));
+
+			$this->inputMode = $inputMode;
+			$this->inputModeName = $toName;
 		}
 	}
 

@@ -89,7 +89,7 @@ class CombatData {
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
-			EventPriority::LOW
+			EventPriority::NORMAL
 		));
 
 		$links->add($emitter->registerSendPacketHandler(

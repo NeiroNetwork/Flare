@@ -11,29 +11,29 @@ trait CooldownLoggingTrait {
 	/**
 	 * @var int[]
 	 */
-	protected array $lastAlertTicks;
+	protected array $lastAlertTicks = [];
 
 	/**
 	 * @var int
 	 */
-	protected int $alertCooldown;
+	protected int $alertCooldown = 0;
 
 	/**
 	 * @var int
 	 */
-	protected int $logCooldown;
+	protected int $logCooldown = 0;
 
 	/**
 	 * @var int
 	 */
-	protected int $lastLogTick;
+	protected int $lastLogTick = 0;
 
 	/**
 	 * @var bool
 	 */
-	protected bool $alertEnabled;
+	protected bool $alertEnabled = false;
 
-	protected bool $logEnabled;
+	protected bool $logEnabled = false;
 
 
 	public function tryAlert(ICheck $check): bool {

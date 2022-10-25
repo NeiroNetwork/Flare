@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace NeiroNetwork\Flare\profile\check\list\movement\jump;
+
+use NeiroNetwork\Flare\profile\check\BaseCheck;
+use NeiroNetwork\Flare\profile\check\CheckGroup;
+use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
+use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
+use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\ViolationFailReason;
+use NeiroNetwork\Flare\profile\data\ActionNotifier;
+use NeiroNetwork\Flare\profile\data\ActionRecord;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+
+class JumpA extends BaseCheck implements HandleInputPacketCheck {
+	use ClassNameAsCheckIdTrait;
+	use HandleInputPacketCheckTrait;
+
+	protected ?Vector3 $motion;
+	protected bool $jumpSprinting;
+
+	public function getCheckGroup(): int {
+		return CheckGroup::MOVEMENT;
+	}
+
+	public function onLoad(): void {
+		$this->registerInputPacketHandler();
+
+		$notifier = new ActionNotifier();
+		$notifier->notifyAction(function (ActionRecord $record): void {
+			$md = $this->profile->getMovementData();
+			$this->motion = $md->getDelta();
+			$this->motion->y = $this->profile->getPlayer()->getJumpVelocity();
+
+			$this->motion = MinecraftPhysics::previousFreefallVelocity($this->motion);
+			$this->jumpSprinting = $this->profile->getPlayer()->isSprinting();
+		});
+		$this->profile->getMovementData()->getJumpRecord()->notify($notifier);
+
+		$this->motion = null;
+		$this->jumpSprinting = false;
+	}
+
+	public function handle(PlayerAuthInputPacket $packet): void {
+		$player = $this->profile->getPlayer();
+		$md = $this->profile->getMovementData();
+		$sd = $this->profile->getSurroundData();
+		$cd = $this->profile->getCombatData();
+		$ki = $this->profile->getKeyInputs();
+
+		if ($this->motion !== null) {
+			if (
+				abs($md->getRotation()->yaw - $md->getLastRotation()->yaw) > 3 ||
+				$sd->getHitHeadRecord()->getLength() >= 1 ||
+				$md->getRonGroundRecord()->getLength() >= 1 ||
+				$md->getOnGroundRecord()->getLength() >= 2 ||
+				$md->getMotionRecord()->getTickSinceAction() <= 5 ||
+				$md->getTeleportRecord()->getTickSinceAction() <= 6 ||
+				$ki->getGlideRecord()->getTickSinceAction() <= 8 ||
+				$sd->getBounceRecord()->getTickSinceAction() <= 20 ||
+				$sd->getFlowRecord()->getTickSinceAction() <= 10 ||
+				$sd->getSlipRecord()->getTickSinceAction() <= 10 ||
+				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
+				$player->isImmobile() ||
+				count($sd->getTouchingBlocks()) > 0 ||
+				$player->isSprinting() !== $this->jumpSprinting
+			) {
+				$this->motion = null;
+				$this->jumpSprinting = false;
+				return;
+			}
+
+			$rot = $md->getRotation();
+			$motion = $md->getDelta();
+
+			$sprintMotion = MinecraftPhysics::moveFlying(
+				$ki->forwardValue() * ($player->getMovementSpeed() * 10),
+				$ki->strafeValue() * ($player->getMovementSpeed() * 10),
+				$rot->yaw,
+				MinecraftPhysics::FRICTION_AIR
+			);
+
+			$this->motion = MinecraftPhysics::nextFreefallVelocity($this->motion->addVector($sprintMotion));
+
+			$motionLength = $motion->lengthSquared();
+			$predictionLength = $this->motion->lengthSquared();
+
+			$diff = 0;
+			if ($motionLength <= $predictionLength) {
+				$diff = $this->motion->subtractVector($motion)->length();
+			}
+
+			if ($diff > 0.07 && $md->getAirRecord()->getLength() >= 5) {
+				$this->fail(new ViolationFailReason("Diff: $diff"));
+			}
+		}
+	}
+}

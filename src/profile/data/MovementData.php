@@ -8,11 +8,14 @@ use Closure;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use NeiroNetwork\Flare\utils\PlayerUtil;
+use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\event\entity\EntityMotionEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerJumpEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
@@ -20,6 +23,7 @@ use pocketmine\network\mcpe\handler\InGamePacketHandler;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\player\Player;
 
 class MovementData {
@@ -43,6 +47,16 @@ class MovementData {
 	 * @var int
 	 */
 	protected int $clientTick;
+
+	/**
+	 * @var float
+	 */
+	protected float $movementSpeed;
+
+	/**
+	 * @var float
+	 */
+	protected float $lastMovementSpeed;
 
 	/**
 	 * @var Vector3
@@ -121,6 +135,10 @@ class MovementData {
 	/**
 	 * @var ActionRecord
 	 */
+	protected ActionRecord $clientOnGround;
+	/**
+	 * @var ActionRecord
+	 */
 	protected ActionRecord $air;
 	/**
 	 * @var ActionRecord
@@ -141,19 +159,15 @@ class MovementData {
 	/**
 	 * @var ActionRecord
 	 */
+	protected ActionRecord $move;
+	/**
+	 * @var ActionRecord
+	 */
 	protected ActionRecord $void;
 	/**
 	 * @var InstantActionRecord
 	 */
 	protected InstantActionRecord $join;
-	/**
-	 * @var ActionRecord
-	 */
-	protected ActionRecord $glide;
-	/**
-	 * @var ActionRecord
-	 */
-	protected ActionRecord $swim;
 	/**
 	 * @var InstantActionRecord
 	 */
@@ -167,10 +181,6 @@ class MovementData {
 	 */
 	protected InstantActionRecord $teleport;
 	/**
-	 * @var ActionRecord
-	 */
-	protected ActionRecord $sprint;
-	/**
 	 * @var InstantActionRecord
 	 */
 	protected InstantActionRecord $respawn;
@@ -178,6 +188,16 @@ class MovementData {
 	 * @var InstantActionRecord
 	 */
 	protected InstantActionRecord $death;
+
+	/**
+	 * @var InstantActionRecord
+	 */
+	protected InstantActionRecord $speedChange;
+
+	/**
+	 * @var InstantActionRecord
+	 */
+	protected InstantActionRecord $sneakChange;
 
 	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
@@ -192,7 +212,7 @@ class MovementData {
 			PlayerAuthInputPacket::NETWORK_ID,
 			Closure::fromCallable([$this, "handleInput"]),
 			false,
-			EventPriority::LOWEST
+			EventPriority::LOW
 		));
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
@@ -230,6 +250,14 @@ class MovementData {
 			false
 		));
 
+		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
+			PlayerJumpEvent::class,
+			Closure::fromCallable([$this, "handleJump"]),
+			EventPriority::MONITOR,
+			$plugin,
+			false
+		));
+
 		$this->clientTick = 0;
 
 		$this->deltaXZ = 0.0;
@@ -242,6 +270,12 @@ class MovementData {
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 
 		$this->join->onAction();
+	}
+
+	protected function handleJump(PlayerJumpEvent $event): void {
+		if ($event->getPlayer() === $this->profile->getPlayer()) {
+			$this->jump->onAction();
+		}
 	}
 
 	protected function handleRespawn(PlayerRespawnEvent $event): void {
@@ -270,6 +304,7 @@ class MovementData {
 
 	protected function handleInput(PlayerAuthInputPacket $packet): void {
 		$player = $this->profile->getPlayer();
+		$ki = $this->profile->getKeyInputs();
 		$position = $packet->getPosition()->subtract(0, 1.62, 0);
 
 		$rawRot = EntityRotation::create($packet->getYaw(), $packet->getPitch(), $packet->getHeadYaw());
@@ -303,6 +338,9 @@ class MovementData {
 		$this->lastRealDeltaXZ = $this->realDeltaXZ;
 		$this->realDeltaXZ = $this->realDelta->x ** 2 + $this->realDelta->z ** 2;
 
+		$this->lastMovementSpeed = $this->movementSpeed;
+		$this->movementSpeed = $player->getMovementSpeed() * ($ki->getSprintRecord()->getFlag() ? 1.3 : 1.0); // + sneak? でも本来はsneakしてもmovementSpeedは変わらない
+
 		if (!$player->hasBlockCollision()) {
 			$this->onGround->update(false);
 		} else {
@@ -317,6 +355,8 @@ class MovementData {
 			);
 		}
 
+		$this->clientOnGround->update(abs($this->delta->y - MinecraftPhysics::nextFreefallVelocity(Vector3::zero())->y) < 1.0E-8);
+
 		$this->air->update(!$this->onGround->getFlag());
 
 		$this->immobile->update($player->isImmobile());
@@ -324,6 +364,8 @@ class MovementData {
 		$this->void->update($position->y <= -39.75);
 
 		$this->fly->update($player->getAllowFlight());
+
+		$this->move->update($packet->getMoveVecX() > 0 || $packet->getMoveVecZ() > 0);
 
 		$roundedY = $this->roundedPosition->y;
 		$m = fmod($roundedY, 1 / 64);
@@ -340,11 +382,11 @@ class MovementData {
 		$this->ronGround->update(!$m);
 		$this->rair->update(!$this->ronGround->getFlag());
 
-		$this->glide->update(PlayerUtil::isGenericFlag($player, EntityMetadataFlags::GLIDING));
+		if ($this->movementSpeed !== $this->lastMovementSpeed) {
+			$this->speedChange->onAction();
+		}
 
-		$this->swim->update(PlayerUtil::isGenericFlag($player, EntityMetadataFlags::SWIMMING));
-
-		$this->sprint->update($player->isSprinting());
+		$this->speedChange->update();
 		$this->join->update();
 		$this->motion->update();
 		$this->teleport->update();
@@ -485,24 +527,6 @@ class MovementData {
 	}
 
 	/**
-	 * Get the value of glide
-	 *
-	 * @return ActionRecord
-	 */
-	public function getGlideRecord(): ActionRecord {
-		return $this->glide;
-	}
-
-	/**
-	 * Get the value of swim
-	 *
-	 * @return ActionRecord
-	 */
-	public function getSwimRecord(): ActionRecord {
-		return $this->swim;
-	}
-
-	/**
 	 * Get the value of motion
 	 *
 	 * @return InstantActionRecord
@@ -527,15 +551,6 @@ class MovementData {
 	 */
 	public function getTeleportRecord(): InstantActionRecord {
 		return $this->teleport;
-	}
-
-	/**
-	 * Get the value of sprint
-	 *
-	 * @return ActionRecord
-	 */
-	public function getSprintRecord(): ActionRecord {
-		return $this->sprint;
 	}
 
 	/**
@@ -653,5 +668,32 @@ class MovementData {
 	 */
 	public function getLastRealDeltaXZ(): float {
 		return $this->lastRealDeltaXZ;
+	}
+
+	/**
+	 * Get the value of move
+	 *
+	 * @return ActionRecord
+	 */
+	public function getMoveRecord(): ActionRecord {
+		return $this->move;
+	}
+
+	/**
+	 * Get the value of speedChange
+	 *
+	 * @return InstantActionRecord
+	 */
+	public function getSpeedChangeRecord(): InstantActionRecord {
+		return $this->speedChange;
+	}
+
+	/**
+	 * Get the value of clientOnGround
+	 *
+	 * @return ActionRecord
+	 */
+	public function getClientOnGroundRecord(): ActionRecord {
+		return $this->clientOnGround;
 	}
 }

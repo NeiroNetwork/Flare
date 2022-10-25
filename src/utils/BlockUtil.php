@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\utils;
 
+use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Door;
@@ -65,7 +66,7 @@ class BlockUtil {
 			for ($x = $minX; $x <= $maxX; ++$x) {
 				for ($y = $minY; $y <= $maxY; ++$y) {
 					$block = $world->getBlockAt($x, $y, $z);
-					if (($block->hasEntityCollision())) {
+					if (!$block instanceof Air) {
 						$blocksAround[] = $block;
 					}
 				}

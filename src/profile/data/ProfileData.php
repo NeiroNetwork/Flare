@@ -26,6 +26,8 @@ final class ProfileData {
 				$prop->setValue($obj, false);
 			} elseif ($name === "array") {
 				$prop->setValue($obj, []);
+			} elseif ($name === "float" || $name === "int") {
+				$prop->setValue($obj, 0);
 			}
 		}
 	}

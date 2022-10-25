@@ -38,22 +38,17 @@ class EntityRotation {
 		$r->yaw += $yaw;
 		$r->pitch = $pitch;
 		$r->headYaw += $headYaw ?? $yaw;
-		self::check($r);
 		return $r;
 	}
 
 	public function add(EntityRotation $r2): self {
 		$r = clone $this;
-		$r->rotate($r2->yaw, $r2->pitch, $r2->headYaw);
-		self::check($r);
-		return $r;
+		return $r->rotate($r2->yaw, $r2->pitch, $r2->headYaw);
 	}
 
 	public function subtract(EntityRotation $r2): self {
 		$r = clone $this;
-		$r->rotate(-$r2->yaw, -$r2->pitch, -$r2->headYaw);
-		self::check($r);
-		return $r;
+		return $r->rotate(-$r2->yaw, -$r2->pitch, -$r2->headYaw);
 	}
 
 	public static function check(EntityRotation $rot): void {

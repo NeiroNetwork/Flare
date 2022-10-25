@@ -17,10 +17,6 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function onLoad(): void {
-		$this->registerInputPacketHandler();
-	}
-
 	public function getCheckGroup(): int {
 		return CheckGroup::MOVEMENT;
 	}
@@ -29,6 +25,7 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
+		$ki = $this->profile->getKeyInputs();
 
 		$dist = $md->getRealDeltaXZ();
 		$lastDist = $md->getLastRealDeltaXZ();
@@ -36,7 +33,7 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 			($md->getAirRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 5) &&
 			$md->getMotionRecord()->getTickSinceAction() >= 10 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 8 &&
-			$md->getGlideRecord()->getTickSinceAction() >= 10 &&
+			$ki->getGlideRecord()->getTickSinceAction() >= 10 &&
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 6
