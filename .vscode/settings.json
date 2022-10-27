@@ -7,6 +7,10 @@
 		"markdown",
 		"php"
 	],
+	"intelephense.environment.includePaths": [
+		"../../virions",
+		"../../../../.vscode/pmmp_source"
+	],
 	"files.insertFinalNewline": true, // .editerconfig の仕様に合わせる
 	"[yaml]": {
 		"editor.insertSpaces": true,
