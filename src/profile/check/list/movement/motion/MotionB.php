@@ -23,6 +23,7 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 	}
 
 	public function handle(PlayerAuthInputPacket $packet): void {
+		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();

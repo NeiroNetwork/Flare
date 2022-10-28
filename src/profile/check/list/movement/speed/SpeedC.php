@@ -37,6 +37,7 @@ class SpeedC extends BaseCheck implements HandleInputPacketCheck {
 
 
 	public function handle(PlayerAuthInputPacket $packet): void {
+		$this->reward();
 		//$this->debug((string) $this->profile->getMovementData()->getDistance());
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();

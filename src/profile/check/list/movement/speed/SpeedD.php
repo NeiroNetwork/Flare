@@ -24,6 +24,7 @@ class SpeedD extends BaseCheck implements HandleInputPacketCheck {
 	}
 
 	public function handle(PlayerAuthInputPacket $packet): void {
+		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
@@ -42,8 +43,8 @@ class SpeedD extends BaseCheck implements HandleInputPacketCheck {
 			$sd->getCollideUpdateRecord()->getTickSinceAction() >= 20 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 15 &&
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
-			$md->getSpeedChangeRecord()->getTickSinceAction() >= 5 &&
-			$ki->getSneakChangeRecord()->getTickSinceAction() >= 5 &&
+			$md->getSpeedChangeRecord()->getTickSinceAction() >= 7 &&
+			$ki->getSneakChangeRecord()->getTickSinceAction() >= 8 &&
 			count($sd->getComplexBlocks()) <= 0 &&
 			$diffYaw < 20 &&
 			$md->getMoveRecord()->getLength() >= 12 &&
