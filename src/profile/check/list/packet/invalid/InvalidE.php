@@ -20,6 +20,7 @@ class InvalidE extends BaseCheck implements HandleInputPacketCheck {
 	}
 
 	public function handle(PlayerAuthInputPacket $packet): void {
+		$this->reward();
 		$player = $this->profile->getPlayer();
 
 		$ki = $this->profile->getKeyInputs();
