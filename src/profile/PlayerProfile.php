@@ -65,6 +65,8 @@ class PlayerProfile implements Profile {
 	protected int $inputMode;
 	protected string $inputModeName;
 
+	protected bool $dataReportEnabled;
+
 	protected bool $started;
 
 	public function __construct(Flare $flare, Player $player) {
@@ -83,6 +85,12 @@ class PlayerProfile implements Profile {
 
 		$this->logCooldown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
+
+		/**
+		 * // fixme: start後は無理やり変更しても反映されない
+		 * @see MovementData ::__construct
+		 */
+		$this->dataReportEnabled = $conf->get("collection");
 
 		$this->movementData = null;
 		$this->surroundData = null;
@@ -155,7 +163,15 @@ class PlayerProfile implements Profile {
 		}
 	}
 
+
 	public function close(): void {
+		if ($this->started) {
+			$this->shutdown();
+			$this->started = true;
+		}
+	}
+
+	public function shutdown(): void {
 		if ($this->started) {
 			$this->eventLink->unregisterAll();
 
@@ -168,6 +184,17 @@ class PlayerProfile implements Profile {
 			$this->combatData = null;
 			$this->transactionData = null;
 			$this->keyInputs = null;
+
+			$this->observer = new Observer($this);
+
+			$this->started = false;
+		}
+	}
+
+	public function reload(): void {
+		if ($this->started) {
+			$this->shutdown();
+			$this->start();
 		}
 	}
 
@@ -250,7 +277,7 @@ class PlayerProfile implements Profile {
 	}
 
 	public function getPing(): int {
-		return $this->player->getNetworkSession()->getPing() ?? -1; // return null?
+		return Utils::getPing($this->player);
 	}
 
 	/**
@@ -262,5 +289,14 @@ class PlayerProfile implements Profile {
 	 */
 	public function getConfig(): Config {
 		return $this->config;
+	}
+
+	/**
+	 * Get the value of dataReportEnabled
+	 *
+	 * @return bool
+	 */
+	public function isDataReportEnabled(): bool {
+		return $this->dataReportEnabled;
 	}
 }

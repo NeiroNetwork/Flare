@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\utils;
 
+use pocketmine\player\Player;
+use pocketmine\Server;
 use pocketmine\utils\Utils as PMUtils;
+use NeiroNetwork\WaterdogPEAccepter\api\WdpePlayer;
 
 class Utils {
 
@@ -35,5 +38,13 @@ class Utils {
 		}
 		//neither flag was set, or both were set
 		return null;
+	}
+
+	public static function getPing(Player $player): int {
+		if (Server::getInstance()->getPluginManager()->getPlugin("WaterdogPEAccepter") !== null) {
+			return WdpePlayer::getRespondTime($player);
+		} else {
+			return $player->getNetworkSession()->getPing();
+		}
 	}
 }
