@@ -30,6 +30,8 @@ class KeyInputs {
 	protected float $lastForwardValue;
 	protected float $lastStrafeValue;
 
+	protected int $lastInputFlags;
+
 	/**
 	 * @var ActionRecord
 	 */
@@ -120,15 +122,22 @@ class KeyInputs {
 		$this->d = $packet->hasFlag(PlayerAuthInputFlags::RIGHT);
 
 		$inputFlags = $packet->getInputFlags();
-		$sneaking = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING) ?? false;
-		$sprinting = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING) ?? false;
-		$swimming = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING) ?? false;
-		$gliding = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING) ?? false;
 
-		if ($sneaking !== null)  $this->sneaking = $sneaking;
-		if ($swimming !== null)  $this->swimming = $swimming;
-		if ($sprinting !== null) $this->sprinting = $sprinting;
-		if ($gliding !== null)   $this->gliding = $gliding;
+
+		if ($this->lastInputFlags !== $inputFlags) {
+			$sneaking = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
+			$sprinting = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
+			$swimming = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING);
+			$gliding = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING);
+
+			if ($sneaking !== null)  $this->sneaking = $sneaking;
+			if ($swimming !== null)  $this->swimming = $swimming;
+			if ($sprinting !== null) $this->sprinting = $sprinting;
+			if ($gliding !== null)   $this->gliding = $gliding;
+
+			$this->lastInputFlags = $inputFlags;
+		}
+
 
 		$this->glide->update($this->gliding);
 		$this->swim->update($this->swimming);
