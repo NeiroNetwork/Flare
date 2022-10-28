@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\data;
 
 use Closure;
+use NeiroNetwork\Flare\data\report\DataReport;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
@@ -199,11 +200,19 @@ class MovementData {
 	 */
 	protected InstantActionRecord $sneakChange;
 
+	protected ?DataReport $rotationDataReport;
+
 	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$emitter = $this->profile->getFlare()->getEventEmitter();
 		$plugin = $this->profile->getFlare()->getPlugin();
 
+		$this->rotationDataReport = null;
+		if ($profile->isDataReportEnabled()) {
+			$this->rotationDataReport = new DataReport();
+
+			$profile->getFlare()->getDataReportManager()->setDefault($uuid, "rotation_delta", $this->rotationDataReport);
+		}
 
 		$links = $profile->getEventHandlerLink();
 
@@ -331,6 +340,8 @@ class MovementData {
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
 		$this->rotDelta = $this->rotation->subtract($this->lastRotation);
+
+		$this->rotationDataReport?->add([$this->rotDelta->yaw, $this->rotDelta->pitch]); // data report
 
 		$this->lastRealDelta = clone $this->realDelta;
 		$this->realDelta = clone $d;
