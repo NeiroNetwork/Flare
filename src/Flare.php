@@ -7,6 +7,7 @@ namespace NeiroNetwork\Flare;
 use Closure;
 use Exception;
 use NeiroNetwork\Flare\config\FlareConfig;
+use NeiroNetwork\Flare\data\report\DataReportManager;
 use NeiroNetwork\Flare\player\WatchBotTask;
 use NeiroNetwork\Flare\profile\ConsoleProfile;
 use NeiroNetwork\Flare\profile\LogStyle;
@@ -24,6 +25,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginLogger;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
+use Webmozart\PathUtil\Path;
 
 class Flare {
 
@@ -42,6 +44,8 @@ class Flare {
 	protected Reporter $reporter;
 
 	protected WatchBotTask $watchBotTask;
+
+	protected DataReportManager $dataReportManager;
 
 	protected FlareConfig $config;
 
@@ -68,6 +72,8 @@ class Flare {
 		$this->profileManager = new ProfileManager($this);
 
 		$this->watchBotTask = new WatchBotTask();
+
+		$this->dataReportManager = new DataReportManager(Path::join([$plugin->getDataFolder(), "data_report"]));
 
 		$this->config = new FlareConfig($plugin->getDataFolder());
 	}
@@ -103,6 +109,10 @@ class Flare {
 			// todo: broadcast channel unscribe
 
 			$this->config->close($saveConfig);
+
+			if ($saveConfig) {
+				$this->dataReportManager->save();
+			}
 
 			$this->started = false;
 		}
@@ -152,5 +162,14 @@ class Flare {
 	 */
 	public function getConfig(): FlareConfig {
 		return $this->config;
+	}
+
+	/**
+	 * Get the value of dataReportManager
+	 *
+	 * @return DataReportManager
+	 */
+	public function getDataReportManager(): DataReportManager {
+		return $this->dataReportManager;
 	}
 }
