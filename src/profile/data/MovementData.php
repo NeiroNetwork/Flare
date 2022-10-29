@@ -339,7 +339,7 @@ class MovementData {
 
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
-		$this->rotDelta = $this->rotation->subtract($this->lastRotation);
+		$this->rotDelta = $this->rotation->diff($this->lastRotation);
 
 		$this->rotationDataReport?->add([$this->rotDelta->yaw, $this->rotDelta->pitch]); // data report
 
