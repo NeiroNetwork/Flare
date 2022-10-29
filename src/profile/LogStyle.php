@@ -15,6 +15,13 @@ abstract class LogStyle {
 	 */
 	private static array $registered = [];
 
+	/**
+	 * @return LogStyle[]
+	 */
+	public static function getAllRegistered(): array {
+		return array_values(self::$registered);
+	}
+
 	public static function register(LogStyle $style): void {
 		self::$registered[$style::class] = $style;
 	}

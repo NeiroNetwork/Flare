@@ -6,6 +6,8 @@ namespace NeiroNetwork\Flare;
 
 use NeiroNetwork\Flare\command\ForceDefaultCommand;
 use NeiroNetwork\Flare\command\ReloadCommand;
+use NeiroNetwork\Flare\command\SettingsCommand;
+use NeiroNetwork\Flare\form\PlayerSettingsForm;
 use NeiroNetwork\Flare\network\NACKHandler;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\PluginBase;
@@ -39,8 +41,11 @@ class Main extends PluginBase {
 
 		$map = $this->getServer()->getCommandMap();
 
-		$map->register("*reload", new ReloadCommand("*reload", "フレアの全ての設定を再読み込みします"));
-		$map->register("*forcedefault", new ForceDefaultCommand("*forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"));
+		$map->registerAll("flare", [
+			new ReloadCommand("*reload", "フレアの全ての設定を再読み込みします"),
+			new ForceDefaultCommand("*forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"),
+			new SettingsCommand("*settings", "プレイヤーの設定を行います", null, ["*s"])
+		]);
 	}
 
 	protected function onDisable(): void {

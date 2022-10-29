@@ -299,4 +299,18 @@ class PlayerProfile implements Profile {
 	public function isDataReportEnabled(): bool {
 		return $this->dataReportEnabled;
 	}
+
+
+	/**
+	 * Set the value of logStyle
+	 *
+	 * @param LogStyle $logStyle
+	 *
+	 * @return self
+	 */
+	public function setLogStyle(LogStyle $logStyle): self {
+		$this->logStyle = $logStyle;
+
+		return $this;
+	}
 }

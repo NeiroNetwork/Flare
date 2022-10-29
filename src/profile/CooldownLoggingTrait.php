@@ -35,6 +35,13 @@ trait CooldownLoggingTrait {
 
 	protected bool $logEnabled = false;
 
+	public function isAlertEnabled(): bool {
+		return $this->alertEnabled;
+	}
+
+	public function isLogEnabled(): bool {
+		return $this->logEnabled;
+	}
 
 	public function tryAlert(ICheck $check): bool {
 		if (!$this->alertEnabled) {
@@ -70,5 +77,79 @@ trait CooldownLoggingTrait {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get the value of alertCooldown
+	 *
+	 * @return int
+	 */
+	public function getAlertCooldown(): int {
+		return $this->alertCooldown;
+	}
+
+	/**
+	 * Get the value of logCooldown
+	 *
+	 * @return int
+	 */
+	public function getLogCooldown(): int {
+		return $this->logCooldown;
+	}
+
+
+	/**
+	 * Set the value of logEnabled
+	 *
+	 * @param bool $logEnabled
+	 *
+	 * @return self
+	 */
+	public function setLogEnabled(bool $logEnabled): self {
+		$this->logEnabled = $logEnabled;
+
+		return $this;
+	}
+
+
+	/**
+	 * Set the value of alertEnabled
+	 *
+	 * @param bool $alertEnabled
+	 *
+	 * @return self
+	 */
+	public function setAlertEnabled(bool $alertEnabled): self {
+		$this->alertEnabled = $alertEnabled;
+
+		return $this;
+	}
+
+
+	/**
+	 * Set the value of logCooldown
+	 *
+	 * @param int $logCooldown
+	 *
+	 * @return self
+	 */
+	public function setLogCooldown(int $logCooldown): self {
+		$this->logCooldown = $logCooldown;
+
+		return $this;
+	}
+
+
+	/**
+	 * Set the value of alertCooldown
+	 *
+	 * @param int $alertCooldown
+	 *
+	 * @return self
+	 */
+	public function setAlertCooldown(int $alertCooldown): self {
+		$this->alertCooldown = $alertCooldown;
+
+		return $this;
 	}
 }
