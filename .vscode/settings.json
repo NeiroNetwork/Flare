@@ -22,5 +22,6 @@
 	},
 	"[php]": {
 		"editor.tabSize": 4
-	}
+	},
+    "php.suggest.basic": false
 }
