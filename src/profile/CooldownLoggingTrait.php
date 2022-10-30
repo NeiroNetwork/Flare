@@ -35,6 +35,8 @@ trait CooldownLoggingTrait {
 
 	protected bool $logEnabled = false;
 
+	protected bool $verboseEnabled = false;
+
 	public function isAlertEnabled(): bool {
 		return $this->alertEnabled;
 	}
@@ -149,6 +151,28 @@ trait CooldownLoggingTrait {
 	 */
 	public function setAlertCooldown(int $alertCooldown): self {
 		$this->alertCooldown = $alertCooldown;
+
+		return $this;
+	}
+
+	/**
+	 * Get the value of verboseEnabled
+	 *
+	 * @return bool
+	 */
+	public function isVerboseEnabled(): bool {
+		return $this->verboseEnabled;
+	}
+
+	/**
+	 * Set the value of verboseEnabled
+	 *
+	 * @param bool $verboseEnabled
+	 *
+	 * @return self
+	 */
+	public function setVerboseEnabled(bool $verboseEnabled): self {
+		$this->verboseEnabled = $verboseEnabled;
 
 		return $this;
 	}

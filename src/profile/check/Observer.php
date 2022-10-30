@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\check;
 
 use Closure;
+use NeiroNetwork\Flare\FlareKickReasons;
 use NeiroNetwork\Flare\player\WatchBot;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\PlayerProfile;
@@ -138,7 +139,7 @@ class Observer {
 		if (!$this->punishEnabled) {
 			return;
 		}
-		$this->profile->getPlayer()->kick("§7(Flare) §cKicked for §lUnfair Advantage");
+		$this->profile->getPlayer()->disconnect(FlareKickReasons::unfair_advantage($this->profile->getPlayer()->getName()));
 		$this->profile->close();
 	}
 

@@ -31,6 +31,8 @@ class ConsoleProfile implements Profile {
 
 		$this->logCooldown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
+
+		$this->verboseEnabled = $conf->get("verbose");
 	}
 
 	public function getServerTick(): int {

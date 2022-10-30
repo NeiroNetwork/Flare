@@ -26,4 +26,10 @@ interface Profile {
 	public function tryLog(): bool;
 
 	public function getServerTick(): int;
+
+	public function isAlertEnabled(): bool;
+
+	public function isLogEnabled(): bool;
+
+	public function isVerboseEnabled(): bool;
 }

@@ -69,6 +69,8 @@ class PlayerProfile implements Profile {
 
 	protected bool $started;
 
+	protected bool $verboseEnabled;
+
 	public function __construct(Flare $flare, Player $player) {
 		$this->flare = $flare;
 		$this->player = $player;
@@ -85,6 +87,8 @@ class PlayerProfile implements Profile {
 
 		$this->logCooldown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
+
+		$this->verboseEnabled = $conf->get("verbose");
 
 		/**
 		 * // fixme: start後は無理やり変更しても反映されない
@@ -310,6 +314,28 @@ class PlayerProfile implements Profile {
 	 */
 	public function setLogStyle(LogStyle $logStyle): self {
 		$this->logStyle = $logStyle;
+
+		return $this;
+	}
+
+	/**
+	 * Get the value of verboseEnabled
+	 *
+	 * @return bool
+	 */
+	public function isVerboseEnabled(): bool {
+		return $this->verboseEnabled;
+	}
+
+	/**
+	 * Set the value of verboseEnabled
+	 *
+	 * @param bool $verboseEnabled
+	 *
+	 * @return self
+	 */
+	public function setVerboseEnabled(bool $verboseEnabled): self {
+		$this->verboseEnabled = $verboseEnabled;
 
 		return $this;
 	}

@@ -41,7 +41,7 @@ class FlareStyle extends LogStyle {
 
 			$percText = "§7[" . $baseColor . $body . "§7]";
 		}
-		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText}";
+		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText} " . ($profile->isVerboseEnabled() ? $failReason->verbose : "");
 	}
 
 	public function getAliases(): array {
