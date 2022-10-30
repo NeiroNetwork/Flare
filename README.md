@@ -7,7 +7,7 @@ PeekAntiCheatLite --> Flare
 
 ### Dependencies
 #### Plugin
-[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter)
+[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter) (soft)
 #### Virion
 [AdvancedForm](https://github.com/PJZ9n/AdvancedForm)
 
