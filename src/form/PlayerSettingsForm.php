@@ -25,6 +25,7 @@ class PlayerSettingsForm extends CustomForm {
 		parent::__construct($title, [
 			new Toggle("Alert", $profile->isAlertEnabled(), "alert_enabled"),
 			new Toggle("Log", $profile->isLogEnabled(), "log_enabled"),
+			new Toggle("Verbose", $profile->isVerboseEnabled(), "verbose_enabled"),
 			new Slider("Alert Cooldown", 0, 50, 1, $profile->getAlertCooldown(), "alert_cooldown"),
 			new Slider("Log Cooldown", 0, 50, 1, $profile->getLogCooldown(), "log_cooldown"),
 			new Dropdown(
@@ -48,6 +49,7 @@ class PlayerSettingsForm extends CustomForm {
 		try {
 			$alertEnabled = $response->getToggleResult("alert_enabled")->getValue();
 			$logEnabled = $response->getToggleResult("log_enabled")->getValue();
+			$verboseEnabled = $response->getToggleResult("verbose_enabled")->getValue();
 			$alertCooldown = $response->getSliderResult("alert_cooldown")->getInt();
 			$logCooldown = $response->getSliderResult("log_cooldown")->getInt();
 			$styleName = $response->getSelectorResult("style")->getOptionName() ?? throw new InvalidResponseException("Option name: null");
@@ -57,6 +59,7 @@ class PlayerSettingsForm extends CustomForm {
 
 		$this->profile->setAlertEnabled($alertEnabled);
 		$this->profile->setLogEnabled($logEnabled);
+		$this->profile->setVerboseEnabled($verboseEnabled);
 
 		$this->profile->setAlertCooldown($alertCooldown);
 		$this->profile->setLogCooldown($logCooldown);
