@@ -107,6 +107,9 @@ abstract class BaseCheck implements ICheck {
 	public function onLoad(): void {
 	}
 
+	public function onUnload(): void {
+	}
+
 	public function isExperimental(): bool {
 		return false;
 	}
