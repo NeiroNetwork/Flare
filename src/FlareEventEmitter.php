@@ -321,6 +321,15 @@ class FlareEventEmitter {
 		}
 	}
 
+	public function unregisterPlayerEventHandler(string $playerUuid, string $event, string $hash, ?int $priority = null): void {
+		$search = $priority !== null ? [$priority] : EventPriority::ALL;
+
+		foreach ($search as $priority) {
+			unset($this->playerEventHandlers[$priority][$playerUuid][$event][0][$hash]);
+			unset($this->playerEventHandlers[$priority][$playerUuid][$event][1][$hash]);
+		}
+	}
+
 
 	public function registerSendPacketHandler(string $playerUuid, int $networkId, Closure $handler, bool $handleCancelled, int $priority = EventPriority::NORMAL): string {
 		$rt = $t = $this->timings->register;
