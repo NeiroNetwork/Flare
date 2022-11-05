@@ -69,8 +69,6 @@ class PlayerProfile implements Profile {
 
 	protected bool $started;
 
-	protected bool $verboseEnabled;
-
 	public function __construct(Flare $flare, Player $player) {
 		$this->flare = $flare;
 		$this->player = $player;
