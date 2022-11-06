@@ -9,7 +9,8 @@
 	],
 	"intelephense.environment.includePaths": [
 		"../../virions",
-		"../../../../.vscode/pmmp_source"
+		"../../../../.vscode/pmmp_source",
+        "../VanillaCommands"
 	],
 	"files.insertFinalNewline": true, // .editerconfig の仕様に合わせる
 	"[yaml]": {
