@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare;
 
 use NeiroNetwork\Flare\command\ForceDefaultCommand;
+use NeiroNetwork\Flare\command\GiveModerationItemCommand;
+use NeiroNetwork\Flare\command\ParameterCommand;
 use NeiroNetwork\Flare\command\ReloadCommand;
 use NeiroNetwork\Flare\command\SettingsCommand;
 use NeiroNetwork\Flare\form\PlayerSettingsForm;
+use NeiroNetwork\Flare\moderation\ModerationItemListener;
 use NeiroNetwork\Flare\network\NACKHandler;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\PluginBase;
@@ -41,11 +44,24 @@ class Main extends PluginBase {
 
 		$map = $this->getServer()->getCommandMap();
 
-		$map->registerAll("flare", [
-			new ReloadCommand("*reload", "フレアの全ての設定を再読み込みします"),
-			new ForceDefaultCommand("*forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"),
-			new SettingsCommand("*settings", "プレイヤーの設定を行います", null, ["*s"])
+		$commandPrefix = ";";
+
+		$map->registerAll("flare", $list = [
+			new ReloadCommand($commandPrefix . "reload", "フレアの全ての設定を再読み込みします"),
+			new ForceDefaultCommand($commandPrefix . "forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"),
+			new SettingsCommand($commandPrefix . "settings", "プレイヤーの設定を行います", null, [$commandPrefix . "s"]),
+			new GiveModerationItemCommand($commandPrefix . "givemod", "モデレーションアイテムを入手します")
 		]);
+
+		$vanillaCommands = $this->getServer()->getPluginManager()->getPlugin("VanillaCommands") !== null;
+
+		foreach ($list as $command) {
+			if ($command instanceof ParameterCommand && $vanillaCommands) {
+				$command->registerParameters();
+			}
+		}
+
+		$this->getServer()->getPluginManager()->registerEvents(new ModerationItemListener, $this);
 	}
 
 	protected function onDisable(): void {
