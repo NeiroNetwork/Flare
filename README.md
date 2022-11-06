@@ -9,7 +9,7 @@ PeekAntiCheatLite --> Flare
 
 ### Plugin
 
-[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter) (soft)
+[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter) (soft)  
 [VanillaCommands](https://github.com/NeiroNetwork/VanillaCommands) (soft)
 
 ### Virion
