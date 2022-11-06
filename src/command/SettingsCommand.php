@@ -7,11 +7,19 @@ namespace NeiroNetwork\Flare\command;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\form\PlayerSettingsForm;
 use NeiroNetwork\Flare\Main;
+use NeiroNetwork\VanillaCommands\parameter\BasicParameters;
+use NeiroNetwork\VanillaCommands\parameter\Parameter;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 
-class SettingsCommand extends Command {
+class SettingsCommand extends Command implements ParameterCommand {
+
+	public function registerParameters(): void {
+		Parameter::getInstance()->add($this->getName(), [
+			BasicParameters::targets("target", optional: true)
+		]);
+	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args) {
 		if (!$sender instanceof Player) {
