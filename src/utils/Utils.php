@@ -47,4 +47,22 @@ class Utils {
 			return $player->getNetworkSession()->getPing();
 		}
 	}
+
+	public static function getTime(): float {
+		return hrtime(true) / 1e+9;
+	}
+
+	public static function getTimeMilis(): float {
+		return hrtime(true) / 1e+6;
+	}
+
+	public static function equalsArrayValues(array $target, mixed $value) {
+		foreach ($target as $targetValue) {
+			if ($value != $targetValue) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

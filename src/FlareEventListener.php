@@ -101,6 +101,7 @@ class FlareEventListener implements Listener {
 			$position = $packet->getPosition()->subtract(0, 1.62, 0);
 			$yaw = $packet->getYaw();
 			$pitch = $packet->getPitch();
+
 			foreach ([
 				$position->x,
 				$position->y,

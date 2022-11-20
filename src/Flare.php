@@ -23,6 +23,9 @@ use pocketmine\event\RegisteredListener;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginLogger;
+use pocketmine\scheduler\ClosureTask;
+use pocketmine\scheduler\TaskHandler;
+use pocketmine\scheduler\TaskScheduler;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
 use Webmozart\PathUtil\Path;
@@ -48,6 +51,12 @@ class Flare {
 	protected DataReportManager $dataReportManager;
 
 	protected FlareConfig $config;
+
+	protected TickProcessor $tickProcessor;
+
+	protected TaskScheduler $scheduler;
+
+	protected ?TaskHandler $schedulerHeartbeater;
 
 	protected bool $started;
 
@@ -75,7 +84,13 @@ class Flare {
 
 		$this->dataReportManager = new DataReportManager(Path::join([$plugin->getDataFolder(), "data_report"]));
 
+		$this->scheduler = new TaskScheduler("Flare");
+
+		$this->tickProcessor = new TickProcessor;
+
 		$this->config = new FlareConfig($plugin->getDataFolder());
+
+		$this->schedulerHeartbeater = null;
 	}
 
 	public function start(): void {
@@ -96,6 +111,15 @@ class Flare {
 			$this->consoleProfile = new ConsoleProfile($this, $console);
 
 			$this->reporter = new Reporter($this->plugin, $console);
+
+			$this->schedulerHeartbeater = $this->plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function () {
+				$this->scheduler->mainThreadHeartbeat($this->plugin->getServer()->getTick());
+				// PluginManager::tickSchedulers
+			}), 1);
+
+			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function () {
+				$this->tickProcessor->execute();
+			}), 1);
 		}
 	}
 
@@ -107,7 +131,6 @@ class Flare {
 			$this->watchBotTask->getHandler()->cancel();
 
 			// todo: broadcast channel unscribe
-
 			$this->config->close($saveConfig);
 
 			if ($saveConfig) {
@@ -115,6 +138,12 @@ class Flare {
 			}
 
 			$this->started = false;
+
+			$this->scheduler->shutdown();
+
+			assert($this->schedulerHeartbeater instanceof TaskHandler);
+
+			$this->schedulerHeartbeater->cancel();
 		}
 	}
 
@@ -171,5 +200,23 @@ class Flare {
 	 */
 	public function getDataReportManager(): DataReportManager {
 		return $this->dataReportManager;
+	}
+
+	/**
+	 * Get the value of scheduler
+	 *
+	 * @return TaskScheduler
+	 */
+	public function getScheduler(): TaskScheduler {
+		return $this->scheduler;
+	}
+
+	/**
+	 * Get the value of tickProcessor
+	 *
+	 * @return TickProcessor
+	 */
+	public function getTickProcessor(): TickProcessor {
+		return $this->tickProcessor;
 	}
 }

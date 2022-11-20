@@ -51,6 +51,10 @@ class EntityRotation {
 		return $r->rotate(-$r2->yaw, -$r2->pitch, -$r2->headYaw);
 	}
 
+	public function abs(): self {
+		return new EntityRotation(abs($this->yaw), abs($this->pitch), abs($this->headYaw));
+	}
+
 	public function diff(EntityRotation $b, float $maxDiff = 180): self {
 		$a = clone $this;
 		$b = clone $b;

@@ -18,7 +18,14 @@ use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedB;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedC;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedD;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedE;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketA;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketB;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketC;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidA;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidB;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
+use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerA;
 use NeiroNetwork\Flare\profile\check\Observer;
 use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
@@ -136,8 +143,15 @@ class PlayerProfile implements Profile {
 		$o->registerCheck(new SpeedC($o));
 		$o->registerCheck(new SpeedD($o));
 		$o->registerCheck(new SpeedE($o));
-		$o->registerCheck(new InvalidD($o));
 		$o->registerCheck(new JumpA($o));
+		$o->registerCheck(new BadPacketA($o));
+		$o->registerCheck(new BadPacketB($o));
+		$o->registerCheck(new BadPacketC($o));
+		$o->registerCheck(new InvalidA($o));
+		$o->registerCheck(new InvalidB($o));
+		$o->registerCheck(new InvalidC($o));
+		$o->registerCheck(new InvalidD($o));
+		$o->registerCheck(new TimerA($o));
 
 		// todo: Aim(C) の 1.0e-4以下のpitch diffを削除 (たまにある誤検知が直るかな？)
 		// finished: Speed(E) で移動速度の加速度検証 (move length 16 tick以内の時前回と同じ速度だったら検知？)
@@ -243,6 +257,28 @@ class PlayerProfile implements Profile {
 		return $this->flare->getPlugin()->getServer()->getTick();
 	}
 
+	public function isServerStable(): bool {
+		$s = $this->flare->getPlugin()->getServer();
+
+		if ($s->getTicksPerSecond() < 19.975) {
+			return false;
+		}
+
+		if ($s->getTicksPerSecondAverage() < 19.975) {
+			return false;
+		}
+
+		if ($this->getFlare()->getTickProcessor()->getTimeSinceLastTick() > 200) {
+			return false;
+		}
+
+		if ($this->flare->getTickProcessor()->getOverloadRecord()->getTickSinceAction() < 200) {
+			return false;
+		}
+
+		return true;
+	}
+
 	/**
 	 * Get the value of surroundData
 	 *
@@ -336,5 +372,23 @@ class PlayerProfile implements Profile {
 		$this->verboseEnabled = $verboseEnabled;
 
 		return $this;
+	}
+
+	/**
+	 * Get the value of inputMode
+	 *
+	 * @return int
+	 */
+	public function getInputMode(): int {
+		return $this->inputMode;
+	}
+
+	/**
+	 * Get the value of inputModeName
+	 *
+	 * @return string
+	 */
+	public function getInputModeName(): string {
+		return $this->inputModeName;
 	}
 }

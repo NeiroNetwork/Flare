@@ -19,6 +19,7 @@ class Reporter {
 
 	public function __construct(protected PluginBase $plugin, protected ConsoleCommandSender $console) {
 		$this->autoSubscribe($console);
+		// todo: reporter / broadcaster(singleton)
 	}
 
 	public function subscribeInspector(CommandSender $commandSender): void {
