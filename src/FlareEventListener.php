@@ -17,7 +17,10 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\network\mcpe\raklib\RakLibServer;
@@ -85,6 +88,29 @@ class FlareEventListener implements Listener {
 		}
 
 		print_r("NACK!!\n");
+	}
+
+	public function onDataPacketSend(DataPacketSendEvent $event): void {
+		foreach ($event->getPackets() as $packet) {
+			if ($packet instanceof MoveActorAbsolutePacket) {
+				foreach ($event->getTargets() as $target) {
+					if (($player = $target->getPlayer()) instanceof Player) {
+						$this->flare->getSupports()->getEntityMoveRecorder()->add(
+							$player,
+							$packet->actorRuntimeId,
+							$packet->position,
+							$this->flare->getPlugin()->getServer()->getTick()
+						);
+
+						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
+						if ($pos !== null) {
+							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0, 2.5, 0), "minecraft:basic_crit_particle", null);
+							$target->sendDataPacket($pk);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**

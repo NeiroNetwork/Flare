@@ -15,7 +15,9 @@ use NeiroNetwork\Flare\profile\ProfileManager;
 use NeiroNetwork\Flare\profile\style\FlareStyle;
 use NeiroNetwork\Flare\profile\style\PeekAntiCheatStyle;
 use NeiroNetwork\Flare\reporter\Reporter;
+use NeiroNetwork\Flare\support\Supports;
 use NeiroNetwork\Flare\utils\Utils;
+use pocketmine\block\utils\SupportType;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\event\EventPriority;
 use pocketmine\event\HandlerListManager;
@@ -58,6 +60,8 @@ class Flare {
 
 	protected ?TaskHandler $schedulerHeartbeater;
 
+	protected Supports $supports;
+
 	protected bool $started;
 
 	public function __construct(PluginBase $plugin) {
@@ -89,6 +93,8 @@ class Flare {
 		$this->tickProcessor = new TickProcessor;
 
 		$this->config = new FlareConfig($plugin->getDataFolder());
+
+		$this->supports = new Supports();
 
 		$this->schedulerHeartbeater = null;
 	}
@@ -218,5 +224,14 @@ class Flare {
 	 */
 	public function getTickProcessor(): TickProcessor {
 		return $this->tickProcessor;
+	}
+
+	/**
+	 * Get the value of supports
+	 *
+	 * @return Supports
+	 */
+	public function getSupports(): Supports {
+		return $this->started ? $this->supports : Utils::mustStartedException();
 	}
 }

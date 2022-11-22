@@ -65,4 +65,39 @@ class Utils {
 
 		return true;
 	}
+
+	public static function findAscending(array $arr, int $key): mixed {
+		$results = array_filter($arr, function ($v) use ($key) {
+			return $v <= $key;
+		});
+
+		if (count($results) > 0) {
+			return max($results);
+		}
+
+		return null;
+	}
+
+	public static function findDecending(array $arr, int $key): mixed {
+		$results = array_filter($arr, function ($v) use ($key) {
+			return $v >= $key;
+		});
+
+		if (count($results) > 0) {
+			return min($results);
+		}
+
+		return null;
+	}
+
+	public static function findArrayRange(array $arr, int $key, int $range): array {
+		$min = $key - $range;
+		$max = $key + $range;
+
+		$result = array_filter($arr, function ($v) use ($min, $max) {
+			return $v >= $min && $v <= $max;
+		});
+
+		return $result;
+	}
 }
