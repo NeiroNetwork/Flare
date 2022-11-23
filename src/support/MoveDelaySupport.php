@@ -15,7 +15,7 @@ class MoveDelaySupport {
 	protected int $interpolationRange;
 
 	public static function default(EntityMoveRecorder $recorder): self {
-		return new self($recorder, 6, true);
+		return new self($recorder, 4, true);
 	}
 
 	public function __construct(
@@ -28,7 +28,7 @@ class MoveDelaySupport {
 			throw new \Exception("EntityMoveRecorder size \"{$recorder->getSize()}\" must be bigger than tick \"$tick\"");
 		}
 
-		$this->interpolationRange = 3;
+		$this->interpolationRange = 4;
 	}
 
 	public function isInterpolationEnabled(): bool {
@@ -70,13 +70,13 @@ class MoveDelaySupport {
 		// 補完ではない
 		// averaging?
 
-		$regs = Utils::findArrayRange(array_keys($histories), $currentTick - 1, $this->interpolationRange * 2);
+		$regs = Utils::findArrayRange(array_keys($histories), $baseTick - 1, $this->interpolationRange);
 		$results = array_map(function ($v) use ($histories) {
 			return $histories[$v];
 		}, $regs);
 
 		$sum = Vector3::sum(...$results);
 
-		return $sum->divide(count($results));
+		return $sum->divide(max(1, count($results)));
 	}
 }

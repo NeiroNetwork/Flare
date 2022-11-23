@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\support;
 
+use NeiroNetwork\Flare\utils\PlayerUtil;
+use NeiroNetwork\Flare\utils\Utils;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
+
 class Supports {
 
 	protected EntityMoveRecorder $recorder;
 
 	protected MoveDelaySupport $moveDelay;
 
-	// protected LagCompensator $lagCompensator;
+	protected LagCompensator $lagCompensator;
 
 	public function __construct() {
-		$this->recorder = new EntityMoveRecorder(40);
+		$this->recorder = new EntityMoveRecorder(60);
 		$this->moveDelay = MoveDelaySupport::default($this->recorder);
+		$this->lagCompensator = new LagCompensator($this->recorder);
 	}
 
 	/**
@@ -33,5 +39,36 @@ class Supports {
 	 */
 	public function getEntityMoveRecorder(): EntityMoveRecorder {
 		return $this->recorder;
+	}
+
+	public function fullSupportMove(Player $viewer, int $runtimeId): ?Vector3 {
+		$histories = $this->recorder->get($viewer, $runtimeId);
+
+		$before = $histories[max(array_keys($histories))];
+		$diff = Vector3::zero();
+
+		foreach ([
+			//$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
+			$this->moveDelay->predict($viewer, $runtimeId)
+		] as $result) {
+			if (is_null($result)) {
+				continue;
+			}
+
+			$currentDiff = $result->subtractVector($before);
+
+			$diff = $diff->addVector($currentDiff);
+		}
+
+		return $before->addVector($diff);
+	}
+
+	/**
+	 * Get the value of lagCompensator
+	 *
+	 * @return LagCompensator
+	 */
+	public function getLagCompensator(): LagCompensator {
+		return $this->lagCompensator;
 	}
 }
