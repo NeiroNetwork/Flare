@@ -10,6 +10,7 @@ use NeiroNetwork\Flare\event\player\PlayerAttackWatchBotEvent;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
+use NeiroNetwork\Flare\reporter\LogReportContent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -75,6 +76,8 @@ class FlareEventListener implements Listener {
 		$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
 
 		$this->flare->getReporter()->autoUnsubscribe($player);
+
+		$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()}§f", $this->flare));
 	}
 
 	public function onNackReceive(NackReceiveEvent $event) {
@@ -104,7 +107,7 @@ class FlareEventListener implements Listener {
 
 						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
 						if ($pos !== null) {
-							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0, 2.5, 0), "minecraft:basic_crit_particle", null);
+							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0, 3.5, 0), "minecraft:balloon_gas_particle", null);
 							$target->sendDataPacket($pk);
 						}
 					}
