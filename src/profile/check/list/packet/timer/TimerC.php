@@ -21,7 +21,9 @@ class TimerC extends BaseCheck implements HandleInputPacketCheck {
 	use HandleInputPacketCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
+	protected NumericalSampling $diff;
 	protected float $lastTime;
+	protected float $packetsSinceMax;
 
 	public function getCheckGroup(): int {
 		return CheckGroup::PACKET;
@@ -30,6 +32,8 @@ class TimerC extends BaseCheck implements HandleInputPacketCheck {
 	public function onLoad(): void {
 		$this->registerInputPacketHandler();
 		$this->lastTime = -1;
+		$this->packetsSinceMax = 0;
+		$this->diff = new NumericalSampling(15);
 	}
 
 	public function handle(PlayerAuthInputPacket $packet): void {

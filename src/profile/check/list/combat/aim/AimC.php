@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check\list\combat\aim;
 
-use Math;
+
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
+use NeiroNetwork\Flare\utils\Math;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
@@ -73,5 +74,8 @@ class AimC extends BaseCheck implements HandleInputPacketCheck {
 				$this->fail(new ViolationFailReason("GCD: {$gcd}"));
 			}
 		}
+
+		$this->gcd = $gcd;
+		$this->deltaPitch->clear();
 	}
 }
