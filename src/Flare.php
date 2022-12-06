@@ -30,7 +30,7 @@ use pocketmine\scheduler\TaskHandler;
 use pocketmine\scheduler\TaskScheduler;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
-use Webmozart\PathUtil\Path;
+use Symfony\Component\Filesystem\Path;
 
 class Flare {
 
@@ -86,7 +86,7 @@ class Flare {
 
 		$this->watchBotTask = new WatchBotTask();
 
-		$this->dataReportManager = new DataReportManager(Path::join([$plugin->getDataFolder(), "data_report"]));
+		$this->dataReportManager = new DataReportManager(Path::join($plugin->getDataFolder(), "data_report"));
 
 		$this->scheduler = new TaskScheduler("Flare");
 
@@ -105,18 +105,11 @@ class Flare {
 
 			$this->plugin->getServer()->getPluginManager()->registerEvents($this->eventListener, $this->plugin);
 			$this->plugin->getScheduler()->scheduleRepeatingTask($this->watchBotTask, 1);
-			$console = null;
-			foreach ($this->plugin->getServer()->getBroadcastChannelSubscribers(Server::BROADCAST_CHANNEL_ADMINISTRATIVE) as $subscriber) {
-				if ($subscriber instanceof ConsoleCommandSender) {
-					$console = $subscriber;
-					break;
-				}
-			}
-			assert($console instanceof ConsoleCommandSender, new Exception("ConsoleCommandSender not subscribed in ADMINISTRATIVE"));
 
-			$this->consoleProfile = new ConsoleProfile($this, $console);
+			$this->consoleProfile = new ConsoleProfile($this, $this->plugin->getServer()->getLogger(), $this->plugin->getServer()->getLanguage());
 
-			$this->reporter = new Reporter($this->plugin, $console);
+			$this->reporter = new Reporter($this->plugin);
+			$this->reporter->autoSubscribe($this->consoleProfile->getCommandSender()); // todo: 
 
 			$this->schedulerHeartbeater = $this->plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function () {
 				$this->scheduler->mainThreadHeartbeat($this->plugin->getServer()->getTick());

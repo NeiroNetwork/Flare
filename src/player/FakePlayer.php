@@ -20,6 +20,7 @@ use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\LongMetadataProperty;
+use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
@@ -135,6 +136,7 @@ class FakePlayer {
 						$this->getCorrectFlag(EntityMetadataFlags::ALWAYS_SHOW_NAMETAG) #rip antibot
 				)
 			], #metadata
+			new PropertySyncData([], []),
 			$abilities,
 			[],
 			"",

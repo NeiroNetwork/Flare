@@ -9,7 +9,14 @@ use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\style\FlareStyle;
 use pocketmine\command\CommandSender;
 use pocketmine\console\ConsoleCommandSender;
+use pocketmine\lang\Language;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\Server;
+use pocketmine\utils\BroadcastLoggerForwarder;
 
+/**
+ * fixme: クラス名変更するべき
+ */
 class ConsoleProfile implements Profile {
 	use CooldownLoggingTrait;
 
@@ -17,11 +24,13 @@ class ConsoleProfile implements Profile {
 
 	protected Flare $flare;
 
-	protected ConsoleCommandSender $console;
+	protected BroadcastLoggerForwarder $console;
 
-	public function __construct(Flare $flare, ConsoleCommandSender $console) {
+	public function __construct(Flare $flare, \AttachableThreadedLogger $logger, Language $language) {
 		$this->flare = $flare;
-		$this->console = $console;
+		$server = $flare->getPlugin()->getServer();
+		$this->console = new BroadcastLoggerForwarder($server, $logger, $language);
+		$this->console->setBasePermission(DefaultPermissions::ROOT_CONSOLE, true);
 		$this->logStyle = new FlareStyle;
 
 		$conf = $flare->getConfig()->getConsole();
