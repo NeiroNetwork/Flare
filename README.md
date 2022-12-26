@@ -1,11 +1,11 @@
 # Flare
 
 🔌アンチチートv2
-PeekAntiCheatLite --> Flare
+PeekAntiCheatLite --> Flare  
 `dev` ブランチ: まともにテストしないでプッシュしているので、エラーが起きる可能性があります
 (使用は推奨されません)
 
-⚠ ターゲットPMMPバージョン: `4.10.1`
+⚠ ターゲットPMMPバージョン: `4.11.0`
 
 ## Dependencies
 
