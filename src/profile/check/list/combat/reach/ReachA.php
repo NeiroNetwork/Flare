@@ -17,6 +17,8 @@ use pocketmine\event\EventPriority;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use SplFixedArray;
 
 class ReachA extends BaseCheck implements HandleInputPacketCheck {
@@ -36,6 +38,7 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 	public function onLoad(): void {
 		$this->registerInputPacketHandler();
+		$this->list = [];
 		$this->hashb = $this->profile->getFlare()->getEventEmitter()->registerPlayerEventHandler(
 			$this->profile->getPlayer()->getUniqueId()->toString(),
 			PlayerAttackEvent::class,
@@ -70,9 +73,11 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 		$eyePos = $player->getEyePos();
 
 		$refCount = 6;
-		$refs = (SplFixedArray::fromArray($this->list));
+		$refs = (SplFixedArray::fromArray(array_reverse($this->list)));
 		$refs->setSize(min($refs->getSize(), $refCount));
 		$realRefCount = $refs->getSize();
+
+		$this->profile->getPlayer()->sendMessage("refs: {$realRefCount}");
 
 		/**
 		 * @var SplFixedArray<AxisAlignedBB> $refs
@@ -90,6 +95,10 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 			if (count($reaches) > 0) {
 				$minReach = min($reaches);
 				$maxReach = max($reaches);
+
+				$rootReach = sqrt($minReach);
+
+				$this->profile->getPlayer()->sendMessage("reach: {$rootReach}");
 
 				if ($minReach > 9.0) { // (3 ** 2)
 					if ($this->preFail()) {
