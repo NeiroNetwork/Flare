@@ -34,7 +34,7 @@ use Symfony\Component\Filesystem\Path;
 
 class Flare {
 
-	public const PREFIX = "§e★ §r";
+	public const PREFIX = "§e☄ §r";
 
 	protected PluginBase $plugin;
 
