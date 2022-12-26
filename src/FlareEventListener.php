@@ -17,6 +17,8 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
@@ -113,6 +115,19 @@ class FlareEventListener implements Listener {
 					}
 				}
 			}
+
+			if ($packet instanceof AddActorPacket) {
+				foreach ($event->getTargets() as $target) {
+					if (($player = $target->getPlayer()) instanceof Player) {
+						$this->flare->getSupports()->getEntityMoveRecorder()->add(
+							$player,
+							$packet->actorRuntimeId,
+							$packet->position,
+							$this->flare->getPlugin()->getServer()->getTick()
+						);
+					}
+				}
+			}
 		}
 	}
 
@@ -126,6 +141,7 @@ class FlareEventListener implements Listener {
 	public function onDataPacketReceive(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$origin = $event->getOrigin();
+
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$position = $packet->getPosition()->subtract(0, 1.62, 0);
 			$yaw = $packet->getYaw();
