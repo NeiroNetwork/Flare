@@ -28,7 +28,7 @@ class MoveDelaySupport {
 			throw new \Exception("EntityMoveRecorder size \"{$recorder->getSize()}\" must be bigger than tick \"$tick\"");
 		}
 
-		$this->interpolationRange = 4;
+		$this->interpolationRange = 2;
 	}
 
 	public function isInterpolationEnabled(): bool {
@@ -74,6 +74,10 @@ class MoveDelaySupport {
 		$results = array_map(function ($v) use ($histories) {
 			return $histories[$v];
 		}, $regs);
+
+		if (count($results) <= 0) {
+			return $base;
+		}
 
 		$sum = Vector3::sum(...$results);
 
