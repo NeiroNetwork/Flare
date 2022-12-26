@@ -212,6 +212,9 @@ class CombatData {
 
 		if ($this->clientAiming instanceof Entity) {
 			$player->getNetworkSession()->syncActorData($this->clientAiming, []);
+
+			// hack: SetActorDataPacket を送信することにより、
+			// InteractPacket::ACTION_MOUSEOVER を再送させることができる。
 		}
 
 		$this->triggerAim->update();
