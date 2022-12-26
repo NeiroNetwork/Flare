@@ -43,21 +43,32 @@ class Supports {
 
 	public function fullSupportMove(Player $viewer, int $runtimeId): ?Vector3 {
 		$histories = $this->recorder->get($viewer, $runtimeId);
+		if (count($histories) <= 0) {
+			return null;
+		}
+
+		$applied = false;
 
 		$before = $histories[max(array_keys($histories))];
 		$diff = Vector3::zero();
 
 		foreach ([
-			//$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
+			$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
 			$this->moveDelay->predict($viewer, $runtimeId)
 		] as $result) {
 			if (is_null($result)) {
 				continue;
 			}
 
+			$applied = true;
+
 			$currentDiff = $result->subtractVector($before);
 
 			$diff = $diff->addVector($currentDiff);
+		}
+
+		if (!$applied) {
+			return null;
 		}
 
 		return $before->addVector($diff);
