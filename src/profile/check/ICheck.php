@@ -40,6 +40,8 @@ interface ICheck {
 
 	public function tryCheck(): bool;
 
+	public function isDebugEnabled(): bool;
+
 	/**
 	 * @return Observer
 	 * 
