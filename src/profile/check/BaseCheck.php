@@ -14,6 +14,11 @@ abstract class BaseCheck implements ICheck {
 	 */
 	protected bool $enabled;
 
+	/**
+	 * @var bool
+	 */
+	protected bool $debugEnabled;
+
 	protected float $pvlMax = (100 * 8);
 	protected float $pvl = 0;
 
@@ -31,6 +36,7 @@ abstract class BaseCheck implements ICheck {
 		$this->observer = $observer;
 		$this->profile = $observer->getProfile();
 		$this->enabled = false;
+		$this->debugEnabled = false;
 	}
 
 	public function getObserver(): Observer {
@@ -112,5 +118,13 @@ abstract class BaseCheck implements ICheck {
 
 	public function isExperimental(): bool {
 		return false;
+	}
+
+	public function isDebugEnabled(): bool {
+		return $this->debugEnabled;
+	}
+
+	public function setDebugEnabled(bool $enabled = true): void {
+		$this->debugEnabled = $enabled;
 	}
 }
