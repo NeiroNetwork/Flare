@@ -321,11 +321,6 @@ class MovementData {
 
 		EntityRotation::check($rot);
 
-		// fixes Aim(C)
-		if (abs($rot->pitch) < 1E-7) $rot->pitch = 0;
-		if (abs($rot->yaw) < 1E-7) $rot->yaw = 0;
-		if (abs($rot->headYaw) < 1E-7) $rot->headYaw = 0;
-
 
 		$this->lastFrom = clone $this->from;
 		$this->from = clone $this->to;
@@ -347,6 +342,10 @@ class MovementData {
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
 		$this->rotDelta = $this->rotation->diff($this->lastRotation);
+		// fixes Aim(C)
+		if (abs($this->rotDelta->pitch) < 1E-5)   $this->rotDelta->pitch = 0;
+		if (abs($this->rotDelta->yaw) < 1E-5)     $this->rotDelta->yaw = 0;
+		if (abs($this->rotDelta->headYaw) < 1E-5) $this->rotDelta->headYaw = 0;
 
 		$this->rotationDataReport?->add([$this->rotDelta->yaw, $this->rotDelta->pitch]); // data report
 
