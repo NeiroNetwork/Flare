@@ -112,7 +112,6 @@ class PlayerProfile implements Profile {
 		$this->transactionData = null;
 		$this->keyInputs = null;
 
-		$this->lastInputMode = -1;
 		$this->inputMode = -1;
 		$this->inputModeName = "unknown";
 
@@ -411,5 +410,14 @@ class PlayerProfile implements Profile {
 	 */
 	public function getInputModeName(): string {
 		return $this->inputModeName;
+	}
+
+	/**
+	 * Get the value of observer
+	 *
+	 * @return Observer
+	 */
+	public function getObserver(): Observer {
+		return $this->observer;
 	}
 }
