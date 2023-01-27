@@ -156,32 +156,6 @@ class Observer {
 	}
 
 	/**
-	 * Get the value of alertCooldown
-	 *
-	 * @return int
-	 */
-	public function getAlertCooldown(): int {
-		return $this->alertCooldown;
-	}
-
-	/**
-	 * Set the value of alertCooldown
-	 *
-	 * @param int $alertCooldown
-	 *
-	 * @return self
-	 */
-	public function setAlertCooldown(int $alertCooldown): self {
-		if ($alertCooldown < 0) {
-			throw new \Exception("alertCooldown range: 0 ~ PHP_INT_MAX");
-		}
-		Utils::checkFloatNotInfOrNaN("alertCooldown", $alertCooldown);
-		$this->alertCooldown = $alertCooldown;
-
-		return $this;
-	}
-
-	/**
 	 * Get the value of checkEnabled
 	 *
 	 * @return bool
