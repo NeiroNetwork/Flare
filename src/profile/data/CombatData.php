@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 class CombatData {
 
 	protected ?Entity $clientAiming;
+	protected Vector3 $clientAimingAt;
 	protected ?Entity $hitEntity;
 	protected ?Entity $lastHitEntity;
 	protected int $lastHitEntityTime;
