@@ -77,8 +77,6 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 		$refs->setSize(min($refs->getSize(), $refCount));
 		$realRefCount = $refs->getSize();
 
-		$this->profile->getPlayer()->sendMessage("refs: {$realRefCount}");
-
 		/**
 		 * @var SplFixedArray<AxisAlignedBB> $refs
 		 * 
@@ -86,6 +84,9 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 		 */
 
 		if ($realRefCount >= 2) {
+			$first = $this->list[array_key_last($this->list)];
+
+			$freach = Math::distanceSquaredBoundingBox($first, $eyePos);
 			$reaches = [];
 
 			foreach ($refs as $targetBB) {
@@ -98,12 +99,16 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 				$rootReach = sqrt($minReach);
 
-				$this->profile->getPlayer()->sendMessage("reach: {$rootReach}");
+				$this->broadcastDebugMessage("reach: {$rootReach} f: {$freach}");
 
 				if ($minReach > 9.0) { // (3 ** 2)
 					if ($this->preFail()) {
 						$this->fail(new ViolationFailReason("Reach: {$minReach}"));
 					}
+				}
+
+				if ($freach > 9.0) {
+					$this->fail(new ViolationFailReason("Spt-Reach: {$freach}"));
 				}
 			}
 		}
