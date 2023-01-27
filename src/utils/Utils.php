@@ -42,7 +42,7 @@ class Utils {
 
 	public static function getPing(Player $player): int {
 		if (Server::getInstance()->getPluginManager()->getPlugin("WaterdogPEAccepter") !== null) {
-			return WdpePlayer::getRespondTime($player);
+			return (int) WdpePlayer::getRespondTime($player);
 		} else {
 			return $player->getNetworkSession()->getPing();
 		}
