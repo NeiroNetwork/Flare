@@ -77,11 +77,11 @@ abstract class BaseCheck implements ICheck {
 			return;
 		}
 
-		$this->observer->doFail($this, $reason);
-
 		if ($reason instanceof ViolationFailReason) {
 			$this->violate();
 		}
+
+		$this->observer->doFail($this, $reason);
 
 		if ($this->observer->requestPunish($this)) {
 			$this->observer->doPunish();
