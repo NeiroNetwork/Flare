@@ -100,16 +100,20 @@ class FlareEventListener implements Listener {
 			if ($packet instanceof MoveActorAbsolutePacket) {
 				foreach ($event->getTargets() as $target) {
 					if (($player = $target->getPlayer()) instanceof Player) {
+						$ppos = clone $packet->position;
+						if ($player->getWorld()->getEntity($packet->actorRuntimeId) instanceof Player) {
+							$ppos->y -= 1.62;
+						}
 						$this->flare->getSupports()->getEntityMoveRecorder()->add(
 							$player,
 							$packet->actorRuntimeId,
-							$packet->position,
+							$ppos,
 							$this->flare->getPlugin()->getServer()->getTick()
 						);
 
 						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
 						if ($pos !== null) {
-							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0, 3.5, 0), "minecraft:balloon_gas_particle", null);
+							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0.8, 2.0, 0), "minecraft:balloon_gas_particle", null);
 							$target->sendDataPacket($pk);
 						}
 					}
