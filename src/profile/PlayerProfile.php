@@ -203,7 +203,6 @@ class PlayerProfile implements Profile {
 	public function close(): void {
 		if ($this->started) {
 			$this->shutdown();
-			$this->started = true;
 		}
 	}
 
