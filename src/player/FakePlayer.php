@@ -16,6 +16,7 @@ use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
+use pocketmine\network\mcpe\protocol\types\AbilitiesData;
 use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
@@ -117,7 +118,7 @@ class FakePlayer {
 
 	protected function getAddPlayerPacket(): AddPlayerPacket {
 		$item = ItemStackWrapper::legacy(ItemStack::null());
-		$abilities = UpdateAbilitiesPacket::create(CommandPermissions::NORMAL, PlayerPermissions::VISITOR, $this->eid, []);
+		$abilities = UpdateAbilitiesPacket::create(new AbilitiesData(CommandPermissions::NORMAL, PlayerPermissions::VISITOR, $this->eid, []));
 		$packet = AddPlayerPacket::create(
 			$this->uuid,
 			$this->username,
