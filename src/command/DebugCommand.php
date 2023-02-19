@@ -10,6 +10,9 @@ use NeiroNetwork\VanillaCommands\parameter\BasicParameters;
 use NeiroNetwork\VanillaCommands\parameter\Parameter;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\console\ConsoleCommandSender;
+use pocketmine\Server;
+use pocketmine\utils\BroadcastLoggerForwarder;
 
 class DebugCommand extends Command implements ParameterCommand {
 
@@ -81,17 +84,25 @@ class DebugCommand extends Command implements ParameterCommand {
 			return;
 		}
 
+		$debugger = $sender;
+
+		if ($debugger instanceof ConsoleCommandSender) {
+			// ConsoleCommandSender を登録すると Command Output | の prefix がついてしまう
+			$debugger = new BroadcastLoggerForwarder(Server::getInstance(), Server::getInstance()->getLogger(), Server::getInstance()->getLanguage());
+		}
+
+
 		switch ($action) {
 			case "subsrcibe":
 			case "sub":
-				$check->subscribeDebugger($sender);
+				$check->subscribeDebugger($debugger);
 
 				$sender->sendMessage($check->getDebugPrefix() . " §aデバッグを開始しました");
 				break;
 
 			case "unsubscribe":
 			case "unsub":
-				$check->unsubscribeDebugger($sender);
+				$check->unsubscribeDebugger($debugger);
 				$sender->sendMessage($check->getDebugPrefix() . " §aデバッグを停止しました");
 				break;
 		}

@@ -156,19 +156,10 @@ abstract class BaseCheck implements ICheck {
 	}
 
 	public function subscribeDebugger(CommandSender $debugger): void {
-		if ($debugger instanceof ConsoleCommandSender) {
-			// ConsoleCommandSender を登録すると Command Output | の prefix がついてしまう
-			$debugger = new BroadcastLoggerForwarder(Server::getInstance(), Server::getInstance()->getLogger(), Server::getInstance()->getLanguage());
-		}
-
 		$this->debuggers[$debugger->getName()] = $debugger;
 	}
 
 	public function unsubscribeDebugger(CommandSender $debugger): void {
-		if ($debugger instanceof ConsoleCommandSender) {
-			$debugger = new BroadcastLoggerForwarder(Server::getInstance(), Server::getInstance()->getLogger(), Server::getInstance()->getLanguage());
-		}
-
 		unset($this->debuggers[$debugger->getName()]);
 	}
 }
