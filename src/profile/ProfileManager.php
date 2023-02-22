@@ -18,6 +18,13 @@ class ProfileManager {
 		$this->list = [];
 	}
 
+	/**
+	 * @return PlayerProfile[]
+	 */
+	public function getAll(): array {
+		return $this->list;
+	}
+
 	public function start(Player $player): void {
 		$uuid = $player->getUniqueId()->toString();
 		$this->list[$uuid] = new PlayerProfile($this->flare, $player);
@@ -25,6 +32,7 @@ class ProfileManager {
 	}
 
 	public function remove(string $uuid) {
+		$this->list[$uuid]?->close();
 		unset($this->list[$uuid]);
 	}
 

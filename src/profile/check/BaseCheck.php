@@ -4,15 +4,29 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check;
 
+use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
+use pocketmine\command\CommandSender;
+use pocketmine\console\ConsoleCommandSender;
+use pocketmine\player\Player;
+use pocketmine\Server;
+use pocketmine\utils\BroadcastLoggerForwarder;
+use pocketmine\utils\Utils;
 
 abstract class BaseCheck implements ICheck {
 	use CheckViolationTrait;
+
+	private string $debugPrefix = "§9> §7[§f%s §8/ §2%s§7] §7";
 
 	/**
 	 * @var bool
 	 */
 	protected bool $enabled;
+
+	/**
+	 * @var CommandSender[]
+	 */
+	protected array $debuggers;
 
 	protected float $pvlMax = (100 * 8);
 	protected float $pvl = 0;
@@ -31,6 +45,11 @@ abstract class BaseCheck implements ICheck {
 		$this->observer = $observer;
 		$this->profile = $observer->getProfile();
 		$this->enabled = false;
+		$this->debuggers = [];
+	}
+
+	public function getDebugPrefix(): string {
+		return sprintf($this->debugPrefix, $this->profile->getPlayer()->getName(), $this->getFullId());
 	}
 
 	public function getObserver(): Observer {
@@ -58,11 +77,11 @@ abstract class BaseCheck implements ICheck {
 			return;
 		}
 
-		$this->observer->doFail($this, $reason);
-
 		if ($reason instanceof ViolationFailReason) {
 			$this->violate();
 		}
+
+		$this->observer->doFail($this, $reason);
 
 		if ($this->observer->requestPunish($this)) {
 			$this->observer->doPunish();
@@ -112,5 +131,35 @@ abstract class BaseCheck implements ICheck {
 
 	public function isExperimental(): bool {
 		return false;
+	}
+
+	/**
+	 * @return CommandSender[]
+	 */
+	public function getDebuggers(): array {
+		return $this->debuggers;
+	}
+
+	public function broadcastDebugMessage(string $message): void {
+		foreach ($this->debuggers as $player) {
+			$player->sendMessage($this->getDebugPrefix() . $message);
+		}
+	}
+
+	public function consumeDebuggers(Closure $closure): void {
+		Utils::validateCallableSignature(function (CommandSender $debugger): void {
+		}, $closure);
+
+		foreach ($this->debuggers as $player) {
+			($closure)($player);
+		}
+	}
+
+	public function subscribeDebugger(CommandSender $debugger): void {
+		$this->debuggers[$debugger->getName()] = $debugger;
+	}
+
+	public function unsubscribeDebugger(CommandSender $debugger): void {
+		unset($this->debuggers[$debugger->getName()]);
 	}
 }

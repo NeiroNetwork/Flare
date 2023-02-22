@@ -1,7 +1,7 @@
 name: Flare
 version: 0.0.2
 main: NeiroNetwork\Flare\Main
-api: 4.0.0
+api: 4.12.2
 src-namespace-prefix: NeiroNetwork\Flare
 
 softdepend: ["WaterdogPEAccepter", "VanillaCommands"]

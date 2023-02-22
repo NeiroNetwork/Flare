@@ -10,14 +10,20 @@ use NeiroNetwork\Flare\event\player\PlayerAttackWatchBotEvent;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
+use NeiroNetwork\Flare\reporter\LogReportContent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\network\mcpe\raklib\RakLibServer;
@@ -72,6 +78,8 @@ class FlareEventListener implements Listener {
 		$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
 
 		$this->flare->getReporter()->autoUnsubscribe($player);
+
+		$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()}§f", $this->flare));
 	}
 
 	public function onNackReceive(NackReceiveEvent $event) {
@@ -87,6 +95,46 @@ class FlareEventListener implements Listener {
 		print_r("NACK!!\n");
 	}
 
+	public function onDataPacketSend(DataPacketSendEvent $event): void {
+		foreach ($event->getPackets() as $packet) {
+			if ($packet instanceof MoveActorAbsolutePacket) {
+				foreach ($event->getTargets() as $target) {
+					if (($player = $target->getPlayer()) instanceof Player) {
+						$ppos = clone $packet->position;
+						if ($player->getWorld()->getEntity($packet->actorRuntimeId) instanceof Player) {
+							$ppos->y -= 1.62;
+						}
+						$this->flare->getSupports()->getEntityMoveRecorder()->add(
+							$player,
+							$packet->actorRuntimeId,
+							$ppos,
+							$this->flare->getPlugin()->getServer()->getTick()
+						);
+
+						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
+						if ($pos !== null) {
+							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0.8, 2.0, 0), "minecraft:balloon_gas_particle", null);
+							$target->sendDataPacket($pk);
+						}
+					}
+				}
+			}
+
+			if ($packet instanceof AddActorPacket) {
+				foreach ($event->getTargets() as $target) {
+					if (($player = $target->getPlayer()) instanceof Player) {
+						$this->flare->getSupports()->getEntityMoveRecorder()->add(
+							$player,
+							$packet->actorRuntimeId,
+							$packet->position,
+							$this->flare->getPlugin()->getServer()->getTick()
+						);
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * @param DataPacketReceiveEvent $event
 	 * 
@@ -97,10 +145,12 @@ class FlareEventListener implements Listener {
 	public function onDataPacketReceive(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$origin = $event->getOrigin();
+
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$position = $packet->getPosition()->subtract(0, 1.62, 0);
 			$yaw = $packet->getYaw();
 			$pitch = $packet->getPitch();
+
 			foreach ([
 				$position->x,
 				$position->y,

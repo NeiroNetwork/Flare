@@ -10,6 +10,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
+use pocketmine\utils\BroadcastLoggerForwarder;
 use pocketmine\utils\SingletonTrait;
 
 class Reporter {
@@ -17,8 +18,8 @@ class Reporter {
 	const BROADCAST_CHANNEL = "flare.broadcast"; // other broadcast
 	const BROADCAST_CHANNEL_INSPECTOR = "flare.broadcast.inspector"; // check broadcast
 
-	public function __construct(protected PluginBase $plugin, protected ConsoleCommandSender $console) {
-		$this->autoSubscribe($console);
+	public function __construct(protected PluginBase $plugin) {
+		// todo: reporter / broadcaster(singleton)
 	}
 
 	public function subscribeInspector(CommandSender $commandSender): void {
@@ -27,25 +28,6 @@ class Reporter {
 
 	public function subscribeTeam(CommandSender $commandSender): void {
 		$this->plugin->getServer()->subscribeToBroadcastChannel(self::BROADCAST_CHANNEL, $commandSender);
-	}
-
-
-	public function refreshSubscriber(): void {
-		$server = $this->plugin->getServer();
-		foreach ([
-			self::BROADCAST_CHANNEL,
-			self::BROADCAST_CHANNEL_INSPECTOR
-		] as $channelId) {
-			foreach ($server->getBroadcastChannelSubscribers($channelId) as $subscriber) {
-				$server->unsubscribeFromBroadcastChannel($channelId, $subscriber);
-			}
-		}
-
-		foreach ($server->getOnlinePlayers() as $player) {
-			$this->autoSubscribe($player);
-		}
-
-		$this->autoSubscribe($this->console);
 	}
 
 	public function autoSubscribe(CommandSender $commandSender): void {

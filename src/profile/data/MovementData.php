@@ -318,7 +318,9 @@ class MovementData {
 
 		$rawRot = EntityRotation::create($packet->getYaw(), $packet->getPitch(), $packet->getHeadYaw());
 		$rot = EntityRotation::create(fmod($rawRot->yaw, 360), fmod($rawRot->pitch, 360), fmod($rawRot->headYaw, 360));
+
 		EntityRotation::check($rot);
+
 
 		$this->lastFrom = clone $this->from;
 		$this->from = clone $this->to;
@@ -340,6 +342,10 @@ class MovementData {
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
 		$this->rotDelta = $this->rotation->diff($this->lastRotation);
+		// fixes Aim(C)
+		if (abs($this->rotDelta->pitch) < 1E-5)   $this->rotDelta->pitch = 0;
+		if (abs($this->rotDelta->yaw) < 1E-5)     $this->rotDelta->yaw = 0;
+		if (abs($this->rotDelta->headYaw) < 1E-5) $this->rotDelta->headYaw = 0;
 
 		$this->rotationDataReport?->add([$this->rotDelta->yaw, $this->rotDelta->pitch]); // data report
 

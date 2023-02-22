@@ -1,16 +1,21 @@
 # Flare
 
 🔌アンチチートv2
-PeekAntiCheatLite --> Flare
+PeekAntiCheatLite --> Flare  
+`dev` ブランチ: まともにテストしないでプッシュしているので、エラーが起きる可能性があります
+(使用は推奨されません)
 
-⚠ ターゲットPMMPバージョン: `4.10.1`
+⚠ ターゲットPMMPバージョン: `4.12.2`
 
 ## Dependencies
 
 ### Plugin
 
-[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter) (soft)  
-[VanillaCommands](https://github.com/NeiroNetwork/VanillaCommands) (soft)
+[WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter)  
+プレイヤーのPing取得に使用されます  
+
+[VanillaCommands](https://github.com/NeiroNetwork/VanillaCommands)  
+コマンドのパラメーター追加に使用されます
 
 ### Virion
 

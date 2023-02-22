@@ -13,6 +13,8 @@ class FlareKickReasons {
 
 	/**
 	 * @var bool
+	 * 
+	 * キック理由を base64 エンコードします。デコードすることで、理由ID、詳細などが確認できます。
 	 */
 	public static bool $obfuscation = false;
 
@@ -28,16 +30,6 @@ class FlareKickReasons {
 
 	public static function binaryWriteUTF8(string $utf8): string {
 		return $utf8;
-
-		// $length = strlen($utf8);
-		// $result = "";
-		// for ($i = 0; $i < $length; $i++) {
-		// 	$char = $utf8[$i];
-		// 
-		// 	$result .= $char; // chr(ord())
-		// }
-		// 
-		// return $result;
 	}
 
 	public static function too_many_inputs(int $violations, string $username): string {
@@ -65,6 +57,6 @@ class FlareKickReasons {
 					($cause instanceof BaseCheck ? Binary::writeInt($cause->getPunishVL()) : "")
 			)
 			:
-			Flare::PREFIX . "§cKicked for §lUnfair Advantage";
+			Flare::PREFIX . "§cKicked from server: §lUnfair Advantage";
 	}
 }

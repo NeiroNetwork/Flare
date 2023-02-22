@@ -42,9 +42,62 @@ class Utils {
 
 	public static function getPing(Player $player): int {
 		if (Server::getInstance()->getPluginManager()->getPlugin("WaterdogPEAccepter") !== null) {
-			return WdpePlayer::getRespondTime($player);
+			return (int) WdpePlayer::getRespondTime($player);
 		} else {
 			return $player->getNetworkSession()->getPing();
 		}
+	}
+
+	public static function getTime(): float {
+		return hrtime(true) / 1e+9;
+	}
+
+	public static function getTimeMilis(): float {
+		return hrtime(true) / 1e+6;
+	}
+
+	public static function equalsArrayValues(array $target, mixed $value) {
+		foreach ($target as $targetValue) {
+			if ($value != $targetValue) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public static function findAscending(array $arr, int $key): mixed {
+		$results = array_filter($arr, function ($v) use ($key) {
+			return $v <= $key;
+		});
+
+		if (count($results) > 0) {
+			return max($results);
+		}
+
+		return null;
+	}
+
+	public static function findDecending(array $arr, int $key): mixed {
+		$results = array_filter($arr, function ($v) use ($key) {
+			return $v >= $key;
+		});
+
+		if (count($results) > 0) {
+			return min($results);
+		}
+
+		return null;
+	}
+
+	public static function findArrayRange(array $arr, int $key, int $range): array {
+		$min = $key - $range;
+		$max = $key + $range;
+
+		$result = array_filter($arr, function ($v) use ($min, $max) {
+			return $v >= $min && $v <= $max;
+		});
+
+		return $result;
 	}
 }

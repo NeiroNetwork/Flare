@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 class CombatData {
 
 	protected ?Entity $clientAiming;
+	protected Vector3 $clientAimingAt;
 	protected ?Entity $hitEntity;
 	protected ?Entity $lastHitEntity;
 	protected int $lastHitEntityTime;
@@ -212,6 +213,9 @@ class CombatData {
 
 		if ($this->clientAiming instanceof Entity) {
 			$player->getNetworkSession()->syncActorData($this->clientAiming, []);
+
+			// hack: SetActorDataPacket を送信することにより、
+			// InteractPacket::ACTION_MOUSEOVER を再送させることができる。
 		}
 
 		$this->triggerAim->update();

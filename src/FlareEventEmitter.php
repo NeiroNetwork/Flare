@@ -70,7 +70,7 @@ class FlareEventEmitter {
 				$t = $this->timings->summarizeHandler;
 				$t->startTiming();
 				$list = $this->packetHandlers;
-				krsort($list, SORT_NUMERIC);
+				krsort($list, SORT_NUMERIC); // todo: 登録時にソートしたほうが絶対いい
 				$t->stopTiming();
 
 
@@ -129,13 +129,13 @@ class FlareEventEmitter {
 	}
 
 	public function unregisterAll(string $hash): void {
-		// パンパンですよパンパン！(foreachが)
+		// 魔境
 		$runPlayerPacketHandler = function (array $handlers) use ($hash): array {
 			foreach ($handlers as $priority => $_d1) {
 				foreach ($_d1 as $playerUuid => $_d2) {
 					foreach ($_d2 as $networkId => $_d3) {
 						foreach ($_d3 as $sig => $_d4) {
-							foreach ($_d4 as $targetHash => $handler) { // エグいて
+							foreach ($_d4 as $targetHash => $handler) {
 								if ($hash === $targetHash) {
 									unset($handlers[$priority][$playerUuid][$networkId][$sig][$targetHash]);
 								}

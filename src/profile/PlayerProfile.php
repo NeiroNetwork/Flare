@@ -8,6 +8,9 @@ use Closure;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\ICheck;
+use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
+use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
+use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachA;
 use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
@@ -18,7 +21,16 @@ use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedB;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedC;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedD;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedE;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketA;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketB;
+use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketC;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidA;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidB;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
+use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerA;
+use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerB;
+use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerC;
 use NeiroNetwork\Flare\profile\check\Observer;
 use NeiroNetwork\Flare\profile\data\CombatData;
 use NeiroNetwork\Flare\profile\data\KeyInputs;
@@ -100,7 +112,6 @@ class PlayerProfile implements Profile {
 		$this->transactionData = null;
 		$this->keyInputs = null;
 
-		$this->lastInputMode = -1;
 		$this->inputMode = -1;
 		$this->inputModeName = "unknown";
 
@@ -127,17 +138,40 @@ class PlayerProfile implements Profile {
 
 	protected function registerChecks(Observer $o): void {
 		// todo: glob all checks?
-		$o->registerCheck(new MotionA($o));
-		$o->registerCheck(new MotionB($o));
-		$o->registerCheck(new MotionC($o));
-		$o->registerCheck(new MotionD($o));
-		$o->registerCheck(new SpeedA($o));
-		$o->registerCheck(new SpeedB($o));
-		$o->registerCheck(new SpeedC($o));
-		$o->registerCheck(new SpeedD($o));
-		$o->registerCheck(new SpeedE($o));
-		$o->registerCheck(new InvalidD($o));
-		$o->registerCheck(new JumpA($o));
+		{
+			$o->registerCheck(new MotionA($o));
+			$o->registerCheck(new MotionB($o));
+			$o->registerCheck(new MotionC($o));
+			$o->registerCheck(new MotionD($o));
+		} {
+			$o->registerCheck(new SpeedA($o));
+			$o->registerCheck(new SpeedB($o));
+			$o->registerCheck(new SpeedC($o));
+			$o->registerCheck(new SpeedD($o));
+			$o->registerCheck(new SpeedE($o));
+		} {
+			$o->registerCheck(new JumpA($o));
+		} {
+			$o->registerCheck(new BadPacketA($o));
+			$o->registerCheck(new BadPacketB($o));
+			$o->registerCheck(new BadPacketC($o));
+		} {
+			$o->registerCheck(new InvalidA($o));
+			$o->registerCheck(new InvalidB($o));
+			$o->registerCheck(new InvalidC($o));
+			$o->registerCheck(new InvalidD($o));
+		} {
+			$o->registerCheck(new TimerA($o));
+			$o->registerCheck(new TimerB($o));
+			$o->registerCheck(new TimerC($o));
+		} {
+			$o->registerCheck(new AimA($o));
+			$o->registerCheck(new AimC($o));
+		} {
+			$o->registerCheck(new ReachA($o));
+		}
+
+		// グループ分けみたいなことをしてみたけど
 
 		// todo: Aim(C) の 1.0e-4以下のpitch diffを削除 (たまにある誤検知が直るかな？)
 		// finished: Speed(E) で移動速度の加速度検証 (move length 16 tick以内の時前回と同じ速度だったら検知？)
@@ -169,7 +203,6 @@ class PlayerProfile implements Profile {
 	public function close(): void {
 		if ($this->started) {
 			$this->shutdown();
-			$this->started = true;
 		}
 	}
 
@@ -241,6 +274,28 @@ class PlayerProfile implements Profile {
 
 	public function getServerTick(): int {
 		return $this->flare->getPlugin()->getServer()->getTick();
+	}
+
+	public function isServerStable(): bool {
+		$s = $this->flare->getPlugin()->getServer();
+
+		if ($s->getTicksPerSecond() < 19.975) {
+			return false;
+		}
+
+		if ($s->getTicksPerSecondAverage() < 19.975) {
+			return false;
+		}
+
+		if ($this->getFlare()->getTickProcessor()->getTimeSinceLastTick() > 200) {
+			return false;
+		}
+
+		if ($this->flare->getTickProcessor()->getOverloadRecord()->getTickSinceAction() < 200) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -336,5 +391,32 @@ class PlayerProfile implements Profile {
 		$this->verboseEnabled = $verboseEnabled;
 
 		return $this;
+	}
+
+	/**
+	 * Get the value of inputMode
+	 *
+	 * @return int
+	 */
+	public function getInputMode(): int {
+		return $this->inputMode;
+	}
+
+	/**
+	 * Get the value of inputModeName
+	 *
+	 * @return string
+	 */
+	public function getInputModeName(): string {
+		return $this->inputModeName;
+	}
+
+	/**
+	 * Get the value of observer
+	 *
+	 * @return Observer
+	 */
+	public function getObserver(): Observer {
+		return $this->observer;
 	}
 }
