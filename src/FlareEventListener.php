@@ -110,12 +110,6 @@ class FlareEventListener implements Listener {
 							$ppos,
 							$this->flare->getPlugin()->getServer()->getTick()
 						);
-
-						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
-						if ($pos !== null) {
-							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0.8, 2.0, 0), "minecraft:balloon_gas_particle", null);
-							$target->sendDataPacket($pk);
-						}
 					}
 				}
 			}
