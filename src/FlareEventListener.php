@@ -10,9 +10,11 @@ use NeiroNetwork\Flare\event\player\PlayerAttackWatchBotEvent;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
+use NeiroNetwork\Flare\profile\Client;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
@@ -54,6 +56,14 @@ class FlareEventListener implements Listener {
 
 	public function getPlayerFromAddress(InternetAddress $address): ?Player {
 		return $this->playerFromAddress[$address->toString()] ?? null;
+	}
+
+	public function onPreLogin(PlayerPreLoginEvent $event): void {
+		$client = new Client($event->getPlayerInfo(), $event->getIp());
+
+		if (!$client->isValid()) {
+			$event->setKickReason(FlareKickReasons::PRE_KICK_REASON_INVALID_CLIENT, FlareKickReasons::invalid_client($event->getPlayerInfo()->getUsername()));
+		}
 	}
 
 	public function onJoin(PlayerJoinEvent $event) {
