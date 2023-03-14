@@ -11,6 +11,7 @@ use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
 use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachA;
+use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachB;
 use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
@@ -169,6 +170,7 @@ class PlayerProfile implements Profile {
 			$o->registerCheck(new AimC($o));
 		} {
 			$o->registerCheck(new ReachA($o));
+			$o->registerCheck(new ReachB($o));
 		}
 
 		// グループ分けみたいなことをしてみたけど
