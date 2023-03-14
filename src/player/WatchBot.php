@@ -10,6 +10,8 @@ use pocketmine\world\Position;
 
 class WatchBot {
 
+	private static int $nextId = 0;
+
 	const NAMES = [
 		"Spring",
 		"Winter",
@@ -65,7 +67,7 @@ class WatchBot {
 
 	public static function createFakePlayer(Vector3 $position) {
 		$name = self::NAMES[array_rand(self::NAMES)];
-		$name .= mt_rand(0, 999);
+		$name .= (string) self::$nextId++;
 		return FakePlayer::simple($name, $position);
 	}
 
