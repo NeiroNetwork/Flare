@@ -354,4 +354,13 @@ class CombatData {
 	public function getKnockbackRecord(): InstantActionRecord {
 		return $this->knockback;
 	}
+
+	/**
+	 * Get the value of clientAimingAt
+	 *
+	 * @return Vector3
+	 */
+	public function getClientAimingAt(): Vector3 {
+		return $this->clientAimingAt;
+	}
 }
