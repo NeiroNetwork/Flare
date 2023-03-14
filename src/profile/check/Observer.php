@@ -56,10 +56,16 @@ class Observer {
 		$this->punishEnabled = $conf->get("punish");
 	}
 
-	public function spawnWatchBot(int $duration): void {
+	public function spawnWatchBot(int $duration): bool {
+		if ($this->watchBot?->isSpawned() ?? true) {
+			return false;
+		}
+
 		$this->watchBot = new WatchBot(WatchBot::createFakePlayer($this->profile->getPlayer()->getEyePos()->add(0, 0.3, 0)), $this->profile->getPlayer());
 
 		$this->profile->getFlare()->getWatchBotTask()->addBot($this->watchBot, $duration);
+
+		return true;
 	}
 
 	public function setEnabled(bool $enabled): void {
