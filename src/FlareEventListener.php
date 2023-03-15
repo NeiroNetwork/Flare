@@ -181,7 +181,7 @@ class FlareEventListener implements Listener {
 					} else {
 						$entity = $player->getWorld()->getEntity($runtimeId);
 						if ($entity !== null) {
-							$ev = new PlayerAttackEvent($player, $entity);
+							$ev = new PlayerAttackEvent($player, $entity, $data->getPlayerPosition(), $data->getClickPosition());
 							$ev->call();
 						}
 					}
