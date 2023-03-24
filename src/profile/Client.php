@@ -31,7 +31,8 @@ final class Client {
 	private string $model;
 	private string $gameVersion;
 	private string $deviceId;
-	private int $clientId;
+	private int $clientRandomId;
+	private string $selfSignedId;
 	private int $guiScale;
 	private string $langCode;
 	private string $playfabId;
@@ -73,10 +74,11 @@ final class Client {
 		$this->model = $e["DeviceModel"];
 		$this->gameVersion = $e["GameVersion"];
 		$this->deviceId = $e["DeviceId"];
-		$this->clientId = $e["ClientRandomId"];
+		$this->clientRandomId = $e["ClientRandomId"];
 		$this->guiScale = $e["GuiScale"];
 		$this->langCode = $e["LanguageCode"];
 		$this->playfabId = $e["PlayFabId"];
+		$this->selfSignedId = $e["SelfSignedId"];
 		$this->serverAddress = $e["ServerAddress"];
 		$this->address = $address;
 		$this->uiProfile = $e["UIProfile"];
@@ -118,7 +120,6 @@ final class Client {
 		return
 			$this->name === $client->getName() ||
 			$this->deviceId === $client->getDeviceId() ||
-			$this->clientId === $client->getClientId() ||
 			$this->clientUuid === $client->getClientUuid() ||
 			$this->playfabId === $client->getPlayfabId() ||
 			#$this->address === $client->getAddress() ||
@@ -129,7 +130,6 @@ final class Client {
 		return
 			$this->name === $client->getName() &&
 			$this->deviceId === $client->getDeviceId() &&
-			$this->clientId === $client->getClientId() &&
 			$this->clientUuid === $client->getClientUuid() &&
 			$this->playfabId === $client->getPlayfabId() &&
 			#$this->address === $client->getAddress() &&
@@ -164,8 +164,13 @@ final class Client {
 		return $this->deviceId;
 	}
 
-	public function getClientId(): int {
-		return $this->clientId;
+	/**
+	 * @return int
+	 *
+	 * warning: この値は信用できません！BANデータなどに使用しないでください
+	 */
+	public function getClientRandomId(): int {
+		return $this->clientRandomId;
 	}
 
 	public function getGuiScale(): int {
@@ -194,6 +199,15 @@ final class Client {
 
 	public function getXuid(): string {
 		return $this->xuid;
+	}
+
+	/**
+	 * @return string
+	 *
+	 * note: 一定時間ごとに変化する
+	 */
+	public function getSelfSignedId(): string {
+		return $this->selfSignedId;
 	}
 
 	public function isTap() {
