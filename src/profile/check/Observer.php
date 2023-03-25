@@ -57,7 +57,7 @@ class Observer {
 	}
 
 	public function spawnWatchBot(int $duration): bool {
-		if ($this->watchBot?->isSpawned() ?? true) {
+		if ($this->watchBot?->isSpawned() ?? false) {
 			return false;
 		}
 
