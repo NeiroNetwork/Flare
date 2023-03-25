@@ -10,9 +10,11 @@ use NeiroNetwork\Flare\event\player\PlayerAttackWatchBotEvent;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
+use NeiroNetwork\Flare\profile\Client;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
@@ -54,6 +56,14 @@ class FlareEventListener implements Listener {
 
 	public function getPlayerFromAddress(InternetAddress $address): ?Player {
 		return $this->playerFromAddress[$address->toString()] ?? null;
+	}
+
+	public function onPreLogin(PlayerPreLoginEvent $event): void {
+		$client = new Client($event->getPlayerInfo(), $event->getIp());
+
+		if (!$client->isValid()) {
+			$event->setKickReason(FlareKickReasons::PRE_KICK_REASON_INVALID_CLIENT, FlareKickReasons::invalid_client($event->getPlayerInfo()->getUsername()));
+		}
 	}
 
 	public function onJoin(PlayerJoinEvent $event) {
@@ -110,12 +120,6 @@ class FlareEventListener implements Listener {
 							$ppos,
 							$this->flare->getPlugin()->getServer()->getTick()
 						);
-
-						$pos = $this->flare->getSupports()->getMoveDelay()->predict($player, $packet->actorRuntimeId);
-						if ($pos !== null) {
-							$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos->add(0.8, 2.0, 0), "minecraft:balloon_gas_particle", null);
-							$target->sendDataPacket($pk);
-						}
 					}
 				}
 			}

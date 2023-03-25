@@ -52,7 +52,7 @@ final class Client {
 		return new self($session->getPlayerInfo(), $session->getIp());
 	}
 
-	public function validateData(): bool {
+	public function isValid(): bool {
 		if ($this->isUnknownDevice()) return false;
 
 		$didPattern = self::ID_PATTERNS[$this->device] ?? null;
