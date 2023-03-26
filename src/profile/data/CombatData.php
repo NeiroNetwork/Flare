@@ -17,7 +17,9 @@ use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\InteractPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 
 class CombatData {
@@ -212,9 +214,16 @@ class CombatData {
 		$player = $this->profile->getPlayer();
 
 		if ($this->clientAiming instanceof Entity) {
-			$player->getNetworkSession()->syncActorData($this->clientAiming, []);
+			$pk = SetActorDataPacket::create(
+				$this->clientAiming->getId(),
+				[],
+				new PropertySyncData([], []),
+				0
+			);
+			$player->getNetworkSession()->sendDataPacket($pk);
+			// todo: 代替パケットを探す
 
-			// hack: SetActorDataPacket を送信することにより、
+			// SetActorDataPacket を送信することにより、
 			// InteractPacket::ACTION_MOUSEOVER を再送させることができる。
 		}
 

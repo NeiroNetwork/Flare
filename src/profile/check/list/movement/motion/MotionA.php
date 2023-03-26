@@ -27,7 +27,6 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck {
 
 	public function onLoad(): void {
 		$this->registerInputPacketHandler();
-		$this->lastFrom = Vector3::zero();
 	}
 
 	public function handle(PlayerAuthInputPacket $packet): void {

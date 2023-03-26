@@ -3,7 +3,7 @@
 🔌アンチチートv2
 PeekAntiCheatLite --> Flare  
 
-⚠ ターゲットPMMPバージョン: `4.12.2`
+⚠ ターゲットPMMPバージョン: `4.18.0`
 
 ## Dependencies
 
