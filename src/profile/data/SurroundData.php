@@ -230,10 +230,6 @@ class SurroundData {
 		return $this->bounce;
 	}
 
-	public function getBlockChangeRecord(): InstantActionRecord {
-		return $this->blockChange;
-	}
-
 	public function getHitHeadRecord(): ActionRecord {
 		return $this->hithead;
 	}
