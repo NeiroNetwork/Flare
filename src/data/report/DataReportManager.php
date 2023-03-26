@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\data\report;
 
 use Exception;
 use pocketmine\plugin\PluginLogger;
-use Webmozart\PathUtil\Path;
+use Symfony\Component\Filesystem\Path;
 
 class DataReportManager {
 
@@ -62,13 +62,13 @@ class DataReportManager {
 	}
 
 	public function getFile(string $uuid, string $name): string {
-		return Path::join([$this->folder, $uuid, $name . ".json"]);
+		return Path::join($this->folder, $uuid, $name . ".json");
 	}
 
 	public function save(): void {
 		foreach ($this->reports as $uuid => $all) {
 			foreach ($all as $name => $report) {
-				@mkdir(Path::join([$this->folder, $uuid]), recursive: true);
+				@mkdir(Path::join($this->folder, $uuid), recursive: true);
 				$file = $this->getFile($uuid, $name);
 				$assoc = $report->jsonSerialize();
 				if (is_array($assoc)) {
@@ -86,7 +86,7 @@ class DataReportManager {
 	}
 
 	protected function load(): void {
-		foreach (glob(Path::join([$this->folder, "*.json"])) as $file) {
+		foreach (glob(Path::join($this->folder, "*.json")) as $file) {
 			$assoc_json = json_decode(file_get_contents($file), true, 512); // fixme: JSON_BIGINT_AS_STRING ?
 
 			if (!isset($assoc_json["name"], $assoc_json["uuid"], $assoc_json["class"])) {

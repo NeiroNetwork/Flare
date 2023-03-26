@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\config;
 
 use pocketmine\player\Player;
 use pocketmine\utils\Config;
-use Webmozart\PathUtil\Path;
+use Symfony\Component\Filesystem\Path;
 
 class PlayerConfigStore {
 
@@ -43,7 +43,7 @@ class PlayerConfigStore {
 			$this->list[$uuid]
 			??
 			new Config(
-				Path::join([$this->folder, "$uuid.yml"]),
+				Path::join($this->folder, "$uuid.yml"),
 				Config::YAML,
 				$this->flareConfig->getProfileDefault()->getAll()
 			);

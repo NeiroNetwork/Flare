@@ -7,7 +7,7 @@ namespace NeiroNetwork\Flare\config;
 use Exception;
 use NeiroNetwork\Flare\profile\LogStyle;
 use pocketmine\utils\Config;
-use Webmozart\PathUtil\Path;
+use Symfony\Component\Filesystem\Path;
 
 class FlareConfig {
 
@@ -20,12 +20,12 @@ class FlareConfig {
 	protected PlayerConfigStore $playerConfig;
 
 	public function __construct(string $folder) {
-		$this->generic = new Config(Path::join([$folder, "generic.yml"]), Config::YAML, [
+		$this->generic = new Config(Path::join($folder, "generic.yml"), Config::YAML, [
 			"inspectors" => [],
 			"test_server_mode" => false
 		]);
 
-		$this->profileDefault = new Config(Path::join([$folder, "profile_default.yml"]), Config::YAML, [
+		$this->profileDefault = new Config(Path::join($folder, "profile_default.yml"), Config::YAML, [
 			"alert" => true,
 			"log" => true,
 			"check" => true,
@@ -40,7 +40,7 @@ class FlareConfig {
 			"bot" => true
 		]);
 
-		$this->console = new Config(Path::join([$folder, "console.yml"]), Config::YAML, [
+		$this->console = new Config(Path::join($folder, "console.yml"), Config::YAML, [
 			"alert" => true,
 			"log" => true,
 			"log_style" => "flare",
@@ -49,7 +49,7 @@ class FlareConfig {
 			"alert_cooldown" => 4
 		]);
 
-		$this->playerConfig = new PlayerConfigStore($this, Path::join([$folder, "player"]));
+		$this->playerConfig = new PlayerConfigStore($this, Path::join($folder, "player"));
 
 		$this->validate();
 	}
