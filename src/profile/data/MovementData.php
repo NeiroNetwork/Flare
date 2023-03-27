@@ -202,6 +202,8 @@ class MovementData {
 
 	protected ?DataReport $rotationDataReport;
 
+	protected int $inputCount;
+
 	public function __construct(protected PlayerProfile $profile) {
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$emitter = $this->profile->getFlare()->getEventEmitter();
@@ -320,6 +322,8 @@ class MovementData {
 		$rot = EntityRotation::create(fmod($rawRot->yaw, 360), fmod($rawRot->pitch, 360), fmod($rawRot->headYaw, 360));
 
 		EntityRotation::check($rot);
+
+		$this->inputCount++;
 
 
 		$this->lastFrom = clone $this->from;
@@ -712,5 +716,12 @@ class MovementData {
 	 */
 	public function getClientOnGroundRecord(): ActionRecord {
 		return $this->clientOnGround;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getInputCount(): int {
+		return $this->inputCount;
 	}
 }
