@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\utils;
 
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\LongMetadataProperty;
 use pocketmine\player\Player;
@@ -31,5 +32,13 @@ class PlayerUtil {
 	public static function getPropertyIdFromGenericFlag(int $flagId) {
 		$propertyId = $flagId >= 64 ? EntityMetadataProperties::FLAGS2 : EntityMetadataProperties::FLAGS;
 		return $propertyId;
+	}
+
+	public static function getEyeHeight(Player $player): float {
+		return $player->getEyeHeight() + ($player->isSneaking() ? -0.15 : 0.0);
+	}
+
+	public static function getRealEyePos(Player $player): Vector3 {
+		return $player->getPosition()->add(0, self::getEyeHeight($player), 0);
 	}
 }
