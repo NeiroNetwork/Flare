@@ -28,7 +28,7 @@ class InvalidA extends BaseCheck implements HandleInputPacketCheck {
 		$md = $this->profile->getMovementData();
 		$ki = $this->profile->getKeyInputs();
 
-		if ($packet->getMoveVecZ() <= 0 && $ki->getSprintRecord()->getLength() > 1) {
+		if ($packet->getMoveVecZ() <= 0 && $ki->getSprintRecord()->getLength() > 4) {
 			if (
 				$md->getTeleportRecord()->getTickSinceAction() >= 6 &&
 				$md->getFlyRecord()->getTickSinceAction() >= 20 &&
