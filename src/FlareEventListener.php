@@ -25,6 +25,7 @@ use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\TickSyncPacket;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
@@ -63,6 +64,8 @@ class FlareEventListener implements Listener {
 
 		if (!$client->isValid()) {
 			$event->setKickReason(FlareKickReasons::PRE_KICK_REASON_INVALID_CLIENT, FlareKickReasons::invalid_client($event->getPlayerInfo()->getUsername()));
+
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§c不正な変更が検出されたため、ログインを拒否しました §7(DeviceID: {$client->getDeviceId()}, Player: {$client->getName()}, OS: {$client->getDevice()})", $this->flare));
 		}
 	}
 
