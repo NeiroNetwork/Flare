@@ -33,7 +33,7 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 	private string $hashb = "";
 
 	public function getCheckGroup(): int {
-		return CheckGroup::PACKET;
+		return CheckGroup::COMBAT;
 	}
 
 	public function onLoad(): void {
@@ -65,8 +65,13 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 	public function handleAttack(PlayerAttackEvent $event): void {
 		$entity = $event->getEntity();
 		$player = $event->getPlayer();
+		$cd = $this->profile->getCombatData();
 
 		if ($player->getScale() != 1.0) { // tick diff?
+			return;
+		}
+
+		if ($cd->getHitEntity() !== $cd->getLastHitEntity()) {
 			return;
 		}
 
@@ -107,8 +112,10 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 					}
 				}
 
-				if ($freach > 9.0) {
-					$this->fail(new ViolationFailReason("Spt-Reach: {$freach}"));
+				if ($freach > 9.0 + 1.0) {
+					if ($this->preFail()) {
+						$this->fail(new ViolationFailReason("Spt-Reach: {$freach}"));
+					}
 				}
 			}
 		}
@@ -116,6 +123,7 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 	public function handle(PlayerAuthInputPacket $packet): void {
 		$this->reward();
+		$this->preReward();
 		$cd = $this->profile->getCombatData();
 
 		if ($cd->getHitEntity() !== $cd->getLastHitEntity()) {

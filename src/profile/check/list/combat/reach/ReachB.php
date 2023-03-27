@@ -19,7 +19,7 @@ class ReachB extends BaseCheck {
 
 
 	public function getCheckGroup(): int {
-		return CheckGroup::PACKET;
+		return CheckGroup::COMBAT;
 	}
 
 	public function onLoad(): void {
