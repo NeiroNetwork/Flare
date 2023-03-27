@@ -52,4 +52,12 @@ class Math {
 	public static function distanceBoundingBox(AxisAlignedBB $bb, Vector3 $point): float {
 		return sqrt(self::distanceSquaredBoundingBox($bb, $point));
 	}
+
+	public static function getPracticalDistanceCalcError(AxisAlignedBB $bb): float {
+		return $bb->getAverageEdgeLength() / 2;
+	}
+
+	public static function equals(float $a, float $b, float $epsilon = 0.00000001): bool {
+		return abs($a - $b) <= $epsilon;
+	}
 }
