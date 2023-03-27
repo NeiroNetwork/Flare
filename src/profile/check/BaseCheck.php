@@ -16,6 +16,8 @@ use pocketmine\utils\Utils;
 abstract class BaseCheck implements ICheck {
 	use CheckViolationTrait;
 
+	protected int $checkPassDelay;
+
 	private string $debugPrefix = "§9> §7[§f%s §8/ §2%s§7] §7";
 
 	/**
@@ -41,11 +43,15 @@ abstract class BaseCheck implements ICheck {
 	 */
 	protected PlayerProfile $profile;
 
+	protected int $lastExempted;
+
 	public function __construct(Observer $observer) {
 		$this->observer = $observer;
 		$this->profile = $observer->getProfile();
 		$this->enabled = false;
 		$this->debuggers = [];
+		$this->checkPassDelay = 10;
+		$this->lastExempted = -$this->checkPassDelay;
 	}
 
 	public function getDebugPrefix(): string {
@@ -64,6 +70,14 @@ abstract class BaseCheck implements ICheck {
 		}
 
 		return false;
+	}
+
+	public function getPreVL(): float {
+		return $this->pvl;
+	}
+
+	public function resetPreVL(): void {
+		$this->pvl = 0.0;
 	}
 
 	public function preReward(int $multiplier = 1): void {
@@ -89,6 +103,20 @@ abstract class BaseCheck implements ICheck {
 	}
 
 	public function tryCheck(): bool {
+		$passed = $this->checkExempt();
+
+		if ($passed) {
+			if ($this->profile->getServerTick() - $this->lastExempted < $this->checkPassDelay) {
+				$passed = false;
+			}
+		} else {
+			$this->lastExempted = $this->profile->getServerTick();
+		}
+
+		return $passed;
+	}
+
+	protected function checkExempt(): bool {
 		return
 			$this->enabled &&
 			!$this->observer->isClosed() &&
