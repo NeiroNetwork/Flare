@@ -10,8 +10,13 @@ use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
+use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraD;
+use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerA;
+use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerB;
+use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerC;
 use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachA;
 use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachB;
+use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachC;
 use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
@@ -29,6 +34,7 @@ use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidA;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidB;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidE;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerA;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerB;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerC;
@@ -40,6 +46,7 @@ use NeiroNetwork\Flare\profile\data\SurroundData;
 use NeiroNetwork\Flare\profile\data\TransactionData;
 use NeiroNetwork\Flare\profile\style\FlareStyle;
 use NeiroNetwork\Flare\profile\style\PeekAntiCheatStyle;
+use NeiroNetwork\Flare\reporter\DebugReportContent;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\EventHandlerLink;
 use NeiroNetwork\Flare\utils\Utils;
@@ -98,6 +105,8 @@ class PlayerProfile implements Profile {
 
 		$this->logCooldown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
+
+		$this->debugEnabled = $conf->get("debug");
 
 		$this->verboseEnabled = $conf->get("verbose");
 
@@ -161,6 +170,7 @@ class PlayerProfile implements Profile {
 			$o->registerCheck(new InvalidB($o));
 			$o->registerCheck(new InvalidC($o));
 			$o->registerCheck(new InvalidD($o));
+			$o->registerCheck(new InvalidE($o));
 		} {
 			$o->registerCheck(new TimerA($o));
 			$o->registerCheck(new TimerB($o));
@@ -171,6 +181,13 @@ class PlayerProfile implements Profile {
 		} {
 			$o->registerCheck(new ReachA($o));
 			$o->registerCheck(new ReachB($o));
+			$o->registerCheck(new ReachC($o));
+		} {
+			$o->registerCheck(new AuraD($o));
+		} {
+			$o->registerCheck(new AutoClickerA($o));
+			$o->registerCheck(new AutoClickerB($o));
+			$o->registerCheck(new AutoClickerC($o));
 		}
 
 		// グループ分けみたいなことをしてみたけど
@@ -183,6 +200,8 @@ class PlayerProfile implements Profile {
 		if (!$this->started) {
 			$this->started = true;
 
+			$this->flare->getReporter()->report(new DebugReportContent(Flare::DEBUG_PREFIX . "Profile セッションを開始しています", $this->flare));
+			$startTime = microtime(true);
 
 			$this->eventLink->add($this->flare->getEventEmitter()->registerPlayerEventHandler(
 				$this->player->getUniqueId()->toString(),
@@ -195,6 +214,10 @@ class PlayerProfile implements Profile {
 			$this->combatData = new CombatData($this);
 			$this->transactionData = new TransactionData($this);
 			$this->keyInputs = new KeyInputs($this);
+
+			$t = microtime(true) - $startTime;
+			$rt = round($t * 1000);
+			$this->flare->getReporter()->report(new DebugReportContent(Flare::DEBUG_PREFIX . "Profile セッションの開始が終了しました: {$rt}ms", $this->flare));
 
 
 			$this->registerChecks($this->observer);
