@@ -41,6 +41,8 @@ class ConsoleProfile implements Profile {
 		$this->logCooldown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
 
+		$this->debugEnabled = $conf->get("debug");
+
 		$this->verboseEnabled = $conf->get("verbose");
 	}
 

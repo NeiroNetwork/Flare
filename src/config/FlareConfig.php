@@ -43,6 +43,7 @@ class FlareConfig {
 		$this->console = new Config(Path::join($folder, "console.yml"), Config::YAML, [
 			"alert" => true,
 			"log" => true,
+			"debug" => true,
 			"log_style" => "flare",
 			"verbose" => false,
 			"log_cooldown" => 0,

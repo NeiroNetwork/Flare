@@ -37,12 +37,18 @@ trait CooldownLoggingTrait {
 
 	protected bool $verboseEnabled = false;
 
+	protected bool $debugEnabled = false;
+
 	public function isAlertEnabled(): bool {
 		return $this->alertEnabled;
 	}
 
 	public function isLogEnabled(): bool {
 		return $this->logEnabled;
+	}
+
+	public function isDebugEnabled(): bool {
+		return $this->debugEnabled;
 	}
 
 	public function tryAlert(ICheck $check): bool {
@@ -79,6 +85,14 @@ trait CooldownLoggingTrait {
 		}
 
 		return false;
+	}
+
+	public function tryDebug(): bool {
+		if (!$this->debugEnabled) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -173,6 +187,20 @@ trait CooldownLoggingTrait {
 	 */
 	public function setVerboseEnabled(bool $verboseEnabled): self {
 		$this->verboseEnabled = $verboseEnabled;
+
+		return $this;
+	}
+
+
+	/**
+	 * Set the value of debugEnabled
+	 *
+	 * @param bool $debugEnabled
+	 *
+	 * @return self
+	 */
+	public function setDebugEnabled(bool $debugEnabled): self {
+		$this->debugEnabled = $debugEnabled;
 
 		return $this;
 	}
