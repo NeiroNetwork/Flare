@@ -88,11 +88,15 @@ class FlareEventListener implements Listener {
 		$address = (new InternetAddress($session->getIp(), $session->getPort(), 4))->toString(); // todo: ipv6
 		unset($this->playerFromAddress[$address]);
 
-		$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
+		if ($this->flare->getProfileManager()->fetch($session->getPlayerInfo()->getUuid()->toString())) {
+			$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
 
-		$this->flare->getReporter()->autoUnsubscribe($player);
+			$this->flare->getReporter()->autoUnsubscribe($player);
 
-		$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()}§f", $this->flare));
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()}§f", $this->flare));
+		} else {
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが §c§l参加前に §r§f退出しました: §c{$event->getQuitReason()}§f", $this->flare));
+		}
 	}
 
 	public function onNackReceive(NackReceiveEvent $event) {
