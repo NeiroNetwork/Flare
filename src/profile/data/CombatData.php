@@ -65,6 +65,15 @@ class CombatData {
 	protected NumericalSampling $clickDelta;
 
 	/**
+	 * @var NumericalSampling
+	 */
+	protected NumericalSampling $clickTickDelta;
+
+	protected float $lastClickTimeDelta;
+
+	protected int $lastClickInputTick;
+
+	/**
 	 * @var InstantActionRecord
 	 */
 	protected InstantActionRecord $click;
@@ -185,9 +194,12 @@ class CombatData {
 
 	protected function handleMouseClick(): void {
 		$time = hrtime(true);
+		$this->lastClickTimeDelta = $time - $this->lastClickTime;
 		$this->clickDelta->add($time - $this->lastClickTime);
 
 		$this->click->onAction();
+
+		$this->lastClickInputTick = $this->profile->getMovementData()->getInputCount();
 		$this->lastClickTime = $time;
 	}
 
@@ -353,6 +365,14 @@ class CombatData {
 
 	public function getClickDelta(): NumericalSampling {
 		return $this->clickDelta;
+	}
+
+	public function getClickTimeDelta(): float {
+		return $this->lastClickTimeDelta;
+	}
+
+	public function getLastClickInputTick(): int {
+		return $this->lastClickInputTick;
 	}
 
 	/**
