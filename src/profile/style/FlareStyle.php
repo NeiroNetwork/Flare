@@ -10,9 +10,9 @@ use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\LogStyle;
 use NeiroNetwork\Flare\profile\Profile;
 
-class FlareStyle extends LogStyle {
+class FlareStyle extends LogStyle{
 
-	public function fail(Profile $profile, ICheck $cause, FailReason $failReason): string {
+	public function fail(Profile $profile, ICheck $cause, FailReason $failReason) : string{
 		$name = $profile->getCommandSender()->getName();
 
 		$type = $cause instanceof BaseCheck ? $cause->getType() : "";
@@ -20,20 +20,20 @@ class FlareStyle extends LogStyle {
 
 		$checkColor = "§f";
 
-		if ($cause->isExperimental()) {
+		if($cause->isExperimental()){
 			$checkColor = "§7§o";
 		}
 
 
 		$percText = "";
-		if ($cause instanceof BaseCheck) {
+		if($cause instanceof BaseCheck){
 			$percentage = $cause->getVL() / $cause->getPunishVL();
 
 			$baseColor = "§f";
 			$base = str_repeat("|", 18);
-			if ($percentage < 1.0) {
+			if($percentage < 1.0){
 				$body = substr_replace($base, "§8", (int) (strlen($base) * $percentage), 0);
-			} else {
+			}else{
 				$baseColor = "§c";
 				$body = $base;
 			}
@@ -41,10 +41,11 @@ class FlareStyle extends LogStyle {
 
 			$percText = "§7[" . $baseColor . $body . "§7]";
 		}
-		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText} " . ($profile->isVerboseEnabled() ? $failReason->verbose : "");
+		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText} " . ($profile->isVerboseEnabled() ?
+				$failReason->verbose : "");
 	}
 
-	public function getAliases(): array {
+	public function getAliases() : array{
 		return ["flare"];
 	}
 }

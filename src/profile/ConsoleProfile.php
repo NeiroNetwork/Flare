@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile;
 
 use NeiroNetwork\Flare\Flare;
-use NeiroNetwork\Flare\profile\check\ICheck;
 use NeiroNetwork\Flare\profile\style\FlareStyle;
 use pocketmine\command\CommandSender;
-use pocketmine\console\ConsoleCommandSender;
 use pocketmine\lang\Language;
 use pocketmine\permission\DefaultPermissions;
-use pocketmine\Server;
 use pocketmine\utils\BroadcastLoggerForwarder;
 
 /**
  * fixme: クラス名変更するべき
  */
-class ConsoleProfile implements Profile {
+class ConsoleProfile implements Profile{
+
 	use CooldownLoggingTrait;
 
 	protected LogStyle $logStyle;
@@ -26,7 +24,7 @@ class ConsoleProfile implements Profile {
 
 	protected BroadcastLoggerForwarder $console;
 
-	public function __construct(Flare $flare, \AttachableThreadedLogger $logger, Language $language) {
+	public function __construct(Flare $flare, \AttachableThreadedLogger $logger, Language $language){
 		$this->flare = $flare;
 		$server = $flare->getPlugin()->getServer();
 		$this->console = new BroadcastLoggerForwarder($server, $logger, $language);
@@ -46,27 +44,27 @@ class ConsoleProfile implements Profile {
 		$this->verboseEnabled = $conf->get("verbose");
 	}
 
-	public function getServerTick(): int {
+	public function getServerTick() : int{
 		return $this->flare->getPlugin()->getServer()->getTick();
 	}
 
-	public function getLogStyle(): LogStyle {
+	public function getLogStyle() : LogStyle{
 		return $this->logStyle;
 	}
 
-	public function getClient(): ?Client {
+	public function getClient() : ?Client{
 		return null;
 	}
 
-	public function getFlare(): Flare {
+	public function getFlare() : Flare{
 		return $this->flare;
 	}
 
-	public function getCommandSender(): CommandSender {
-		return $this->console;
+	public function getName() : string{
+		return $this->getCommandSender()->getName();
 	}
 
-	public function getName(): string {
-		return $this->getCommandSender()->getName();
+	public function getCommandSender() : CommandSender{
+		return $this->console;
 	}
 }

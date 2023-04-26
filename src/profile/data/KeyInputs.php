@@ -11,7 +11,7 @@ use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 
-class KeyInputs {
+class KeyInputs{
 
 	protected bool $w;
 	protected bool $a;
@@ -64,7 +64,7 @@ class KeyInputs {
 	 */
 	protected InstantActionRecord $moveVecChange;
 
-	public function __construct(protected PlayerProfile $profile) {
+	public function __construct(protected PlayerProfile $profile){
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$links = $this->profile->getEventHandlerLink();
 		$links->add($this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
@@ -78,42 +78,96 @@ class KeyInputs {
 		ProfileData::autoPropertyValue($this);
 	}
 
-	public function w(): bool {
+	public function w() : bool{
 		return $this->w;
 	}
 
-	public function a(): bool {
+	public function a() : bool{
 		return $this->a;
 	}
 
-	public function s(): bool {
+	public function s() : bool{
 		return $this->s;
 	}
 
-	public function d(): bool {
+	public function d() : bool{
 		return $this->d;
 	}
 
-	public function forwardValue(): float {
+	public function forwardValue() : float{
 		return $this->forwardValue;
 	}
 
-	public function strafeValue(): float {
+	public function strafeValue() : float{
 		return $this->strafeValue;
 	}
 
-	public function jump(): bool {
+	public function jump() : bool{
 		return $this->jump;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function anyMoveKey(): bool {
+	public function anyMoveKey() : bool{
 		return $this->w || $this->a || $this->s || $this->d;
 	}
 
-	protected function handleInput(PlayerAuthInputPacket $packet): void {
+	/**
+	 * Get the value of sprint
+	 *
+	 * @return ActionRecord
+	 */
+	public function getSprintRecord() : ActionRecord{
+		return $this->sprint;
+	}
+
+	/**
+	 * Get the value of sneak
+	 *
+	 * @return ActionRecord
+	 */
+	public function getSneakRecord() : ActionRecord{
+		return $this->sneak;
+	}
+
+	/**
+	 * Get the value of glide
+	 *
+	 * @return ActionRecord
+	 */
+	public function getGlideRecord() : ActionRecord{
+		return $this->glide;
+	}
+
+	/**
+	 * Get the value of swim
+	 *
+	 * @return ActionRecord
+	 */
+	public function getSwimRecord() : ActionRecord{
+		return $this->swim;
+	}
+
+	/**
+	 * Get the value of sneakChange
+	 *
+	 * @return InstantActionRecord
+	 */
+	public function getSneakChangeRecord() : InstantActionRecord{
+		return $this->sneakChange;
+	}
+
+	/**
+	 * Get the value of moveVecChange
+	 *
+	 * @return InstantActionRecord
+	 */
+	public function getMoveVecChangeRecord() : InstantActionRecord{
+		return $this->moveVecChange;
+	}
+
+	protected function handleInput(PlayerAuthInputPacket $packet) : void{
 		$vz = $packet->getMoveVecZ();
 		$vx = $packet->getMoveVecX();
 		$this->w = $packet->hasFlag(PlayerAuthInputFlags::UP);
@@ -124,16 +178,24 @@ class KeyInputs {
 		$inputFlags = $packet->getInputFlags();
 
 
-		if ($this->lastInputFlags !== $inputFlags) {
+		if($this->lastInputFlags !== $inputFlags){
 			$sneaking = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
 			$sprinting = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
 			$swimming = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING);
 			$gliding = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING);
 
-			if ($sneaking !== null)  $this->sneaking = $sneaking;
-			if ($swimming !== null)  $this->swimming = $swimming;
-			if ($sprinting !== null) $this->sprinting = $sprinting;
-			if ($gliding !== null)   $this->gliding = $gliding;
+			if($sneaking !== null){
+				$this->sneaking = $sneaking;
+			}
+			if($swimming !== null){
+				$this->swimming = $swimming;
+			}
+			if($sprinting !== null){
+				$this->sprinting = $sprinting;
+			}
+			if($gliding !== null){
+				$this->gliding = $gliding;
+			}
 
 			$this->lastInputFlags = $inputFlags;
 		}
@@ -146,7 +208,7 @@ class KeyInputs {
 
 		$this->sneakChange->update();
 
-		if ($this->sneak->getFlag() !== $this->sneak->getLastFlag()) {
+		if($this->sneak->getFlag() !== $this->sneak->getLastFlag()){
 			$this->sneakChange->onAction();
 		}
 
@@ -158,64 +220,10 @@ class KeyInputs {
 
 		$this->moveVecChange->update();
 
-		if ($this->forwardValue !== $this->lastForwardValue || $this->strafeValue !== $this->lastStrafeValue) {
+		if($this->forwardValue !== $this->lastForwardValue || $this->strafeValue !== $this->lastStrafeValue){
 			$this->moveVecChange->onAction();
 		}
 
 		$this->jump = ($packet->hasFlag(PlayerAuthInputFlags::JUMPING));
-	}
-
-	/**
-	 * Get the value of sprint
-	 *
-	 * @return ActionRecord
-	 */
-	public function getSprintRecord(): ActionRecord {
-		return $this->sprint;
-	}
-
-	/**
-	 * Get the value of sneak
-	 *
-	 * @return ActionRecord
-	 */
-	public function getSneakRecord(): ActionRecord {
-		return $this->sneak;
-	}
-
-	/**
-	 * Get the value of glide
-	 *
-	 * @return ActionRecord
-	 */
-	public function getGlideRecord(): ActionRecord {
-		return $this->glide;
-	}
-
-	/**
-	 * Get the value of swim
-	 *
-	 * @return ActionRecord
-	 */
-	public function getSwimRecord(): ActionRecord {
-		return $this->swim;
-	}
-
-	/**
-	 * Get the value of sneakChange
-	 *
-	 * @return InstantActionRecord
-	 */
-	public function getSneakChangeRecord(): InstantActionRecord {
-		return $this->sneakChange;
-	}
-
-	/**
-	 * Get the value of moveVecChange
-	 *
-	 * @return InstantActionRecord
-	 */
-	public function getMoveVecChangeRecord(): InstantActionRecord {
-		return $this->moveVecChange;
 	}
 }

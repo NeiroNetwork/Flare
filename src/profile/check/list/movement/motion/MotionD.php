@@ -11,15 +11,16 @@ use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class MotionD extends BaseCheck implements HandleInputPacketCheck {
+class MotionD extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 	}
 }

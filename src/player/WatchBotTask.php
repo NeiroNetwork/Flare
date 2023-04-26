@@ -7,7 +7,7 @@ namespace NeiroNetwork\Flare\player;
 use Lyrica0954\PeekAntiCheat\utils\VectorUtil;
 use pocketmine\scheduler\Task;
 
-class WatchBotTask extends Task {
+class WatchBotTask extends Task{
 
 	/**
 	 * @var (array{0: WatchBot, 1: int})[]
@@ -16,22 +16,22 @@ class WatchBotTask extends Task {
 
 	private array $sq;
 
-	public function addBot(WatchBot $bot, int $tick) {
-		$this->bots[] = [$bot, $tick];
-		$bot->spawn();
-	}
-
-	public function __construct() {
+	public function __construct(){
 		$this->bots = [];
 		$this->sq = [];
 	}
 
-	public function onRun(): void {
-		foreach ($this->bots as $index => $p) {
+	public function addBot(WatchBot $bot, int $tick){
+		$this->bots[] = [$bot, $tick];
+		$bot->spawn();
+	}
+
+	public function onRun() : void{
+		foreach($this->bots as $index => $p){
 			$bot = $p[0];
 			$tick = $p[1];
 			$this->bots[$index][1]--;
-			if ($this->bots[$index][1] <= 0 || !$bot->getPlayer()->isOnline()) {
+			if($this->bots[$index][1] <= 0 || !$bot->getPlayer()->isOnline()){
 				$bot->despawn();
 				$bot->destroyFakePlayer();
 				unset($this->bots[$index]);
@@ -42,11 +42,11 @@ class WatchBotTask extends Task {
 		}
 	}
 
-	private function moveAround(WatchBot $bot) {
+	private function moveAround(WatchBot $bot){
 		$hash = spl_object_hash($bot);
-		if (isset($this->sq[$hash])) {
+		if(isset($this->sq[$hash])){
 			$this->sq[$hash] += 0.5;
-		} else {
+		}else{
 			$this->sq[$hash] = 0;
 		}
 

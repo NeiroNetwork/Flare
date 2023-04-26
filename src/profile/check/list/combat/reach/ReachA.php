@@ -11,17 +11,14 @@ use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use NeiroNetwork\Flare\profile\data\MovementData;
 use NeiroNetwork\Flare\utils\Math;
 use pocketmine\event\EventPriority;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
-use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use SplFixedArray;
 
-class ReachA extends BaseCheck implements HandleInputPacketCheck {
+class ReachA extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
@@ -32,46 +29,37 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 	private string $hashb = "";
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
 
-	public function onLoad(): void {
+	public function onLoad() : void{
 		$this->registerInputPacketHandler();
 		$this->list = [];
 		$this->hashb = $this->profile->getFlare()->getEventEmitter()->registerPlayerEventHandler(
 			$this->profile->getPlayer()->getUniqueId()->toString(),
 			PlayerAttackEvent::class,
-			function (PlayerAttackEvent $event): void {
+			function(PlayerAttackEvent $event) : void{
 				assert($event->getPlayer() === $this->profile->getPlayer());
-				if ($this->tryCheck()) $this->handleAttack($event);
+				if($this->tryCheck()){
+					$this->handleAttack($event);
+				}
 			},
 			false,
 			EventPriority::MONITOR
 		);
 	}
 
-	public function onUnload(): void {
-		$this->profile->getFlare()->getEventEmitter()->unregisterPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			$this->hashb,
-			EventPriority::MONITOR
-		);
-
-		$this->unregisterInputPacketHandler();
-	}
-
-	public function handleAttack(PlayerAttackEvent $event): void {
+	public function handleAttack(PlayerAttackEvent $event) : void{
 		$entity = $event->getEntity();
 		$player = $event->getPlayer();
 		$cd = $this->profile->getCombatData();
 
-		if ($player->getScale() != 1.0) { // tick diff?
+		if($player->getScale() != 1.0){ // tick diff?
 			return;
 		}
 
-		if ($cd->getHitEntity() !== $cd->getLastHitEntity()) {
+		if($cd->getHitEntity() !== $cd->getLastHitEntity()){
 			return;
 		}
 
@@ -84,21 +72,21 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 		/**
 		 * @var SplFixedArray<AxisAlignedBB> $refs
-		 * 
+		 *
 		 * ジェネリクス！
 		 */
 
-		if ($realRefCount >= 2) {
+		if($realRefCount >= 2){
 			$first = $this->list[array_key_last($this->list)];
 
 			$freach = Math::distanceSquaredBoundingBox($first, $eyePos);
 			$reaches = [];
 
-			foreach ($refs as $targetBB) {
+			foreach($refs as $targetBB){
 				$reaches[] = Math::distanceSquaredBoundingBox($targetBB, $eyePos);
 			}
 
-			if (count($reaches) > 0) {
+			if(count($reaches) > 0){
 				$minReach = min($reaches);
 				$maxReach = max($reaches);
 
@@ -106,14 +94,14 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 
 				$this->broadcastDebugMessage("reach: {$rootReach} f: {$freach}");
 
-				if ($minReach > 9.0) { // (3 ** 2)
-					if ($this->preFail()) {
+				if($minReach > 9.0){ // (3 ** 2)
+					if($this->preFail()){
 						$this->fail(new ViolationFailReason("Reach: {$minReach}"));
 					}
 				}
 
-				if ($freach > 9.0 + 1.0) {
-					if ($this->preFail()) {
+				if($freach > 9.0 + 1.0){
+					if($this->preFail()){
 						$this->fail(new ViolationFailReason("Spt-Reach: {$freach}"));
 					}
 				}
@@ -121,21 +109,32 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck {
 		}
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function onUnload() : void{
+		$this->profile->getFlare()->getEventEmitter()->unregisterPlayerEventHandler(
+			$this->profile->getPlayer()->getUniqueId()->toString(),
+			PlayerAttackEvent::class,
+			$this->hashb,
+			EventPriority::MONITOR
+		);
+
+		$this->unregisterInputPacketHandler();
+	}
+
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$this->preReward();
 		$cd = $this->profile->getCombatData();
 
-		if ($cd->getHitEntity() !== $cd->getLastHitEntity()) {
+		if($cd->getHitEntity() !== $cd->getLastHitEntity()){
 			$this->list = [];
 		}
 
 		$entity = $cd->getHitEntity();
-		if ($entity !== null) {
+		if($entity !== null){
 			$runtimeId = $entity->getId();
 			$pos = $this->profile->getFlare()->getSupports()->fullSupportMove($this->profile->getPlayer(), $runtimeId);
 
-			if ($pos !== null) {
+			if($pos !== null){
 				$h = $entity->size->getHeight();
 				$w = $entity->size->getWidth() / 2;
 				$bb = new AxisAlignedBB(

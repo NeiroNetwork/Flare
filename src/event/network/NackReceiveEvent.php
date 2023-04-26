@@ -6,9 +6,9 @@ namespace NeiroNetwork\Flare\event\network;
 
 use raklib\utils\InternetAddress;
 
-class NackReceiveEvent extends NetworkEvent {
+class NackReceiveEvent extends NetworkEvent{
 
-	public function __construct(InternetAddress $address) {
+	public function __construct(InternetAddress $address){
 		$this->address = $address;
 	}
 }

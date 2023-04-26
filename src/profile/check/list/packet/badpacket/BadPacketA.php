@@ -12,21 +12,22 @@ use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class BadPacketA extends BaseCheck implements HandleInputPacketCheck {
+class BadPacketA extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::PACKET;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 
 		$md = $this->profile->getMovementData();
 
 		$pitch = abs($md->getRotation()->pitch);
-		if ($pitch > 90) {
+		if($pitch > 90){
 			$this->fail(new ViolationFailReason("Pitch: {$pitch}"));
 		}
 	}

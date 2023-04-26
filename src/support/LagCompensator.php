@@ -9,24 +9,23 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\Server;
 
-class LagCompensator {
+class LagCompensator{
 
 	public function __construct(
 		protected EntityMoveRecorder $recorder
-	) {
-	}
+	){}
 
-	public function compensate(Player $viewer, float $ping, int $runtimeId): ?Vector3 {
+	public function compensate(Player $viewer, float $ping, int $runtimeId) : ?Vector3{
 		$histories = $this->recorder->get($viewer, $runtimeId);
 		$currentTick = Server::getInstance()->getTick();
 		$tick = (int) floor($ping / 50);
 
 		$regs = Utils::findArrayRange(array_keys($histories), $currentTick - $tick, 1);
-		if (count($regs) <= 0) {
+		if(count($regs) <= 0){
 			return null;
 		}
 
-		$results = array_map(function ($v) use ($histories) {
+		$results = array_map(function($v) use ($histories){
 			return $histories[$v];
 		}, $regs);
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\command;
 
-interface ParameterCommand {
+interface ParameterCommand{
 
-	public function registerParameters(): void;
+	public function registerParameters() : void;
 }

@@ -10,27 +10,26 @@ use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use NeiroNetwork\Flare\utils\MinecraftPhysics;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class StepA extends BaseCheck implements HandleInputPacketCheck {
+class StepA extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function onLoad(): void {
+	public function onLoad() : void{
 		$this->registerInputPacketHandler();
 	}
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function isExperimental(): bool {
+	public function isExperimental() : bool{
 		return true;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -39,13 +38,13 @@ class StepA extends BaseCheck implements HandleInputPacketCheck {
 		$delta = $md->getDelta(); // client motion
 		$realDelta = $md->getRealDelta(); // position delta
 
-		if (
+		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 10 &&
 			count($sd->getComplexBlocks()) <= 0 &&
 			$md->getClientOnGroundRecord()->getLength() > 5
-		) {
+		){
 
-			if (abs($realDelta->y) > 0.601) {
+			if(abs($realDelta->y) > 0.601){
 				$this->fail(new ViolationFailReason("Pos Delta: {$realDelta->y}, Motion: {$delta->y}"));
 			}
 		}

@@ -12,20 +12,21 @@ use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedB extends BaseCheck implements HandleInputPacketCheck {
+class SpeedB extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 
-		if ($md->getTeleportRecord()->getTickSinceAction() >= 2) {
+		if($md->getTeleportRecord()->getTickSinceAction() >= 2){
 			$deltaYaw = abs($md->getRotationDelta()->yaw);
 
 			$deltaXZ = $md->getDeltaXZ();
@@ -36,8 +37,8 @@ class SpeedB extends BaseCheck implements HandleInputPacketCheck {
 			$base = $player->getMovementSpeed() * 10;
 
 			$sqAccel = $accel * 100;
-			if ($deltaYaw > 4.0 * $base && $deltaXZ > 0.1 * $base) {
-				if ($sqAccel < 0.01) {
+			if($deltaYaw > 4.0 * $base && $deltaXZ > 0.1 * $base){
+				if($sqAccel < 0.01){
 					$this->fail(new ViolationFailReason("Accel: $accel, deltaYaw: $deltaYaw"));
 				}
 			}

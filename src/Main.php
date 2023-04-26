@@ -10,33 +10,40 @@ use NeiroNetwork\Flare\command\GiveModerationItemCommand;
 use NeiroNetwork\Flare\command\ParameterCommand;
 use NeiroNetwork\Flare\command\ReloadCommand;
 use NeiroNetwork\Flare\command\SettingsCommand;
-use NeiroNetwork\Flare\form\PlayerSettingsForm;
 use NeiroNetwork\Flare\moderation\ModerationItemListener;
 use NeiroNetwork\Flare\network\NACKHandler;
-use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\snooze\SleeperNotifier;
 
-class Main extends PluginBase {
+class Main extends PluginBase{
 
 	private static ?self $instance = null;
 
 	protected Flare $flare;
 
-	public static function getInstance(): ?self {
+	public static function getInstance() : ?self{
 		return self::$instance;
 	}
 
-	protected function onLoad(): void {
+	/**
+	 * Get the value of flare
+	 *
+	 * @return Flare
+	 */
+	public function getMainFlare() : Flare{
+		return $this->flare;
+	}
+
+	protected function onLoad() : void{
 		self::$instance = $this;
 	}
 
-	protected function onEnable(): void {
+	protected function onEnable() : void{
 		$this->flare = new Flare($this);
 
 		// task or sleeper
 		$notifier = new SleeperNotifier();
-		$this->getServer()->getTickSleeper()->addNotifier($notifier, function () use ($notifier): void {
+		$this->getServer()->getTickSleeper()->addNotifier($notifier, function() use ($notifier) : void{
 			$this->flare->start();
 			$this->getServer()->getTickSleeper()->removeNotifier($notifier);
 		});
@@ -57,8 +64,8 @@ class Main extends PluginBase {
 
 		$vanillaCommands = $this->getServer()->getPluginManager()->getPlugin("VanillaCommands") !== null;
 
-		foreach ($list as $command) {
-			if ($command instanceof ParameterCommand && $vanillaCommands) {
+		foreach($list as $command){
+			if($command instanceof ParameterCommand && $vanillaCommands){
 				$command->registerParameters();
 			}
 		}
@@ -66,16 +73,7 @@ class Main extends PluginBase {
 		$this->getServer()->getPluginManager()->registerEvents(new ModerationItemListener, $this);
 	}
 
-	protected function onDisable(): void {
+	protected function onDisable() : void{
 		$this->flare->shutdown();
-	}
-
-	/**
-	 * Get the value of flare
-	 *
-	 * @return Flare
-	 */
-	public function getMainFlare(): Flare {
-		return $this->flare;
 	}
 }

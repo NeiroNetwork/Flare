@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\utils;
 
-use pocketmine\utils\Utils;
-use SplFixedArray;
-
-class Statistics {
+class Statistics{
 
 	/**
 	 * @param float[] $list
 	 *
 	 * @return float
 	 */
-	public static function standardDeviation(array $list): float {
+	public static function standardDeviation(array $list) : float{
 		return sqrt(self::variance($list));
 	}
 
@@ -23,10 +20,10 @@ class Statistics {
 	 *
 	 * @return float
 	 */
-	public static function variance(array $list): float {
+	public static function variance(array $list) : float{
 		$avg = self::average($list);
 		$result = 0;
-		foreach ($list as $num) {
+		foreach($list as $num){
 			$deviation = $num - $avg;
 			$result += $deviation ** 2;
 		}
@@ -41,34 +38,12 @@ class Statistics {
 	 *
 	 * @return float
 	 */
-	public static function average(array $list): float {
+	public static function average(array $list) : float{
 		return array_sum($list) / count($list);
 	}
 
-	public static function duplicates(array $list): int {
+	public static function duplicates(array $list) : int{
 		return count($list) - count(array_unique($list, SORT_NUMERIC));
-	}
-
-	/**
-	 * @param float[] $sortedList
-	 *
-	 * @return float
-	 */
-	protected static function getMedian(array $sortedList): float {
-		$size = count($sortedList);
-
-		$list = array_values($sortedList); // キーは保証する
-
-		if ($size % 2 === 0) {
-			return ($list[$size / 2] + $list[$size / 2 - 1]) / 2;
-		} else {
-			return $list[(int) floor($size / 2)];
-		}
-	}
-
-	public static function median(array $list): float {
-		sort($list, SORT_NUMERIC);
-		return self::getMedian($list);
 	}
 
 	/**
@@ -78,7 +53,7 @@ class Statistics {
 	 *
 	 * @see https://en.wikipedia.org/wiki/Skewness
 	 */
-	public static function skewness(array $list): float {
+	public static function skewness(array $list) : float{
 		$sum = array_sum($list);
 		$count = count($list);
 
@@ -86,11 +61,33 @@ class Statistics {
 		$median = self::median($list);
 		$variance = self::variance($list);
 
-		if (Math::equals($variance, 0.)) {
+		if(Math::equals($variance, 0.)){
 			return 0.;
 		}
 
 		return 3 * ($average - $median) / $variance;
+	}
+
+	public static function median(array $list) : float{
+		sort($list, SORT_NUMERIC);
+		return self::getMedian($list);
+	}
+
+	/**
+	 * @param float[] $sortedList
+	 *
+	 * @return float
+	 */
+	protected static function getMedian(array $sortedList) : float{
+		$size = count($sortedList);
+
+		$list = array_values($sortedList); // キーは保証する
+
+		if($size % 2 === 0){
+			return ($list[$size / 2] + $list[$size / 2 - 1]) / 2;
+		}else{
+			return $list[(int) floor($size / 2)];
+		}
 	}
 
 	/**
@@ -100,7 +97,7 @@ class Statistics {
 	 *
 	 * @see https://en.wikipedia.org/wiki/Outlier
 	 */
-	public static function outliers(array $list): OutliersResult {
+	public static function outliers(array $list) : OutliersResult{
 		$result = new OutliersResult;
 
 		$values = array_values($list);
@@ -120,10 +117,10 @@ class Statistics {
 		$lowThreshold = $q1 - 1.5 * $iqr;
 		$highThreshold = $q3 - 1.5 * $iqr;
 
-		foreach ($values as $n) {
-			if ($n < $lowThreshold) {
+		foreach($values as $n){
+			if($n < $lowThreshold){
 				$result->low[] = $n;
-			} elseif ($n > $highThreshold) {
+			}elseif($n > $highThreshold){
 				$result->high[] = $n;
 			}
 		}
@@ -138,15 +135,15 @@ class Statistics {
 	 *
 	 * @see https://en.wikipedia.org/wiki/Kurtosis
 	 */
-	public static function kurtosis(array $list): float {
+	public static function kurtosis(array $list) : float{
 		$sum = array_sum($list);
 		$count = count($list);
 
-		if ($count < 3) {
+		if($count < 3){
 			return 0.;
 		}
 
-		if ($sum <= 0) {
+		if($sum <= 0){
 			return 0.;
 		}
 
@@ -158,12 +155,12 @@ class Statistics {
 		$advanceVariance = 0.0;
 		$advanceVarianceSquared = 0.0;
 
-		foreach ($list as $n) {
+		foreach($list as $n){
 			$advanceVariance += ($average - $n) ** 2;
 			$advanceVarianceSquared += ($average - $n) ** 4;
 		}
 
-		if (Math::equals($advanceVariance, 0.)) {
+		if(Math::equals($advanceVariance, 0.)){
 			return -$efficiencySecond;
 		}
 

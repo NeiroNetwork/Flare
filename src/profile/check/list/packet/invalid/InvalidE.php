@@ -11,32 +11,32 @@ use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 
-class InvalidE extends BaseCheck implements HandleInputPacketCheck {
+class InvalidE extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
 	protected ?int $lastClientTick = null;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::PACKET;
 	}
 
-	public function isExperimental(): bool {
+	public function isExperimental() : bool{
 		return true;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 
-		if (is_null($this->lastClientTick)) {
+		if(is_null($this->lastClientTick)){
 			$this->lastClientTick = $packet->getTick();
 			return;
 		}
 
-		if ($packet->getTick() - $this->lastClientTick !== 1) {
+		if($packet->getTick() - $this->lastClientTick !== 1){
 			$this->fail(new ViolationFailReason("Invalid auth tick"));
 		}
 

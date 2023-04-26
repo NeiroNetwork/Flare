@@ -6,12 +6,17 @@ namespace NeiroNetwork\Flare\profile\check;
 
 use RuntimeException;
 
-trait ClassNameAsCheckIdTrait {
+trait ClassNameAsCheckIdTrait{
 
 	private ?string $name = null;
 	private ?string $type = null;
 
-	private function solve(): void {
+	public function getName() : string{
+			$this->name ?? $this->solve();
+		return $this->name;
+	}
+
+	private function solve() : void{
 		$ref = new \ReflectionClass($this);
 		$name = $ref->getShortName();
 		$index = false;
@@ -25,10 +30,10 @@ trait ClassNameAsCheckIdTrait {
 		$type = "";
 
 		// 最後から小文字のindexを探す
-		for ($i = $length - 1; $i > 1; $i--) {
+		for($i = $length - 1; $i > 1; $i--){
 			$char = $name[$i];
 
-			if (ctype_lower($char)) {
+			if(ctype_lower($char)){
 				$index = $i + 1;
 				break;
 			}
@@ -36,7 +41,7 @@ trait ClassNameAsCheckIdTrait {
 
 		// index: 10 (r)
 
-		if ($index === false) {
+		if($index === false){
 			throw new RuntimeException("unexpected");
 
 			return;
@@ -44,7 +49,7 @@ trait ClassNameAsCheckIdTrait {
 
 
 		// 最後の文字が小文字の場合
-		if ($index === $length) {
+		if($index === $length){
 			$this->name = $name;
 			$this->type = "";
 
@@ -52,7 +57,7 @@ trait ClassNameAsCheckIdTrait {
 		}
 
 		// 小文字の場所から最後の文字までを type に追加する
-		for ($i = $index; $i < $length; $i++) {
+		for($i = $index; $i < $length; $i++){
 			$char = $name[$i];
 
 			$type .= $char;
@@ -65,13 +70,8 @@ trait ClassNameAsCheckIdTrait {
 		$this->type = $type;
 	}
 
-	public function getName(): string {
-		$this->name ?? $this->solve();
-		return $this->name;
-	}
-
-	public function getType(): string {
-		$this->type ?? $this->solve();
+	public function getType() : string{
+			$this->type ?? $this->solve();
 		return $this->type;
 	}
 }

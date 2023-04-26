@@ -7,7 +7,7 @@ namespace NeiroNetwork\Flare\utils\timings;
 use pocketmine\timings\Timings;
 use pocketmine\timings\TimingsHandler;
 
-class EventEmitterTimings {
+class EventEmitterTimings{
 
 	public TimingsHandler $register;
 
@@ -21,7 +21,7 @@ class EventEmitterTimings {
 
 	public TimingsHandler $sendPacketHandling;
 
-	public function __construct(protected FlareTimings $parent, protected string $prefix) {
+	public function __construct(protected FlareTimings $parent, protected string $prefix){
 		$icp = Timings::INCLUDED_BY_OTHER_TIMINGS_PREFIX;
 		$this->register = new TimingsHandler($prefix . "Register Handler");
 		$this->listen = new TimingsHandler($prefix . "Listen Event");

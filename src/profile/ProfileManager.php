@@ -7,36 +7,36 @@ namespace NeiroNetwork\Flare\profile;
 use NeiroNetwork\Flare\Flare;
 use pocketmine\player\Player;
 
-class ProfileManager {
+class ProfileManager{
 
 	/**
 	 * @var PlayerProfile[]
 	 */
 	protected array $list;
 
-	public function __construct(protected Flare $flare) {
+	public function __construct(protected Flare $flare){
 		$this->list = [];
 	}
 
 	/**
 	 * @return PlayerProfile[]
 	 */
-	public function getAll(): array {
+	public function getAll() : array{
 		return $this->list;
 	}
 
-	public function start(Player $player): void {
+	public function start(Player $player) : void{
 		$uuid = $player->getUniqueId()->toString();
 		$this->list[$uuid] = new PlayerProfile($this->flare, $player);
 		$this->list[$uuid]->start();
 	}
 
-	public function remove(string $uuid) {
+	public function remove(string $uuid){
 		$this->list[$uuid]?->close();
 		unset($this->list[$uuid]);
 	}
 
-	public function fetch(string $uuid): ?PlayerProfile {
+	public function fetch(string $uuid) : ?PlayerProfile{
 		return $this->list[$uuid] ?? null;
 	}
 }

@@ -9,7 +9,7 @@ use pocketmine\event\player\PlayerEvent;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 
-class PlayerAttackEvent extends PlayerEvent {
+class PlayerAttackEvent extends PlayerEvent{
 
 	/**
 	 * @var Entity
@@ -19,7 +19,7 @@ class PlayerAttackEvent extends PlayerEvent {
 	protected Vector3 $playerPosition;
 	protected Vector3 $clickedPosition;
 
-	public function __construct(Player $player, Entity $entity, Vector3 $playerPosition, Vector3 $clickedPosition) {
+	public function __construct(Player $player, Entity $entity, Vector3 $playerPosition, Vector3 $clickedPosition){
 		$this->player = $player;
 		$this->entity = $entity;
 		$this->playerPosition = $playerPosition;
@@ -29,7 +29,7 @@ class PlayerAttackEvent extends PlayerEvent {
 	/**
 	 * @return Entity
 	 */
-	public function getEntity(): Entity {
+	public function getEntity() : Entity{
 		return $this->entity;
 	}
 
@@ -38,7 +38,7 @@ class PlayerAttackEvent extends PlayerEvent {
 	 *
 	 * @return Vector3
 	 */
-	public function getPlayerPosition(): Vector3 {
+	public function getPlayerPosition() : Vector3{
 		return $this->playerPosition;
 	}
 
@@ -47,7 +47,7 @@ class PlayerAttackEvent extends PlayerEvent {
 	 *
 	 * @return Vector3
 	 */
-	public function getClickedPosition(): Vector3 {
+	public function getClickedPosition() : Vector3{
 		return $this->clickedPosition;
 	}
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check\list\movement\motion;
 
-use Closure;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
@@ -12,24 +11,22 @@ use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\event\EventPriority;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 
-class MotionA extends BaseCheck implements HandleInputPacketCheck {
+class MotionA extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function onLoad(): void {
+	public function onLoad() : void{
 		$this->registerInputPacketHandler();
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -38,7 +35,7 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck {
 		$from = $md->getFrom();
 		$to = $md->getTo();
 
-		if (
+		if(
 			$md->getAirRecord()->getLength() >= 2 &&
 			$md->getImmobileRecord()->getTickSinceAction() >= 2 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 4 &&
@@ -51,14 +48,14 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck {
 			$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 3
-		) {
-			if (!$player->getEffects()->has(VanillaEffects::LEVITATION())) {
+		){
+			if(!$player->getEffects()->has(VanillaEffects::LEVITATION())){
 				$distY = ($to->y - $from->y);
 				$lastDistY = ($from->y - $md->getLastFrom()->y);
 
 				$accel = abs($distY - $lastDistY);
 				// $player->sendMessage("Accel: $accel");
-				if ($accel < 0.0001) {
+				if($accel < 0.0001){
 					$this->fail(new ViolationFailReason("Accel: $accel"));
 				}
 			}

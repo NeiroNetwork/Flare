@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check\list\combat\autoclicker;
 
-use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
@@ -14,10 +13,9 @@ use NeiroNetwork\Flare\profile\data\ActionRecord;
 use NeiroNetwork\Flare\utils\Math;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Statistics;
-use NeiroNetwork\Flare\utils\Utils;
-use SplFixedArray;
 
-class AutoClickerB extends BaseCheck {
+class AutoClickerB extends BaseCheck{
+
 	use ClassNameAsCheckIdTrait;
 
 	protected float $pvlMax = (100 * 2);
@@ -28,26 +26,26 @@ class AutoClickerB extends BaseCheck {
 	protected float $lastKurtosis = 0;
 	protected float $lastSkewness = 0;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
 
-	public function isExperimental(): bool {
+	public function isExperimental() : bool{
 		return true;
 	}
 
-	public function onLoad(): void {
-		$this->clickDelta = new NumericalSampling(20);
+	public function onLoad() : void{
+		$this->clickDelta = new NumericalSampling(40);
 
 		$notifier = new ActionNotifier;
-		$notifier->notifyAction(function (ActionRecord $record): void {
+		$notifier->notifyAction(function(ActionRecord $record) : void{
 			$this->handle();
 		});
 
 		$this->profile->getCombatData()->getClickRecord()->notify($notifier);
 	}
 
-	public function handle(): void {
+	public function handle() : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$cd = $this->profile->getCombatData();
@@ -56,21 +54,21 @@ class AutoClickerB extends BaseCheck {
 		$delta = $md->getInputCount() - $cd->getLastClickInputTick();
 		$this->clickDelta->add($delta);
 
-		if ($this->clickDelta->isMax()) {
+		if($this->clickDelta->isMax()){
 			$samples = $this->clickDelta->getAll();
 			$deviation = Statistics::standardDeviation($samples);
 			$skewness = Statistics::skewness($samples);
 			$kurtosis = Statistics::kurtosis($samples);
 
-			if (
+			if(
 				Math::equals($deviation, $this->lastDeviation) &&
 				Math::equals($skewness, $this->lastSkewness) &&
 				Math::equals($kurtosis, $this->lastKurtosis)
-			) {
-				if ($this->preFail()) {
+			){
+				if($this->preFail()){
 					$this->fail(new ViolationFailReason("Same deviation, skewness, kurtosis"));
 				}
-			} else {
+			}else{
 				$this->resetPreVL();
 			}
 

@@ -13,15 +13,16 @@ use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedA extends BaseCheck implements HandleInputPacketCheck {
+class SpeedA extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -30,7 +31,7 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 
 		$dist = $md->getRealDeltaXZ();
 		$lastDist = $md->getLastRealDeltaXZ();
-		if (
+		if(
 			($md->getAirRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 5) &&
 			$md->getMotionRecord()->getTickSinceAction() >= 10 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 8 &&
@@ -38,10 +39,10 @@ class SpeedA extends BaseCheck implements HandleInputPacketCheck {
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 6
-		) {
+		){
 			$predict = MinecraftPhysics::nextAirXZ($lastDist);
 			$diff = $dist - $predict;
-			if ($diff > 0.00762) { #0.00745 -> 0.00762
+			if($diff > 0.00762){ #0.00745 -> 0.00762
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
 		}

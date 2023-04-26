@@ -10,20 +10,19 @@ use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use NeiroNetwork\Flare\profile\data\ActionRecord;
-use NeiroNetwork\Flare\profile\data\InstantActionRecord;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedD extends BaseCheck implements HandleInputPacketCheck {
+class SpeedD extends BaseCheck implements HandleInputPacketCheck{
+
 	use ClassNameAsCheckIdTrait;
 	use HandleInputPacketCheckTrait;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -36,7 +35,7 @@ class SpeedD extends BaseCheck implements HandleInputPacketCheck {
 		// $player->sendMessage((string) abs($md->getRotationDelta()->yaw));
 
 		$diffYaw = abs($md->getRotationDelta()->yaw);
-		if (
+		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
 			$md->getJumpRecord()->getTickSinceAction() >= 10 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
@@ -53,13 +52,13 @@ class SpeedD extends BaseCheck implements HandleInputPacketCheck {
 				($md->getOnGroundRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 3) ||
 				($md->getRonGroundRecord()->getLength() >= 7 && $md->getOnGroundRecord()->getLength() >= 7)
 			)
-		) {
+		){
 			$expected = MinecraftPhysics::moveDistancePerTick($player);
 			$diff = sqrt($md->getRealDeltaXZ()) - $expected;
 			$diffScaled = $diff * 100;
 
 			// $player->sendMessage("diff: {$diff}");
-			if ($diffScaled > 1.5) {
+			if($diffScaled > 1.5){
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
 		}

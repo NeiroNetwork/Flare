@@ -8,7 +8,7 @@ use pocketmine\player\Player;
 use pocketmine\utils\Config;
 use Symfony\Component\Filesystem\Path;
 
-class PlayerConfigStore {
+class PlayerConfigStore{
 
 	/**
 	 * @var Config[]
@@ -18,27 +18,35 @@ class PlayerConfigStore {
 	public function __construct(
 		protected FlareConfig $flareConfig,
 		protected string $folder
-	) {
+	){
 		@mkdir($folder, 0777, true);
 		$this->list = [];
 	}
 
 	/**
-	 * @return Config[]
+	 * @param Player $player
+	 *
+	 * @return Config player config
+	 *
+	 * fixme: fetch or get?
 	 */
-	public function getAll(): array {
-		return $this->list;
+	public function get(Player $player) : Config{
+		$config = $this->getFromUuid($player->getUniqueId()->toString());
+
+		$config->set("username", $player->getName());
+
+		return $config;
 	}
 
 	/**
 	 * @param string $uuid
-	 * 
+	 *
 	 * @return Config player config
-	 * 
+	 *
 	 * fixme: internal?
 	 * fixme: fetch or get?
 	 */
-	public function getFromUuid(string $uuid): Config {
+	public function getFromUuid(string $uuid) : Config{
 		$config =
 			$this->list[$uuid]
 			??
@@ -54,17 +62,9 @@ class PlayerConfigStore {
 	}
 
 	/**
-	 * @param Player $player
-	 * 
-	 * @return Config player config
-	 * 
-	 * fixme: fetch or get?
+	 * @return Config[]
 	 */
-	public function get(Player $player): Config {
-		$config = $this->getFromUuid($player->getUniqueId()->toString());
-
-		$config->set("username", $player->getName());
-
-		return $config;
+	public function getAll() : array{
+		return $this->list;
 	}
 }

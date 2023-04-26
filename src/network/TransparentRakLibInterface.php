@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\network;
 
-use pocketmine\network\AdvancedNetworkInterface;
 use pocketmine\network\mcpe\compression\ZlibCompressor;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\NetworkSession;
@@ -28,10 +27,8 @@ use raklib\protocol\EncapsulatedPacket;
 use raklib\protocol\PacketReliability;
 use raklib\server\ipc\RakLibToUserThreadMessageReceiver;
 use raklib\server\ipc\UserToRakLibThreadMessageSender;
-use raklib\server\ServerEventListener;
 use raklib\utils\InternetAddress;
 use Threaded;
-
 use function addcslashes;
 use function base64_encode;
 use function bin2hex;
@@ -41,7 +38,8 @@ use function random_bytes;
 use function rtrim;
 use function substr;
 
-class TransparentRakLibInterface extends RakLibInterface {
+class TransparentRakLibInterface extends RakLibInterface{
+
 	/**
 	 * Sometimes this gets changed when the MCPE-layer protocol gets broken to the point where old and new can't
 	 * communicate. It's important that we check this to avoid catastrophes.
@@ -68,15 +66,15 @@ class TransparentRakLibInterface extends RakLibInterface {
 
 	private PacketBroadcaster $broadcaster;
 
-	public function __construct(Server $server, string $ip, int $port, bool $ipV6) {
+	public function __construct(Server $server, string $ip, int $port, bool $ipV6){
 		$this->server = $server;
 		$this->rakServerId = mt_rand(0, PHP_INT_MAX);
 
 		$this->sleeper = new SleeperNotifier();
 
-		$mainToThreadBuffer = new \Threaded();
-		$threadToMainBuffer = new \Threaded();
-		$nackThreadToMainBuffer = new \Threaded();
+		$mainToThreadBuffer = new Threaded();
+		$threadToMainBuffer = new Threaded();
+		$nackThreadToMainBuffer = new Threaded();
 
 		$this->nackThreadToMainBuffer = $nackThreadToMainBuffer;
 
@@ -101,54 +99,55 @@ class TransparentRakLibInterface extends RakLibInterface {
 		$this->broadcaster = new StandardPacketBroadcaster($this->server);
 	}
 
-	public function start(): void {
-		$this->server->getTickSleeper()->addNotifier($this->sleeper, function (): void {
-			while ($this->eventReceiver->handle($this));
+	public function start() : void{
+		$this->server->getTickSleeper()->addNotifier($this->sleeper, function() : void{
+			while($this->eventReceiver->handle($this)){
+			}
 		});
 		$this->server->getLogger()->debug("Waiting for RakLib to start...");
-		try {
+		try{
 			$this->rakLib->startAndWait();
-		} catch (SocketException $e) {
+		}catch(SocketException $e){
 			throw new NetworkInterfaceStartException($e->getMessage(), 0, $e);
 		}
 		$this->server->getLogger()->debug("RakLib booted successfully");
 	}
 
-	public function setNetwork(Network $network): void {
+	public function setNetwork(Network $network) : void{
 		$this->network = $network;
 	}
 
-	public function tick(): void {
-		if (!$this->rakLib->isRunning()) {
+	public function tick() : void{
+		if(!$this->rakLib->isRunning()){
 			$e = $this->rakLib->getCrashInfo();
-			if ($e !== null) {
+			if($e !== null){
 				throw new \RuntimeException("RakLib crashed: " . $e->makePrettyMessage());
 			}
 			throw new \Exception("RakLib Thread crashed without crash information");
 		}
 	}
 
-	public function onClientDisconnect(int $sessionId, string $reason): void {
-		if (isset($this->sessions[$sessionId])) {
+	public function onClientDisconnect(int $sessionId, string $reason) : void{
+		if(isset($this->sessions[$sessionId])){
 			$session = $this->sessions[$sessionId];
 			unset($this->sessions[$sessionId]);
 			$session->onClientDisconnect($reason);
 		}
 	}
 
-	public function close(int $sessionId): void {
-		if (isset($this->sessions[$sessionId])) {
+	public function close(int $sessionId) : void{
+		if(isset($this->sessions[$sessionId])){
 			unset($this->sessions[$sessionId]);
 			$this->interface->closeSession($sessionId);
 		}
 	}
 
-	public function shutdown(): void {
+	public function shutdown() : void{
 		$this->server->getTickSleeper()->removeNotifier($this->sleeper);
 		$this->rakLib->quit();
 	}
 
-	public function onClientConnect(int $sessionId, string $address, int $port, int $clientID): void {
+	public function onClientConnect(int $sessionId, string $address, int $port, int $clientID) : void{
 		$session = new NetworkSession(
 			$this->server,
 			$this->network->getSessionManager(),
@@ -162,9 +161,9 @@ class TransparentRakLibInterface extends RakLibInterface {
 		$this->sessions[$sessionId] = $session;
 	}
 
-	public function onPacketReceive(int $sessionId, string $packet): void {
-		if (isset($this->sessions[$sessionId])) {
-			if ($packet === "" || $packet[0] !== self::MCPE_RAKNET_PACKET_ID) {
+	public function onPacketReceive(int $sessionId, string $packet) : void{
+		if(isset($this->sessions[$sessionId])){
+			if($packet === "" || $packet[0] !== self::MCPE_RAKNET_PACKET_ID){
 				$this->sessions[$sessionId]->getLogger()->debug("Non-FE packet received: " . base64_encode($packet));
 				return;
 			}
@@ -172,9 +171,9 @@ class TransparentRakLibInterface extends RakLibInterface {
 			$session = $this->sessions[$sessionId];
 			$address = $session->getIp();
 			$buf = substr($packet, 1);
-			try {
+			try{
 				$session->handleEncoded($buf);
-			} catch (PacketHandlingException $e) {
+			}catch(PacketHandlingException $e){
 				$errorId = bin2hex(random_bytes(6));
 
 				$logger = $session->getLogger();
@@ -188,30 +187,29 @@ class TransparentRakLibInterface extends RakLibInterface {
 		}
 	}
 
-	public function blockAddress(string $address, int $timeout = 300): void {
+	public function blockAddress(string $address, int $timeout = 300) : void{
 		$this->interface->blockAddress($address, $timeout);
 	}
 
-	public function unblockAddress(string $address): void {
+	public function unblockAddress(string $address) : void{
 		$this->interface->unblockAddress($address);
 	}
 
-	public function onRawPacketReceive(string $address, int $port, string $payload): void {
+	public function onRawPacketReceive(string $address, int $port, string $payload) : void{
 		$this->network->processRawPacket($this, $address, $port, $payload);
 	}
 
-	public function sendRawPacket(string $address, int $port, string $payload): void {
+	public function sendRawPacket(string $address, int $port, string $payload) : void{
 		$this->interface->sendRaw($address, $port, $payload);
 	}
 
-	public function addRawPacketFilter(string $regex): void {
+	public function addRawPacketFilter(string $regex) : void{
 		$this->interface->addRawPacketFilter($regex);
 	}
 
-	public function onPacketAck(int $sessionId, int $identifierACK): void {
-	}
+	public function onPacketAck(int $sessionId, int $identifierACK) : void{}
 
-	public function setName(string $name): void {
+	public function setName(string $name) : void{
 		$info = $this->server->getQueryInformation();
 
 		$this->interface->setName(
@@ -232,20 +230,20 @@ class TransparentRakLibInterface extends RakLibInterface {
 		);
 	}
 
-	public function setPortCheck(bool $name): void {
+	public function setPortCheck(bool $name) : void{
 		$this->interface->setPortCheck($name);
 	}
 
-	public function setPacketLimit(int $limit): void {
+	public function setPacketLimit(int $limit) : void{
 		$this->interface->setPacketsPerTickLimit($limit);
 	}
 
-	public function onBandwidthStatsUpdate(int $bytesSentDiff, int $bytesReceivedDiff): void {
+	public function onBandwidthStatsUpdate(int $bytesSentDiff, int $bytesReceivedDiff) : void{
 		$this->network->getBandwidthTracker()->add($bytesSentDiff, $bytesReceivedDiff);
 	}
 
-	public function putPacket(int $sessionId, string $payload, bool $immediate = true): void {
-		if (isset($this->sessions[$sessionId])) {
+	public function putPacket(int $sessionId, string $payload, bool $immediate = true) : void{
+		if(isset($this->sessions[$sessionId])){
 			$pk = new EncapsulatedPacket();
 			$pk->buffer = self::MCPE_RAKNET_PACKET_ID . $payload;
 			$pk->reliability = PacketReliability::RELIABLE_ORDERED;
@@ -255,12 +253,11 @@ class TransparentRakLibInterface extends RakLibInterface {
 		}
 	}
 
-	public function onPingMeasure(int $sessionId, int $pingMS): void {
-		if (isset($this->sessions[$sessionId])) {
+	public function onPingMeasure(int $sessionId, int $pingMS) : void{
+		if(isset($this->sessions[$sessionId])){
 			$this->sessions[$sessionId]->updatePing($pingMS);
 		}
 	}
 
-	public function readNack(): bool {
-	}
+	public function readNack() : bool{}
 }

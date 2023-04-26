@@ -6,12 +6,10 @@ namespace NeiroNetwork\Flare\support;
 
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\player\Player;
-use pocketmine\Server;
 use SplFixedArray;
 
-class EntityMoveRecorder {
+class EntityMoveRecorder{
 
 	/**
 	 * @var array<string, array<int, array<int, Vector3>>>
@@ -20,40 +18,40 @@ class EntityMoveRecorder {
 
 	public function __construct(
 		protected int $size
-	) {
+	){
 		$this->histories = [];
 	}
 
-	public function record(Player $target, Entity $entity): void {
+	public function record(Player $target, Entity $entity) : void{
 		$this->add($target, $entity->getId(), $entity->getPosition(), $entity->getWorld()->getServer()->getTick());
 	}
 
-	public function add(Player $target, int $runtimeId, Vector3 $pos, int $tick): void {
+	public function add(Player $target, int $runtimeId, Vector3 $pos, int $tick) : void{
 		$uuid = $target->getUniqueId()->toString();
-		if (!isset($this->histories[$uuid])) {
+		if(!isset($this->histories[$uuid])){
 			$this->histories[$uuid] = [];
 		}
 
-		if (!isset($this->histories[$uuid][$runtimeId])) {
+		if(!isset($this->histories[$uuid][$runtimeId])){
 			$this->histories[$uuid][$runtimeId] = [];
 		}
 
 		$this->histories[$uuid][$runtimeId][$tick] = $pos->asVector3();
 
-		if (count($this->histories[$uuid][$runtimeId]) > $this->size) {
+		if(count($this->histories[$uuid][$runtimeId]) > $this->size){
 			unset($this->histories[$uuid][$runtimeId][array_key_first($this->histories[$uuid][$runtimeId])]);
 		}
 	}
 
 	/**
-	 * @param int $runtimeId
+	 * @param int      $runtimeId
 	 * @param int|null $size
-	 * 
+	 *
 	 * @return array<int, Vector3>
 	 */
-	public function get(Player $target, int $runtimeId, ?int $size = null): array {
+	public function get(Player $target, int $runtimeId, ?int $size = null) : array{
 		$uuid = $target->getUniqueId()->toString();
-		if ($size !== null) {
+		if($size !== null){
 			$farr = SplFixedArray::fromArray($this->histories[$uuid][$runtimeId] ?? []);
 			$farr->setSize($size);
 
@@ -66,7 +64,7 @@ class EntityMoveRecorder {
 	/**
 	 * Get the value of size
 	 */
-	public function getSize(): int {
+	public function getSize() : int{
 		return $this->size;
 	}
 }

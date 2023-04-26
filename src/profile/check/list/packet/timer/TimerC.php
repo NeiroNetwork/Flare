@@ -10,14 +10,12 @@ use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
 use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use NeiroNetwork\Flare\utils\NumericalSampling;
-use NeiroNetwork\Flare\utils\Statistics;
 use NeiroNetwork\Flare\utils\Utils;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class TimerC extends BaseCheck implements HandleInputPacketCheck {
+class TimerC extends BaseCheck implements HandleInputPacketCheck{
+
 	use HandleInputPacketCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
@@ -25,52 +23,51 @@ class TimerC extends BaseCheck implements HandleInputPacketCheck {
 	protected float $lastTime;
 	protected float $packetsSinceMax;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::PACKET;
 	}
 
-	public function onLoad(): void {
+	public function onLoad() : void{
 		$this->registerInputPacketHandler();
 		$this->lastTime = -1;
 		$this->packetsSinceMax = 0;
 		$this->diff = new NumericalSampling(15);
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 
 		$curr = Utils::getTimeMilis();
 
-		if (
+		if(
 			$md->getJoinRecord()->getTickSinceAction() < 120 ||
 			!$this->profile->isServerStable()
-		) {
+		){
 			return;
 		}
 
 		$diff = $curr - $this->lastTime;
 
-		if ($diff > 0) {
+		if($diff > 0){
 			$this->diff->add($diff);
 			$this->preReward();
 
-			if ($this->diff->isMax() && $this->packetsSinceMax++ >= 3) {
+			if($this->diff->isMax() && $this->packetsSinceMax++ >= 3){
 				$fast = true;
-				foreach ($this->diff->getAll() as $value) {
-					if ($value > 40) {
+				foreach($this->diff->getAll() as $value){
+					if($value > 40){
 						$fast = false;
 						break;
 					}
 				}
 
-				if ($fast) {
+				if($fast){
 					$this->fail(new ViolationFailReason(""));
 				}
 			}
 		}
-
 
 
 		$this->lastTime = $curr;

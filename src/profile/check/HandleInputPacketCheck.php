@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\profile\check;
 
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-interface HandleInputPacketCheck {
+interface HandleInputPacketCheck{
 
-	public function handle(PlayerAuthInputPacket $packet): void;
+	public function handle(PlayerAuthInputPacket $packet) : void;
 }
