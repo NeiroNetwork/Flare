@@ -38,13 +38,11 @@ trait ClassNameAsCheckIdTrait{
 				break;
 			}
 		}
-
 		// index: 10 (r)
+
 
 		if($index === false){
 			throw new RuntimeException("unexpected");
-
-			return;
 		}
 
 
