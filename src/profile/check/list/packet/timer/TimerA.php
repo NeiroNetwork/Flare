@@ -7,17 +7,16 @@ namespace NeiroNetwork\Flare\profile\check\list\packet\timer;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Statistics;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class TimerA extends BaseCheck implements HandleInputPacketCheck{
+class TimerA extends BaseCheck{
 
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
 	protected NumericalSampling $diff;
@@ -29,7 +28,7 @@ class TimerA extends BaseCheck implements HandleInputPacketCheck{
 	}
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
 
 		$this->diff = new NumericalSampling(100);
 		$this->lastTime = -1;
@@ -61,10 +60,10 @@ class TimerA extends BaseCheck implements HandleInputPacketCheck{
 
 				if($tickDiff > 9){
 					if($this->preFail()){
-						$this->fail(new ViolationFailReason("Delta: {$tickDiff}"));
+						$this->fail(new ViolationFailReason("Delta: $tickDiff}"));
 					}
 				}elseif($tickDiff > 4.5){
-					// todo: suspect
+					// todo: suspect{
 				}
 			}
 		}else{

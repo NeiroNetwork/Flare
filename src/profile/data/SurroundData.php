@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
 use pocketmine\block\Block;
@@ -44,6 +43,11 @@ class SurroundData{
 	 * @var Block[]
 	 */
 	protected array $complexBlocks;
+
+	/**
+	 * @var Block[]
+	 */
+	protected array $ableToStepBlocks;
 
 	/**
 	 * @var Block
@@ -91,14 +95,14 @@ class SurroundData{
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::NORMAL
 		));
 
 		($hash = $emitter->registerEventHandler(
 			BlockUpdateEvent::class,
-			Closure::fromCallable([$this, "handleBlockUpdate"]),
+			$this->handleBlockUpdate(...),
 			false,
 			EventPriority::MONITOR
 		)) !== null ? $links->add($hash) : null;
@@ -106,7 +110,7 @@ class SurroundData{
 
 		($hash = $emitter->registerEventHandler(
 			BlockFormEvent::class,
-			Closure::fromCallable([$this, "handleBlockForm"]),
+			$this->handleBlockForm(...),
 			false,
 			EventPriority::MONITOR
 		)) !== null ? $links->add($hash) : null;
@@ -194,6 +198,13 @@ class SurroundData{
 	}
 
 	/**
+	 * @return Block[]
+	 */
+	public function getAbleToStepBlocks() : array{
+		return $this->ableToStepBlocks;
+	}
+
+	/**
 	 * Get the value of complexBlocks
 	 *
 	 * @return Block[]
@@ -244,6 +255,7 @@ class SurroundData{
 		$this->touchingBlocks = [];
 		$this->overheadBlocks = [];
 		$this->complexBlocks = [];
+		$this->ableToStepBlocks = [];
 
 		$cobweb = false;
 		$flow = false;
@@ -280,7 +292,7 @@ class SurroundData{
 
 			if($block->getPosition()->y < $position->y){
 				$this->stepBlocks[] = $block;
-			}elseif($block->getPosition()->y > ($position->y + $player->size->getHeight())){
+			}elseif($block->getPosition()->y > ($position->y + $player->size->getEyeHeight())){
 				$this->overheadBlocks[] = $block;
 			}
 
@@ -293,6 +305,10 @@ class SurroundData{
 
 			if($block->collidesWithBB($touchBB)){
 				$this->touchingBlocks[] = $block;
+			}
+
+			if(BlockUtil::isAbleToStep($block)){
+				$this->ableToStepBlocks[] = $block;
 			}
 		}
 

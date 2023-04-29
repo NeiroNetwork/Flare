@@ -7,18 +7,17 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\step;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class StepA extends BaseCheck implements HandleInputPacketCheck{
+class StepA extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
 	}
 
 	public function getCheckGroup() : int{

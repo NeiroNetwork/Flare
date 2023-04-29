@@ -60,7 +60,7 @@ class FlareEventListener implements Listener{
 		}
 	}
 
-	public function onJoin(PlayerJoinEvent $event){
+	public function onJoin(PlayerJoinEvent $event) : void{
 		$player = $event->getPlayer();
 		$session = $player->getNetworkSession();
 
@@ -72,7 +72,7 @@ class FlareEventListener implements Listener{
 		$this->flare->getReporter()->autoSubscribe($player);
 	}
 
-	public function onQuit(PlayerQuitEvent $event){
+	public function onQuit(PlayerQuitEvent $event) : void{
 		$player = $event->getPlayer();
 		$session = $player->getNetworkSession();
 
@@ -90,7 +90,7 @@ class FlareEventListener implements Listener{
 		}
 	}
 
-	public function onNackReceive(NackReceiveEvent $event){
+	public function onNackReceive(NackReceiveEvent $event) : void{
 		$address = $event->getAddress();
 
 		$player = $this->getPlayerFromAddress($address);
@@ -196,18 +196,16 @@ class FlareEventListener implements Listener{
 		}
 	}
 
-	public function onNetworkInterfaceRegister(NetworkInterfaceRegisterEvent $event){
+	public function onNetworkInterfaceRegister(NetworkInterfaceRegisterEvent $event) : void{
 		$interface = $event->getInterface();
 
 
 		if($interface instanceof RakLibInterface && !is_subclass_of($interface, RakLibInterface::class)){
 			$iref = new \ReflectionClass(RakLibInterface::class);
 			$serverProp = $iref->getProperty("rakLib");
-			$serverProp->setAccessible(true);
 
 			$sref = new \ReflectionClass(RakLibServer::class);
 			$addressProp = $sref->getProperty("address");
-			$addressProp->setAccessible(true);
 
 
 			$raklibServer = $serverProp->getValue($interface);

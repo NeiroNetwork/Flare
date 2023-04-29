@@ -7,18 +7,17 @@ namespace NeiroNetwork\Flare\profile\check\list\combat\aim;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 
-class AimA extends BaseCheck implements HandleInputPacketCheck{
+class AimA extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected NumericalSampling $deltaPitch;
 
@@ -27,6 +26,8 @@ class AimA extends BaseCheck implements HandleInputPacketCheck{
 	}
 
 	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+
 		$this->deltaPitch = new NumericalSampling(24);
 	}
 

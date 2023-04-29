@@ -8,46 +8,32 @@ use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\Math;
-use pocketmine\event\EventPriority;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use SplFixedArray;
 
-class ReachA extends BaseCheck implements HandleInputPacketCheck{
+class ReachA extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	/**
 	 * @var AxisAlignedBB[]
 	 */
 	protected array $list;
 
-	private string $hashb = "";
-
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
+		$this->registerEventHandler($this->handleAttack(...));
+
 		$this->list = [];
-		$this->hashb = $this->profile->getFlare()->getEventEmitter()->registerPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			function(PlayerAttackEvent $event) : void{
-				assert($event->getPlayer() === $this->profile->getPlayer());
-				if($this->tryCheck()){
-					$this->handleAttack($event);
-				}
-			},
-			false,
-			EventPriority::MONITOR
-		);
 	}
 
 	public function handleAttack(PlayerAttackEvent $event) : void{
@@ -107,17 +93,6 @@ class ReachA extends BaseCheck implements HandleInputPacketCheck{
 				}
 			}
 		}
-	}
-
-	public function onUnload() : void{
-		$this->profile->getFlare()->getEventEmitter()->unregisterPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			$this->hashb,
-			EventPriority::MONITOR
-		);
-
-		$this->unregisterInputPacketHandler();
 	}
 
 	public function handle(PlayerAuthInputPacket $packet) : void{

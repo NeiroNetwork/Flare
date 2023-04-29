@@ -7,20 +7,23 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\motion;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class MotionB extends BaseCheck implements HandleInputPacketCheck{
+class MotionB extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
+	}
+
+	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
 	}
 
 	public function handle(PlayerAuthInputPacket $packet) : void{

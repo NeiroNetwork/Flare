@@ -57,11 +57,11 @@ class Observer{
 
 	public function registerCheck(ICheck $check) : void{
 		if($this->closed){
-			throw new \Exception("observer closed");
+			throw new \RuntimeException("observer closed");
 		}
 
 		if(isset($this->list[$check->getFullId()])){
-			throw new \Exception("check \"{$check->getFullId()}\" is already registered");
+			throw new \RuntimeException("check \"{$check->getFullId()}\" is already registered");
 		}
 		$this->list[$check->getFullId()] = $check;
 
@@ -80,7 +80,7 @@ class Observer{
 
 	public function getCheck(string $fullId) : ?ICheck{
 		if($this->closed){
-			throw new \Exception("observer closed");
+			throw new \RuntimeException("observer closed");
 		}
 
 		return $this->list[$fullId] ?? null;
@@ -91,7 +91,7 @@ class Observer{
 	 */
 	public function getAllChecks() : array{
 		if($this->closed){
-			throw new \Exception("observer closed");
+			throw new \RuntimeException("observer closed");
 		}
 
 		return $this->list;
@@ -117,7 +117,7 @@ class Observer{
 
 	public function close() : void{
 		if($this->closed){
-			throw new \Exception("observer already closed");
+			throw new \RuntimeException("observer already closed");
 		}
 
 		$this->closed = true;

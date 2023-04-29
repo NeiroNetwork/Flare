@@ -13,7 +13,4 @@ class InstantActionRecord extends ActionRecord{
 		$this->flag = true;
 	}
 
-	public function update(bool $flag = false, ?int $currentTick = null) : void{
-		parent::update($flag, $currentTick);
-	}
 }

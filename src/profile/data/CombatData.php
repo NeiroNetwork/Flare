@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\NumericalSampling;
@@ -100,7 +99,7 @@ class CombatData{
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::NORMAL
 		));
@@ -108,7 +107,7 @@ class CombatData{
 		$links->add($emitter->registerSendPacketHandler(
 			$uuid,
 			AddPlayerPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleSendAddPlayer"]),
+			$this->handleSendAddPlayer(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -116,7 +115,7 @@ class CombatData{
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			InteractPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInteract"]),
+			$this->handleInteract(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -124,7 +123,7 @@ class CombatData{
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			LevelSoundEventPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleLevelSound"]),
+			$this->handleLevelSound(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -132,7 +131,7 @@ class CombatData{
 		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			EntityDamageEvent::class,
-			Closure::fromCallable([$this, "handleDamage"]),
+			$this->handleDamage(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -140,7 +139,7 @@ class CombatData{
 		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			EntityDamageByEntityEvent::class,
-			Closure::fromCallable([$this, "handleDamageByEntity"]),
+			$this->handleDamageByEntity(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -148,7 +147,7 @@ class CombatData{
 		$links->add($emitter->registerPlayerEventHandler(
 			$uuid,
 			PlayerAttackEvent::class,
-			Closure::fromCallable([$this, "handleAttack"]),
+			$this->handleAttack(...),
 			false,
 			EventPriority::LOWEST
 		));

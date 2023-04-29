@@ -12,7 +12,6 @@ final class ProfileData{
 	public static function autoPropertyValue(object $obj) : void{
 		$ref = new \ReflectionClass($obj);
 		foreach($ref->getProperties() as $prop){
-			$prop->setAccessible(true);
 			$name = $prop->getType()->getName();
 			if($name === Vector3::class){
 				$prop->setValue($obj, Vector3::zero());

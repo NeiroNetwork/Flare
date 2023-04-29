@@ -36,6 +36,12 @@ class MinecraftPhysics{
 		return $v;
 	}
 
+	public static function normalizeClientDelta(Vector3 $delta) : Vector3{
+		$v = clone $delta;
+
+		return $v;
+	}
+
 	public static function previousFreefallVelocity(Vector3 $velocity) : Vector3{
 		$v = clone $velocity;
 		$v = self::revertAirFriction($v);

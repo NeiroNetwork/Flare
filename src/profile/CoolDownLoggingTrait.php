@@ -6,7 +6,7 @@ namespace NeiroNetwork\Flare\profile;
 
 use NeiroNetwork\Flare\profile\check\ICheck;
 
-trait CooldownLoggingTrait{
+trait CoolDownLoggingTrait{
 
 	/**
 	 * @var int[]
@@ -16,12 +16,12 @@ trait CooldownLoggingTrait{
 	/**
 	 * @var int
 	 */
-	protected int $alertCooldown = 0;
+	protected int $alertCoolDown = 0;
 
 	/**
 	 * @var int
 	 */
-	protected int $logCooldown = 0;
+	protected int $logCoolDown = 0;
 
 	/**
 	 * @var int
@@ -103,7 +103,7 @@ trait CooldownLoggingTrait{
 		$tick = $this->getServerTick();
 		$lastTick = $this->lastAlertTicks[$fid];
 
-		if($tick - $lastTick >= $this->alertCooldown){
+		if($tick - $lastTick >= $this->alertCoolDown){
 			$this->lastAlertTicks[$fid] = $tick;
 			return true;
 		}
@@ -118,7 +118,7 @@ trait CooldownLoggingTrait{
 
 		$tick = $this->getServerTick();
 
-		if($tick - $this->lastLogTick >= $this->logCooldown){
+		if($tick - $this->lastLogTick >= $this->logCoolDown){
 			$this->lastLogTick = $tick;
 			return true;
 		}
@@ -139,19 +139,19 @@ trait CooldownLoggingTrait{
 	 *
 	 * @return int
 	 */
-	public function getAlertCooldown() : int{
-		return $this->alertCooldown;
+	public function getAlertCoolDown() : int{
+		return $this->alertCoolDown;
 	}
 
 	/**
 	 * Set the value of alertCooldown
 	 *
-	 * @param int $alertCooldown
+	 * @param int $alertCoolDown
 	 *
 	 * @return self
 	 */
-	public function setAlertCooldown(int $alertCooldown) : self{
-		$this->alertCooldown = $alertCooldown;
+	public function setAlertCoolDown(int $alertCoolDown) : self{
+		$this->alertCoolDown = $alertCoolDown;
 
 		return $this;
 	}
@@ -161,19 +161,19 @@ trait CooldownLoggingTrait{
 	 *
 	 * @return int
 	 */
-	public function getLogCooldown() : int{
-		return $this->logCooldown;
+	public function getLogCoolDown() : int{
+		return $this->logCoolDown;
 	}
 
 	/**
 	 * Set the value of logCooldown
 	 *
-	 * @param int $logCooldown
+	 * @param int $logCoolDown
 	 *
 	 * @return self
 	 */
-	public function setLogCooldown(int $logCooldown) : self{
-		$this->logCooldown = $logCooldown;
+	public function setLogCoolDown(int $logCoolDown) : self{
+		$this->logCoolDown = $logCoolDown;
 
 		return $this;
 	}

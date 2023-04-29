@@ -18,7 +18,7 @@ class LagCompensator{
 	public function compensate(Player $viewer, float $ping, int $runtimeId) : ?Vector3{
 		$histories = $this->recorder->get($viewer, $runtimeId);
 		$currentTick = Server::getInstance()->getTick();
-		$tick = (int) floor($ping / 50);
+		$tick = $this->getPingValue($ping);
 
 		$regs = Utils::findArrayRange(array_keys($histories), $currentTick - $tick, 1);
 		if(count($regs) <= 0){
@@ -32,5 +32,9 @@ class LagCompensator{
 		$sum = Vector3::sum(...$results);
 
 		return $sum->divide(count($results));
+	}
+
+	public function getPingValue(float $ping) : int{
+		return (int) floor($ping / 50);
 	}
 }

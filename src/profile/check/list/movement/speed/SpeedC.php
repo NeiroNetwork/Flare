@@ -7,23 +7,23 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\speed;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Statistics;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedC extends BaseCheck implements HandleInputPacketCheck{
+class SpeedC extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected NumericalSampling $samples;
 	protected int $speedTicks;
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
+
 		$this->samples = new NumericalSampling(24);
 		$this->speedTicks = 0;
 	}

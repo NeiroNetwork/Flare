@@ -7,16 +7,15 @@ namespace NeiroNetwork\Flare\profile\check\list\packet\timer;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class TimerB extends BaseCheck implements HandleInputPacketCheck{
+class TimerB extends BaseCheck{
 
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
 	protected NumericalSampling $diff;
@@ -28,7 +27,7 @@ class TimerB extends BaseCheck implements HandleInputPacketCheck{
 	}
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
 
 		$this->diff = new NumericalSampling(15);
 		$this->lastTime = -1;

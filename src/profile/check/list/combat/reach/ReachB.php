@@ -11,7 +11,6 @@ use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\profile\data\ActionNotifier;
 use NeiroNetwork\Flare\profile\data\ActionRecord;
 use pocketmine\entity\Entity;
-use pocketmine\math\Vector3;
 
 class ReachB extends BaseCheck{
 
@@ -41,7 +40,7 @@ class ReachB extends BaseCheck{
 		$aiming = $cd->getClientAiming();
 		$player = $this->profile->getPlayer();
 
-		if($aimingAt instanceof Vector3 && $aiming instanceof Entity){
+		if($aiming instanceof Entity){
 			$pos = $player->getEyePos();
 
 			$reach = $pos->distanceSquared($aimingAt);

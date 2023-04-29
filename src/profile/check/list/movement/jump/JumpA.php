@@ -7,8 +7,7 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\jump;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\profile\data\ActionNotifier;
 use NeiroNetwork\Flare\profile\data\ActionRecord;
@@ -16,10 +15,10 @@ use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class JumpA extends BaseCheck implements HandleInputPacketCheck{
+class JumpA extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected ?Vector3 $motion;
 	protected bool $jumpSprinting;
@@ -29,7 +28,9 @@ class JumpA extends BaseCheck implements HandleInputPacketCheck{
 	}
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+
+		$this->registerPacketHandler($this->handle(...));
+
 
 		$notifier = new ActionNotifier();
 		$notifier->notifyAction(function(ActionRecord $record) : void{

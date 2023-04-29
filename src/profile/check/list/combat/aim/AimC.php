@@ -8,26 +8,26 @@ namespace NeiroNetwork\Flare\profile\check\list\combat\aim;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\Math;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class AimC extends BaseCheck implements HandleInputPacketCheck{
+class AimC extends BaseCheck{
 
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
 	protected NumericalSampling $deltaPitch;
 	protected float $gcd;
 
 	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+
 		$this->deltaPitch = new NumericalSampling(14);
 		$this->gcd = 0;
 
-		$this->registerInputPacketHandler();
 	}
 
 	public function getCheckGroup() : int{

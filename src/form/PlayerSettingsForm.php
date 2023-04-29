@@ -29,8 +29,8 @@ class PlayerSettingsForm extends CustomForm{
 			new Toggle("Debug", $profile->isDebugEnabled(), "debug_enabled"),
 			new Toggle("Observer: Check", $profile->getObserver()->isEnabled(), "check_enabled"),
 			new Toggle("Observer: Punishment", $profile->getObserver()->isPunishEnabled(), "punishment_enabled"),
-			new Slider("Alert Cooldown", 0, 50, 1, $profile->getAlertCooldown(), "alert_cooldown"),
-			new Slider("Log Cooldown", 0, 50, 1, $profile->getLogCooldown(), "log_cooldown"),
+			new Slider("Alert Cool Down", 0, 50, 1, $profile->getAlertCoolDown(), "alert_cool_down"),
+			new Slider("Log Cool Down", 0, 50, 1, $profile->getLogCoolDown(), "log_cool_down"),
 			new Dropdown(
 				"Style",
 				array_map(
@@ -57,8 +57,8 @@ class PlayerSettingsForm extends CustomForm{
 			$debugEnabled = $response->getToggleResult("debug_enabled")->getValue();
 			$checkEnabled = $response->getToggleResult("check_enabled")->getValue();
 			$punishEnabled = $response->getToggleResult("punishment_enabled")->getValue();
-			$alertCooldown = $response->getSliderResult("alert_cooldown")->getInt();
-			$logCooldown = $response->getSliderResult("log_cooldown")->getInt();
+			$alertCoolDown = $response->getSliderResult("alert_cool_down")->getInt();
+			$logCoolDown = $response->getSliderResult("log_cool_down")->getInt();
 			$styleName = $response->getSelectorResult("style")->getOptionName() ?? throw new InvalidResponseException("Option name: null");
 		}catch(InvalidResponseException $e){
 			return;
@@ -72,8 +72,8 @@ class PlayerSettingsForm extends CustomForm{
 		$this->profile->getObserver()->setEnabled($checkEnabled);
 		$this->profile->getObserver()->setPunishEnabled($punishEnabled);
 
-		$this->profile->setAlertCooldown($alertCooldown);
-		$this->profile->setLogCooldown($logCooldown);
+		$this->profile->setAlertCoolDown($alertCoolDown);
+		$this->profile->setLogCoolDown($logCoolDown);
 
 		$style = LogStyle::search($styleName);
 		if($style !== null){

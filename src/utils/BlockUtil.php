@@ -26,6 +26,18 @@ class BlockUtil{
 		);
 	}
 
+	public static function getMaxCollisionY(Block $block) : float{
+		return max($block->getPosition()->y, ...array_map(fn(AxisAlignedBB $bb) => $bb->maxY, $block->getCollisionBoxes()));
+	}
+
+	public static function isAbleToStep(Block $block) : bool{
+		if(count($block->getCollisionBoxes()) <= 0){
+			return false;
+		}
+
+		return min(array_map(fn(AxisAlignedBB $bb) => $bb->maxY - $block->getPosition()->y, $block->getCollisionBoxes())) <= 0.6;
+	}
+
 	public static function calculateBreakBlockTick(Player $player, Item $item, Block $block) : int{
 		$time = ceil($block->getBreakInfo()->getBreakTime($item) * 20); #完全なコピペ
 

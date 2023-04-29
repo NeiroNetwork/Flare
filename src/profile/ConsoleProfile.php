@@ -16,7 +16,7 @@ use pocketmine\utils\BroadcastLoggerForwarder;
  */
 class ConsoleProfile implements Profile{
 
-	use CooldownLoggingTrait;
+	use CoolDownLoggingTrait;
 
 	protected LogStyle $logStyle;
 
@@ -33,10 +33,10 @@ class ConsoleProfile implements Profile{
 
 		$conf = $flare->getConfig()->getConsole();
 
-		$this->alertCooldown = $conf->get("alert_cooldown");
+		$this->alertCoolDown = $conf->get("alert_cooldown");
 		$this->alertEnabled = $conf->get("alert");
 
-		$this->logCooldown = $conf->get("log_cooldown");
+		$this->logCoolDown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
 
 		$this->debugEnabled = $conf->get("debug");

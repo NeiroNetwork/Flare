@@ -8,12 +8,13 @@ use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\event\EventPriority;
 
 class AuraD extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
+	use HandleEventCheckTrait;
 
 	private string $hashb = "";
 
@@ -22,18 +23,7 @@ class AuraD extends BaseCheck{
 	}
 
 	public function onLoad() : void{
-		$this->hashb = $this->profile->getFlare()->getEventEmitter()->registerPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			function(PlayerAttackEvent $event) : void{
-				assert($event->getPlayer() === $this->profile->getPlayer());
-				if($this->tryCheck()){
-					$this->handleAttack($event);
-				}
-			},
-			false,
-			EventPriority::MONITOR
-		);
+		$this->registerEventHandler($this->handleAttack(...));
 	}
 
 	public function handleAttack(PlayerAttackEvent $event) : void{
@@ -55,15 +45,6 @@ class AuraD extends BaseCheck{
 		}
 
 		$this->broadcastDebugMessage("c: {$clientPosition}, s: {$serverPosition}");
-	}
-
-	public function onUnload() : void{
-		$this->profile->getFlare()->getEventEmitter()->unregisterPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			$this->hashb,
-			EventPriority::MONITOR
-		);
 	}
 
 	public function isExperimental() : bool{

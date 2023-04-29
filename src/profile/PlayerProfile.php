@@ -18,6 +18,7 @@ use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachA;
 use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachB;
 use NeiroNetwork\Flare\profile\check\list\combat\reach\ReachC;
 use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpA;
+use NeiroNetwork\Flare\profile\check\list\movement\jump\JumpB;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionB;
 use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionC;
@@ -27,6 +28,7 @@ use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedB;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedC;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedD;
 use NeiroNetwork\Flare\profile\check\list\movement\speed\SpeedE;
+use NeiroNetwork\Flare\profile\check\list\movement\velocity\VelocityA;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketA;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketB;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketC;
@@ -58,7 +60,7 @@ use RuntimeException;
 
 class PlayerProfile implements Profile{
 
-	use CooldownLoggingTrait;
+	use CoolDownLoggingTrait;
 
 	protected Flare $flare;
 
@@ -98,10 +100,10 @@ class PlayerProfile implements Profile{
 
 		$conf = $this->getConfig();
 
-		$this->alertCooldown = $conf->get("alert_cooldown");
+		$this->alertCoolDown = $conf->get("alert_cooldown");
 		$this->alertEnabled = $conf->get("alert");
 
-		$this->logCooldown = $conf->get("log_cooldown");
+		$this->logCoolDown = $conf->get("log_cooldown");
 		$this->logEnabled = $conf->get("log");
 
 		$this->debugEnabled = $conf->get("debug");
@@ -249,6 +251,9 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new SpeedE($o));
 		} {
 			$o->registerCheck(new JumpA($o));
+			$o->registerCheck(new JumpB($o));
+		} {
+			$o->registerCheck(new VelocityA($o));
 		} {
 			$o->registerCheck(new BadPacketA($o));
 			$o->registerCheck(new BadPacketB($o));
@@ -286,11 +291,11 @@ class PlayerProfile implements Profile{
 	}
 
 	public function getMovementData() : MovementData{
-		return $this->movementData ?? throw new \Exception("must not be called before start");
+		return $this->movementData ?? throw new RuntimeException("must not be called before start");
 	}
 
 	public function getKeyInputs() : KeyInputs{
-		return $this->keyInputs ?? throw new \Exception("must not be called before start");
+		return $this->keyInputs ?? throw new RuntimeException("must not be called before start");
 	}
 
 	public function getClient() : Client{
@@ -333,7 +338,7 @@ class PlayerProfile implements Profile{
 	 * @return SurroundData
 	 */
 	public function getSurroundData() : SurroundData{
-		return $this->surroundData ?? throw new \Exception("must not be called before start");
+		return $this->surroundData ?? throw new RuntimeException("must not be called before start");
 	}
 
 	/**
@@ -342,7 +347,7 @@ class PlayerProfile implements Profile{
 	 * @return CombatData
 	 */
 	public function getCombatData() : CombatData{
-		return $this->combatData ?? throw new \Exception("must not be called before start");
+		return $this->combatData ?? throw new RuntimeException("must not be called before start");
 	}
 
 	/**
@@ -351,7 +356,7 @@ class PlayerProfile implements Profile{
 	 * @return TransactionData
 	 */
 	public function getTransactionData() : TransactionData{
-		return $this->transactionData ?? throw new \Exception("must not be called before start");
+		return $this->transactionData ?? throw new RuntimeException("must not be called before start");
 	}
 
 	public function getPing() : int{

@@ -7,23 +7,22 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\motion;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class MotionA extends BaseCheck implements HandleInputPacketCheck{
+class MotionA extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
 	public function onLoad() : void{
-		$this->registerInputPacketHandler();
+		$this->registerPacketHandler($this->handle(...));
 	}
 
 	public function handle(PlayerAuthInputPacket $packet) : void{
@@ -54,7 +53,7 @@ class MotionA extends BaseCheck implements HandleInputPacketCheck{
 				$lastDistY = ($from->y - $md->getLastFrom()->y);
 
 				$accel = abs($distY - $lastDistY);
-				// $player->sendMessage("Accel: $accel");
+				$this->broadcastDebugMessage("accel: $accel");
 				if($accel < 0.0001){
 					$this->fail(new ViolationFailReason("Accel: $accel"));
 				}
