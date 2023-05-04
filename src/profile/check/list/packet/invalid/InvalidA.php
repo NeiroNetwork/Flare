@@ -16,6 +16,8 @@ class InvalidA extends BaseCheck{
 	use HandleEventCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
+	protected int $length;
+
 	public function getCheckGroup() : int{
 		return CheckGroup::PACKET;
 	}
@@ -30,7 +32,11 @@ class InvalidA extends BaseCheck{
 		$md = $this->profile->getMovementData();
 		$ki = $this->profile->getKeyInputs();
 
-		if($packet->getMoveVecZ() <= 0 && $ki->getSprintRecord()->getLength() > 4){
+		$this->broadcastDebugMessage("vecZ: {$packet->getMoveVecZ()} sprint: {$ki->getSprintRecord()->getLength()}");
+
+		// なぜかwキーを話してもsprintは継続してる場合がある <- ????
+		// #blamemojang
+		if($packet->getMoveVecZ() <= 0 && $ki->getSprintRecord()->getLength() > 4 && $ki->w()){
 			if(
 				$md->getTeleportRecord()->getTickSinceAction() >= 6 &&
 				$md->getFlyRecord()->getTickSinceAction() >= 20 &&

@@ -7,28 +7,17 @@ namespace NeiroNetwork\Flare\support;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\Server;
 
 class Supports{
 
 	protected EntityMoveRecorder $recorder;
 
-	protected MoveDelaySupport $moveDelay;
-
 	protected LagCompensator $lagCompensator;
 
 	public function __construct(){
 		$this->recorder = new EntityMoveRecorder(60);
-		$this->moveDelay = MoveDelaySupport::default($this->recorder);
 		$this->lagCompensator = new LagCompensator($this->recorder);
-	}
-
-	/**
-	 * Get the value of moveDelay
-	 *
-	 * @return MoveDelaySupport
-	 */
-	public function getMoveDelay() : MoveDelaySupport{
-		return $this->moveDelay;
 	}
 
 	/**
@@ -50,10 +39,11 @@ class Supports{
 
 		$before = $histories[max(array_keys($histories))];
 		$diff = Vector3::zero();
+		$currentTick = Server::getInstance()->getTick();
 
 		foreach([
 					$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
-					$this->moveDelay->predict($viewer, $runtimeId)
+					MoveDelaySupport::getInstance()->predict($histories, $currentTick)
 				] as $result){
 			if(is_null($result)){
 				continue;

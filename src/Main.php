@@ -12,6 +12,7 @@ use NeiroNetwork\Flare\command\ReloadCommand;
 use NeiroNetwork\Flare\command\SettingsCommand;
 use NeiroNetwork\Flare\moderation\ModerationItemListener;
 use NeiroNetwork\Flare\network\NACKHandler;
+use NeiroNetwork\Flare\support\MoveDelaySupport;
 use pocketmine\plugin\PluginBase;
 use pocketmine\snooze\SleeperNotifier;
 
@@ -39,6 +40,8 @@ class Main extends PluginBase{
 	}
 
 	protected function onEnable() : void{
+		MoveDelaySupport::init(2, true);
+		
 		$this->flare = new Flare($this);
 
 		// task or sleeper

@@ -12,7 +12,7 @@ use NeiroNetwork\Flare\profile\Profile;
 
 class FlareStyle extends LogStyle{
 
-	public function fail(Profile $profile, ICheck $cause, FailReason $failReason) : string{
+	public function fail(Profile $profile, Profile $viewer, ICheck $cause, FailReason $failReason) : string{
 		$name = $profile->getCommandSender()->getName();
 
 		$type = $cause instanceof BaseCheck ? $cause->getType() : "";
@@ -41,7 +41,7 @@ class FlareStyle extends LogStyle{
 
 			$percText = "§7[" . $baseColor . $body . "§7]";
 		}
-		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText} " . ($profile->isVerboseEnabled() ?
+		return "§3$name §8/ {$checkColor}{$cause->getName()}{$typeStr}§r {$percText} " . ($viewer->isVerboseEnabled() ?
 				$failReason->verbose : "");
 	}
 

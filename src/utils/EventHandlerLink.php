@@ -20,7 +20,10 @@ class EventHandlerLink{
 	 */
 	protected array $listeners;
 
-	public function __construct(protected Flare $flare){}
+	public function __construct(protected Flare $flare){
+		$this->links = [];
+		$this->listeners = [];
+	}
 
 	public function add(string|RegisteredListener $link) : void{
 		if(is_string($link)){

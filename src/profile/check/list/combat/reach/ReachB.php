@@ -36,12 +36,13 @@ class ReachB extends BaseCheck{
 	public function handleTriggerAim() : void{
 		$this->reward();
 		$cd = $this->profile->getCombatData();
+		$md = $this->profile->getMovementData();
 		$aimingAt = $cd->getClientAimingAt();
 		$aiming = $cd->getClientAiming();
 		$player = $this->profile->getPlayer();
 
 		if($aiming instanceof Entity){
-			$pos = $player->getEyePos();
+			$pos = $md->getEyePosition();
 
 			$reach = $pos->distanceSquared($aimingAt);
 

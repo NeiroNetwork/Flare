@@ -86,6 +86,10 @@ class CombatData{
 	 */
 	protected InstantActionRecord $knockback;
 
+	protected NumericalSampling $triggerTicks;
+
+	protected int $aimTriggerPerSecond;
+
 	protected float $lastClickTime = 0;
 
 	protected float $clickTime;
@@ -164,6 +168,14 @@ class CombatData{
 
 		$this->hurtBy = null;
 		$this->lastHurtBy = null;
+		$this->triggerTicks = new NumericalSampling(20);
+	}
+
+	/**
+	 * @return NumericalSampling
+	 */
+	public function getAimTriggerTicks() : NumericalSampling{
+		return $this->triggerTicks;
 	}
 
 	/**
@@ -277,6 +289,10 @@ class CombatData{
 		return $this->lastClickInputTick;
 	}
 
+	public function getAimTriggerPerSecond() : int{
+		return $this->aimTriggerPerSecond;
+	}
+
 	/**
 	 * Get the value of knockback
 	 *
@@ -343,9 +359,10 @@ class CombatData{
 				$this->clientAiming = $player->getWorld()->getEntity($target);
 				$this->clientAimingAt = new Vector3($packet->x, $packet->y, $packet->z);
 				$this->triggerAim->onAction();
+				$this->triggerTicks->add($this->profile->getServerTick());
 			}else{
 				if($this->playerSpawn->getTickSinceAction() >= (7 + 0)){ // todo: LagCompensator
-					if($packet->x !== 0 && $packet->y !== 0 && $packet->z !== 0){
+					if(($packet->x !== 0) && ($packet->y !== 0) && $packet->z !== 0){
 						$this->clientAiming = null;
 					}
 				}
@@ -363,7 +380,7 @@ class CombatData{
 				new PropertySyncData([], []),
 				0
 			);
-			$player->getNetworkSession()->sendDataPacket($pk);
+			$player->getNetworkSession()->sendDataPacket($pk, true);
 			// todo: 代替パケットを探す
 
 			// SetActorDataPacket を送信することにより、
@@ -379,6 +396,11 @@ class CombatData{
 		$this->knockback->update();
 
 		$this->hurt->update();
+
+		if($this->triggerTicks->isMax()){
+			$diff = $this->triggerTicks->getFirst() - $this->triggerTicks->getLast();
+			$this->aimTriggerPerSecond = (int) ((20 / $diff) * 20);
+		}
 
 		if($this->hitEntity !== null){
 			if(!$this->hitEntity->isClosed() && $this->attack->getTickSinceAction() <= 60){

@@ -53,7 +53,9 @@ class SpeedC extends BaseCheck{
 			$ki->getGlideRecord()->getTickSinceAction() >= 30
 		){
 
-			if($player->getMovementSpeed() > 0.25){
+			$movementSpeed = $md->getMovementSpeed();
+
+			if($movementSpeed > 0.25){
 				return;
 			}
 
@@ -62,9 +64,9 @@ class SpeedC extends BaseCheck{
 			$speed = Statistics::average($this->samples->getAll());
 
 			$ice = (($sd->getSlipRecord()->getTickSinceAction() <= 20) ? 0.675 : 0);
-			$maxSpeed = (0.2 + 0.2 + $ice) * max(1.0, ($player->getMovementSpeed() * 10));
+			$maxSpeed = (0.2 + 0.2 + $ice) * max(1.0, ($movementSpeed * 10));
 
-			if($player->getMovementSpeed() != 0.1){
+			if($md->getSpeedChangeRecord()->getFlag()){
 				$this->speedTicks++;
 				if($this->speedTicks === 1){
 					$this->samples->clear();

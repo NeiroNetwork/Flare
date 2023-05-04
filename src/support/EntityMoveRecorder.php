@@ -43,6 +43,16 @@ class EntityMoveRecorder{
 		}
 	}
 
+	public function getLatest(Player $target, int $runtimeId) : ?Vector3{
+		$histories = $this->get($target, $runtimeId);
+
+		if(count($histories) <= 0){
+			return null;
+		}
+
+		return $histories[max(array_keys($histories))];
+	}
+
 	/**
 	 * @param int      $runtimeId
 	 * @param int|null $size

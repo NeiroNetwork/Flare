@@ -9,7 +9,7 @@ use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\data\bedrock\EffectIds;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
 class MotionA extends BaseCheck{
@@ -48,7 +48,7 @@ class MotionA extends BaseCheck{
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 3
 		){
-			if(!$player->getEffects()->has(VanillaEffects::LEVITATION())){
+			if(!$this->profile->getSupport()->hasEffect($player->getId(), EffectIds::LEVITATION) ?? false){
 				$distY = ($to->y - $from->y);
 				$lastDistY = ($from->y - $md->getLastFrom()->y);
 

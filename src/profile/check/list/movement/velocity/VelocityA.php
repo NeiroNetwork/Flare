@@ -176,7 +176,8 @@ class VelocityA extends BaseCheck{
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
 				($md->getJumpRecord()->getEndTick() > $this->predictStartTick && $md->getJumpRecord()->getEndTick() < $this->predictStartTick + 5) || // ジャンプリセットによる誤検知無効化
 				$sd->getHitHeadRecord()->getTickSinceAction() <= 2 ||
-				$sd->getFlowRecord()->getTickSinceAction() <= 4
+				$sd->getFlowRecord()->getTickSinceAction() <= 4 ||
+				$md->getFlyRecord()->getTickSinceAction() <= 4
 			){
 				$this->reset();
 			}else{

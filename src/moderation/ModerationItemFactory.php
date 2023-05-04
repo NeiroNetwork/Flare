@@ -91,7 +91,7 @@ class ModerationItemFactory{
 	public function register(ModerationItem $moderationItem) : void{
 		$id = $moderationItem->getId();
 		if(isset($this->list[$id])){
-			throw new \Exception("moderation item id \"$id\" already registered");
+			throw new \RuntimeException("moderation item id \"$id\" already registered");
 		}
 
 		$this->list[$id] = $moderationItem;

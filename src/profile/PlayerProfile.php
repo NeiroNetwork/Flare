@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile;
 
-use Closure;
 use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
+use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraA;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraD;
 use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerA;
 use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerB;
@@ -32,6 +32,7 @@ use NeiroNetwork\Flare\profile\check\list\movement\velocity\VelocityA;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketA;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketB;
 use NeiroNetwork\Flare\profile\check\list\packet\badpacket\BadPacketC;
+use NeiroNetwork\Flare\profile\check\list\packet\interact\InteractA;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidA;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidB;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
@@ -46,12 +47,16 @@ use NeiroNetwork\Flare\profile\data\KeyInputs;
 use NeiroNetwork\Flare\profile\data\MovementData;
 use NeiroNetwork\Flare\profile\data\SurroundData;
 use NeiroNetwork\Flare\profile\data\TransactionData;
+use NeiroNetwork\Flare\profile\latency\LatencyHandler;
+use NeiroNetwork\Flare\profile\pairing\TransactionPairing;
+use NeiroNetwork\Flare\profile\pairing\TransactionPairingActorStateProvider;
 use NeiroNetwork\Flare\reporter\DebugReportContent;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\EventHandlerLink;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\command\CommandSender;
 use pocketmine\event\EventPriority;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 use pocketmine\player\Player;
@@ -87,7 +92,17 @@ class PlayerProfile implements Profile{
 
 	protected bool $dataReportEnabled;
 
+	protected int $lastFpsAlertTick;
+
 	protected bool $started;
+
+	protected LatencyHandler $latencyHandler;
+
+	protected TransactionPairing $transactionPairing;
+
+	protected ActorStateProvider $actorStateProvider;
+
+	protected ProfileSupport $support;
 
 	public function __construct(Flare $flare, Player $player){
 		$this->flare = $flare;
@@ -95,6 +110,7 @@ class PlayerProfile implements Profile{
 		$this->config = $flare->getConfig()->getPlayerConfigStore()->get($player);
 		$this->client = Client::create($player->getNetworkSession());
 		$this->started = false;
+		$this->lastFpsAlertTick = 0;
 
 		$this->eventLink = new EventHandlerLink($flare);
 
@@ -117,6 +133,11 @@ class PlayerProfile implements Profile{
 		 */
 		$this->dataReportEnabled = $conf->get("collection");
 
+		$this->latencyHandler = new LatencyHandler($this);
+		$this->transactionPairing = new TransactionPairing($this, 20);
+		$this->actorStateProvider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
+		$this->support = new ProfileSupport($this);
+
 		$this->movementData = null;
 		$this->surroundData = null;
 		$this->combatData = null;
@@ -129,11 +150,10 @@ class PlayerProfile implements Profile{
 		$this->logStyle = LogStyle::search($this->config->get("log_style")) ?? throw new RuntimeException("log style not found");
 
 		$this->observer = new Observer($this);
-
 		$this->eventLink->add($this->getFlare()->getEventEmitter()->registerPacketHandler(
 			$this->player->getUniqueId()->toString(),
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::HIGH
 		));
@@ -152,6 +172,27 @@ class PlayerProfile implements Profile{
 
 	public function getFlare() : Flare{
 		return $this->flare;
+	}
+
+	/**
+	 * @return ProfileSupport
+	 */
+	public function getSupport() : ProfileSupport{
+		return $this->support;
+	}
+
+	/**
+	 * @return ActorStateProvider
+	 */
+	public function getActorStateProvider() : ActorStateProvider{
+		return $this->actorStateProvider;
+	}
+
+	/**
+	 * @return LatencyHandler
+	 */
+	public function getLatencyHandler() : LatencyHandler{
+		return $this->latencyHandler;
 	}
 
 	public function getEventHandlerLink() : EventHandlerLink{
@@ -175,9 +216,10 @@ class PlayerProfile implements Profile{
 		return $this;
 	}
 
-	public function close() : void{
+	public function reload() : void{
 		if($this->started){
 			$this->shutdown();
+			$this->start();
 		}
 	}
 
@@ -201,10 +243,9 @@ class PlayerProfile implements Profile{
 		}
 	}
 
-	public function reload() : void{
+	public function close() : void{
 		if($this->started){
 			$this->shutdown();
-			$this->start();
 		}
 	}
 
@@ -218,7 +259,15 @@ class PlayerProfile implements Profile{
 			$this->eventLink->add($this->flare->getEventEmitter()->registerPlayerEventHandler(
 				$this->player->getUniqueId()->toString(),
 				PlayerPacketLossEvent::class,
-				Closure::fromCallable([$this, "handlePacketLoss"])
+				$this->handlePacketLoss(...)
+			));
+
+			$this->eventLink->add($this->flare->getEventEmitter()->registerPacketHandler(
+				$this->player->getUniqueId()->toString(),
+				NetworkStackLatencyPacket::NETWORK_ID,
+				$this->latencyHandler->handleResponse(...),
+				true,
+				EventPriority::LOWEST
 			));
 
 			$this->movementData = new MovementData($this);
@@ -276,12 +325,15 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new ReachB($o));
 			$o->registerCheck(new ReachC($o));
 		} {
+			$o->registerCheck(new AuraA($o));
 			$o->registerCheck(new AuraD($o));
 		} {
 			$o->registerCheck(new AutoClickerA($o));
 			$o->registerCheck(new AutoClickerB($o));
 			$o->registerCheck(new AutoClickerC($o));
 			$o->registerCheck(new AutoClickerD($o));
+		} {
+			$o->registerCheck(new InteractA($o));
 		}
 
 		// グループ分けみたいなことをしてみたけど
@@ -304,10 +356,6 @@ class PlayerProfile implements Profile{
 
 	public function getPlayer() : Player{
 		return $this->player;
-	}
-
-	public function getServerTick() : int{
-		return $this->flare->getPlugin()->getServer()->getTick();
 	}
 
 	public function isServerStable() : bool{
@@ -342,25 +390,12 @@ class PlayerProfile implements Profile{
 	}
 
 	/**
-	 * Get the value of combatData
-	 *
-	 * @return CombatData
-	 */
-	public function getCombatData() : CombatData{
-		return $this->combatData ?? throw new RuntimeException("must not be called before start");
-	}
-
-	/**
 	 * Get the value of transactionData
 	 *
 	 * @return TransactionData
 	 */
 	public function getTransactionData() : TransactionData{
 		return $this->transactionData ?? throw new RuntimeException("must not be called before start");
-	}
-
-	public function getPing() : int{
-		return Utils::getPing($this->player);
 	}
 
 	/**
@@ -412,6 +447,11 @@ class PlayerProfile implements Profile{
 		return $this->observer;
 	}
 
+	public function disconnectPlayerAndClose(string $message) : void{
+		$this->player->disconnect($message);
+		$this->close();
+	}
+
 	protected function handleInput(PlayerAuthInputPacket $packet) : void{
 		$player = $this->player;
 		$inputMode = $packet->getInputMode();
@@ -425,6 +465,25 @@ class PlayerProfile implements Profile{
 			$this->inputMode = $inputMode;
 			$this->inputModeName = $toName;
 		}
+		$fps = $this->getCombatData()->getAimTriggerPerSecond();
+		if($this->debugEnabled){
+			$ping = Utils::getPing($player);
+			$tick = $this->getServerTick();
+			$confirmedTick = $this->getTransactionPairing()->getLatestConfirmedTick();
+			$deltaTick = $tick - $confirmedTick;
+			$player->sendActionBarMessage("§7---------- Debug Mode ----------\n§7Ping: §b{$ping}ms§7 Tick: §b{$tick}§7 | §e{$confirmedTick}§7, §c({$deltaTick})§7\n§7APD: §b{$fps}/20");
+		}
+
+		if(
+			$this->getCombatData()->getAimRecord()->getLength() >= 50 &&
+			$fps <= 13 &&
+			$this->getServerTick() - $this->lastFpsAlertTick > 140
+		){
+			$this->lastFpsAlertTick = $this->getServerTick();
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fのエイム位置検知回数 §6($fps/s)§f が §c13/s§f を下回っています", $this->flare));
+		}
+
+		$this->support->update($this->getServerTick());
 	}
 
 	/**
@@ -442,6 +501,30 @@ class PlayerProfile implements Profile{
 
 	public function getCommandSender() : CommandSender{
 		return $this->player;
+	}
+
+	/**
+	 * Get the value of combatData
+	 *
+	 * @return CombatData
+	 */
+	public function getCombatData() : CombatData{
+		return $this->combatData ?? throw new RuntimeException("must not be called before start");
+	}
+
+	public function getPing() : int{
+		return Utils::getPing($this->player);
+	}
+
+	public function getServerTick() : int{
+		return $this->flare->getPlugin()->getServer()->getTick();
+	}
+
+	/**
+	 * @return TransactionPairing
+	 */
+	public function getTransactionPairing() : TransactionPairing{
+		return $this->transactionPairing;
 	}
 
 	protected function handlePacketLoss(PlayerPacketLossEvent $event) : void{

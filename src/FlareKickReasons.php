@@ -27,6 +27,7 @@ class FlareKickReasons{
 	 */
 	private static int $UNFAIR_ADVANTAGE = 0x02;
 	private static int $INVALID_CLIENT = 0x03;
+	private static int $PAIRING_NOT_RESPONDED = 0x04;
 
 	public static function too_many_inputs(int $violations, string $username) : string{
 		return
@@ -57,7 +58,7 @@ class FlareKickReasons{
 					($cause instanceof BaseCheck ? Binary::writeInt($cause->getPunishVL()) : "")
 				)
 				:
-				"§cKicked from server: §lUnfair Advantage";
+				"§c§lUnfair Advantage";
 	}
 
 	public static function invalid_client(string $username) : string{
@@ -70,5 +71,18 @@ class FlareKickReasons{
 				)
 				:
 				"§cError.\n§dID: " . self::$INVALID_CLIENT;
+	}
+
+	public static function pairing_not_responded(string $username, int $tick) : string{
+		return
+			self::$obfuscation
+				?
+				"§7Reason: §d" . base64_encode(
+					Binary::writeInt(self::$PAIRING_NOT_RESPONDED) .
+					self::binaryWriteUTF8($username) .
+					Binary::writeInt($tick)
+				)
+				:
+				"§cNot responded to packets.\n§dID: " . self::$PAIRING_NOT_RESPONDED;
 	}
 }

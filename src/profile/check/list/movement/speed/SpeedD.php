@@ -47,6 +47,7 @@ class SpeedD extends BaseCheck{
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
 			$md->getSpeedChangeRecord()->getTickSinceAction() >= 7 &&
 			$ki->getSneakChangeRecord()->getTickSinceAction() >= 8 &&
+			$md->getFlyRecord()->getTickSinceAction() >= 22 &&
 			count($sd->getComplexBlocks()) <= 0 &&
 			$diffYaw < 20 &&
 			$md->getMoveRecord()->getLength() >= 12 &&
@@ -56,7 +57,7 @@ class SpeedD extends BaseCheck{
 				($md->getRonGroundRecord()->getLength() >= 7 && $md->getOnGroundRecord()->getLength() >= 7)
 			)
 		){
-			$expected = MinecraftPhysics::moveDistancePerTick($player);
+			$expected = MinecraftPhysics::moveDistancePerTick($md->getMovementSpeed(), $ki->sneak());
 			$diff = sqrt($md->getRealDeltaXZ()) - $expected;
 			$diffScaled = $diff * 100;
 

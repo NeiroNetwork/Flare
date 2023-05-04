@@ -6,6 +6,7 @@ namespace NeiroNetwork\Flare\profile\data;
 
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Liquid;
@@ -225,7 +226,7 @@ class SurroundData{
 			$this->nearbyUpdate->onAction();
 		}
 
-		if($block->collidesWithBB($player->getBoundingBox()->expandedCopy(0.25, 0.2, 0.25))){
+		if($block->collidesWithBB($this->profile->getMovementData()->getBoundingBox()->expandedCopy(0.25, 0.2, 0.25))){
 			$this->collideUpdate->onAction();
 		}
 	}
@@ -235,7 +236,7 @@ class SurroundData{
 	}
 
 	protected function handleInput(PlayerAuthInputPacket $packet) : void{
-		$position = $packet->getPosition()->subtract(0, 1.62, 0);
+		$position = $packet->getPosition()->subtract(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
 		$d = $this->profile->getMovementData()->getTo()->subtractVector($this->profile->getMovementData()->getFrom());
 		$player = $this->profile->getPlayer();
 
@@ -292,7 +293,7 @@ class SurroundData{
 
 			if($block->getPosition()->y < $position->y){
 				$this->stepBlocks[] = $block;
-			}elseif($block->getPosition()->y > ($position->y + $player->size->getEyeHeight())){
+			}elseif($block->getPosition()->y > ($position->y + $this->profile->getMovementData()->getEyeHeight())){
 				$this->overheadBlocks[] = $block;
 			}
 

@@ -12,6 +12,7 @@ use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
 use NeiroNetwork\Flare\profile\Client;
 use NeiroNetwork\Flare\reporter\LogReportContent;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
@@ -20,6 +21,8 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
 use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
@@ -109,12 +112,17 @@ class FlareEventListener implements Listener{
 
 	public function onDataPacketSend(DataPacketSendEvent $event) : void{
 		foreach($event->getPackets() as $packet){
-			if($packet instanceof MoveActorAbsolutePacket){
-				foreach($event->getTargets() as $target){
-					if(($player = $target->getPlayer()) instanceof Player){
+			/**
+			 * @var (DataPacket&ClientboundPacket) $packet
+			 */
+			foreach($event->getTargets() as $target){
+				if(($player = $target->getPlayer()) instanceof Player){
+					$this->flare->getTransactionPairingHost()->onDataPacketSendSpecify($target, [$packet]);
+
+					if($packet instanceof MoveActorAbsolutePacket){
 						$ppos = clone $packet->position;
 						if($player->getWorld()->getEntity($packet->actorRuntimeId) instanceof Player){
-							$ppos->y -= 1.62;
+							$ppos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT;
 						}
 						$this->flare->getSupports()->getEntityMoveRecorder()->add(
 							$player,
@@ -123,12 +131,8 @@ class FlareEventListener implements Listener{
 							$this->flare->getPlugin()->getServer()->getTick()
 						);
 					}
-				}
-			}
 
-			if($packet instanceof AddActorPacket){
-				foreach($event->getTargets() as $target){
-					if(($player = $target->getPlayer()) instanceof Player){
+					if($packet instanceof AddActorPacket){
 						$this->flare->getSupports()->getEntityMoveRecorder()->add(
 							$player,
 							$packet->actorRuntimeId,
@@ -153,7 +157,7 @@ class FlareEventListener implements Listener{
 		$origin = $event->getOrigin();
 
 		if($packet instanceof PlayerAuthInputPacket){
-			$position = $packet->getPosition()->subtract(0, 1.62, 0);
+			$position = $packet->getPosition()->subtract(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
 			$yaw = $packet->getYaw();
 			$pitch = $packet->getPitch();
 

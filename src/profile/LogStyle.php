@@ -43,10 +43,11 @@ abstract class LogStyle{
 
 	/**
 	 * @param Profile    $profile
+	 * @param Profile    $viewer
 	 * @param ICheck     $cause
 	 * @param FailReason $reason
 	 *
 	 * @return string
 	 */
-	abstract public function fail(Profile $profile, ICheck $cause, FailReason $reason) : string;
+	abstract public function fail(Profile $profile, Profile $viewer, ICheck $cause, FailReason $reason) : string;
 }

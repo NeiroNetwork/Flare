@@ -111,8 +111,7 @@ class Observer{
 		if(!$this->punishEnabled){
 			return;
 		}
-		$this->profile->getPlayer()->disconnect(FlareKickReasons::unfair_advantage($this->profile->getPlayer()->getName()));
-		$this->profile->close();
+		$this->profile->disconnectPlayerAndClose(FlareKickReasons::unfair_advantage($this->profile->getPlayer()->getName()));
 	}
 
 	public function close() : void{

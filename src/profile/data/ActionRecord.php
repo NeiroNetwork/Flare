@@ -43,12 +43,14 @@ class ActionRecord{
 	 */
 	protected array $notifiers;
 
-	public function __construct(){
+	protected self $last;
 
+	public function __construct(){
 		$this->tickSinceAction = 0;
 		$this->length = 0;
 		$this->endTick = 0;
 		$this->startTick = 0;
+		$this->last = clone $this;
 
 		$this->lastFlag = false;
 		$this->flag = false;
@@ -56,7 +58,7 @@ class ActionRecord{
 		$this->notifiers = [];
 	}
 
-	public function notify(ActionNotifier $notifier){
+	public function notify(ActionNotifier $notifier) : void{
 		$this->notifiers[spl_object_hash($notifier)] = $notifier;
 	}
 
@@ -88,9 +90,17 @@ class ActionRecord{
 		return $this->flag;
 	}
 
+	/**
+	 * @return ActionRecord
+	 */
+	public function getLast() : ActionRecord{
+		return $this->last;
+	}
+
 	public function update(bool $flag = false, ?int $currentTick = null) : void{
 		$this->notifyUpdate($flag);
-			$currentTick ?? $currentTick = Server::getInstance()->getTick();
+		$currentTick ??= Server::getInstance()->getTick();
+		$this->last = clone $this;
 
 		#ここにおいて $this->flag は 一つまえのflag
 		if($this->flag && !$flag){ #off

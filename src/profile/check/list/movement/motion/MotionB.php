@@ -65,6 +65,7 @@ class MotionB extends BaseCheck{
 				$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
 				$cd->getKnockbackRecord()->getTickSinceAction() >= 20
 			){
+
 				$this->preReward();
 				$deltaY = ($to->y - $from->y);
 				$lastDeltaY = ($from->y - $lastFrom->y);

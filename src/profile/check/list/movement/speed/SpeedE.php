@@ -66,7 +66,9 @@ class SpeedE extends BaseCheck{
 			if($md->getMoveRecord()->getLength() < 8 && $md->getMoveRecord()->getLength() > 2){
 				$diff = $md->getRealDeltaXZ() - $md->getLastRealDeltaXZ();
 				if($diff < 1.0e-6){
-					$this->fail(new ViolationFailReason("Diff: $diff"));
+					if($this->preFail()){
+						$this->fail(new ViolationFailReason("Diff: $diff"));
+					}
 				}
 			}
 		}

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 
 class KeyInputs{
@@ -70,7 +70,7 @@ class KeyInputs{
 		$links->add($this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -104,6 +104,34 @@ class KeyInputs{
 
 	public function jump() : bool{
 		return $this->jump;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function sneak() : bool{
+		return $this->sneaking;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function sprint() : bool{
+		return $this->sprinting;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function swim() : bool{
+		return $this->swimming;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function glide() : bool{
+		return $this->gliding;
 	}
 
 	/**
@@ -177,7 +205,11 @@ class KeyInputs{
 
 		$inputFlags = $packet->getInputFlags();
 
-
+		//todo: サーバー権威のフラグをサポートする
+		// metadata にある
+		/**
+		 * @see EntityMetadataFlags::SWIMMING
+		 */
 		if($this->lastInputFlags !== $inputFlags){
 			$sneaking = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
 			$sprinting = Utils::resolveOnOffInputFlags($inputFlags, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);

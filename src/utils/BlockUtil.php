@@ -11,10 +11,8 @@ use pocketmine\block\FenceGate;
 use pocketmine\block\SnowLayer;
 use pocketmine\block\Trapdoor;
 use pocketmine\block\WaterLily;
-use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\item\Item;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\player\Player;
 use pocketmine\world\World;
 
 class BlockUtil{
@@ -35,19 +33,16 @@ class BlockUtil{
 			return false;
 		}
 
+		// heavy?
 		return min(array_map(fn(AxisAlignedBB $bb) => $bb->maxY - $block->getPosition()->y, $block->getCollisionBoxes())) <= 0.6;
 	}
 
-	public static function calculateBreakBlockTick(Player $player, Item $item, Block $block) : int{
+	public static function calculateBreakBlockTick(Item $item, Block $block, int $hasteLevel = 0, int $fatigueLevel = 0) : int{
 		$time = ceil($block->getBreakInfo()->getBreakTime($item) * 20); #完全なコピペ
 
-		if(($haste = $player->getEffects()->get(VanillaEffects::HASTE())) !== null){
-			$time *= 1 - (0.25 * $haste->getEffectLevel());
-		}
+		$time *= 1 - (0.25 * $hasteLevel);
 
-		if(($miningFatigue = $player->getEffects()->get(VanillaEffects::MINING_FATIGUE())) !== null){
-			$time *= 1 + (0.3 * $miningFatigue->getEffectLevel());
-		}
+		$time *= 1 + (0.3 * $fatigueLevel);
 
 		$time -= 1.0;
 

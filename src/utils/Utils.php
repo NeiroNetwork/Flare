@@ -55,6 +55,10 @@ class Utils{
 		return hrtime(true) / 1e+6;
 	}
 
+	public static function getTimeNanos() : int{
+		return (int) hrtime(true);
+	}
+
 	public static function equalsArrayValues(array $target, mixed $value){
 		foreach($target as $targetValue){
 			if($value != $targetValue){
@@ -93,10 +97,8 @@ class Utils{
 		$min = $key - $range;
 		$max = $key + $range;
 
-		$result = array_filter($arr, function($v) use ($min, $max){
+		return array_filter($arr, function($v) use ($min, $max){
 			return $v >= $min && $v <= $max;
 		});
-
-		return $result;
 	}
 }

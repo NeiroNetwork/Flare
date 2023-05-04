@@ -21,7 +21,8 @@ class FlareConfig{
 	public function __construct(string $folder){
 		$this->generic = new Config(Path::join($folder, "generic.yml"), Config::YAML, [
 			"inspectors" => [],
-			"test_server_mode" => false
+			"test_server_mode" => false,
+			"transaction_pairing" => true
 		]);
 
 		$this->profileDefault = new Config(Path::join($folder, "profile_default.yml"), Config::YAML, [

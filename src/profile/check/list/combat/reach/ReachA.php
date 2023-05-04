@@ -10,9 +10,13 @@ use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
+use NeiroNetwork\Flare\support\MoveDelaySupport;
 use NeiroNetwork\Flare\utils\Math;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
+use pocketmine\Server;
 use SplFixedArray;
 
 class ReachA extends BaseCheck{
@@ -40,16 +44,13 @@ class ReachA extends BaseCheck{
 		$entity = $event->getEntity();
 		$player = $event->getPlayer();
 		$cd = $this->profile->getCombatData();
-
-		if($player->getScale() != 1.0){ // tick diff?
-			return;
-		}
+		$md = $this->profile->getMovementData();
 
 		if($cd->getHitEntity() !== $cd->getLastHitEntity()){
 			return;
 		}
 
-		$eyePos = $player->getEyePos();
+		$eyePos = $md->getEyePosition();
 
 		$refCount = 6;
 		$refs = (SplFixedArray::fromArray(array_reverse($this->list)));
@@ -86,11 +87,6 @@ class ReachA extends BaseCheck{
 					}
 				}
 
-				if($freach > 9.0 + 1.0){
-					if($this->preFail()){
-						$this->fail(new ViolationFailReason("Spt-Reach: {$freach}"));
-					}
-				}
 			}
 		}
 	}
@@ -107,11 +103,14 @@ class ReachA extends BaseCheck{
 		$entity = $cd->getHitEntity();
 		if($entity !== null){
 			$runtimeId = $entity->getId();
-			$pos = $this->profile->getFlare()->getSupports()->fullSupportMove($this->profile->getPlayer(), $runtimeId);
+			$currentTick = Server::getInstance()->getTick();
+			$histories = $this->profile->getSupport()->getActorPositionHistory($runtimeId)->getAll();
+			$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick);
 
 			if($pos !== null){
-				$h = $entity->size->getHeight();
-				$w = $entity->size->getWidth() / 2;
+				$size = $this->profile->getSupport()->getSize($runtimeId);
+				$h = $size->getHeight();
+				$w = $size->getWidth() / 2;
 				$bb = new AxisAlignedBB(
 					$pos->x - $w,
 					$pos->y,
@@ -121,6 +120,10 @@ class ReachA extends BaseCheck{
 					$pos->z + $w
 				);
 				$this->list[] = $bb;
+
+				$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos, "minecraft:balloon_gas_particle", null);
+
+				$this->profile->getPlayer()->getNetworkSession()->sendDataPacket($pk);
 			}
 		}
 	}

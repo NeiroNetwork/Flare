@@ -16,8 +16,6 @@ class AuraD extends BaseCheck{
 	use ClassNameAsCheckIdTrait;
 	use HandleEventCheckTrait;
 
-	private string $hashb = "";
-
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
@@ -30,13 +28,10 @@ class AuraD extends BaseCheck{
 		$entity = $event->getEntity();
 		$player = $event->getPlayer();
 		$cd = $this->profile->getCombatData();
-
-		if($player->getScale() != 1.0){ // tick diff?
-			return;
-		}
+		$md = $this->profile->getMovementData();
 
 		$clientPosition = $event->getPlayerPosition()->round(4); // server position is fixed to 4
-		$serverPosition = $player->getEyePos();
+		$serverPosition = $md->getEyePosition();
 
 		if(
 			$serverPosition->subtractVector($clientPosition)->lengthSquared() > 0.01

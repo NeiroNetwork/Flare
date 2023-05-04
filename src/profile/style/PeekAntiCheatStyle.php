@@ -13,7 +13,7 @@ use NeiroNetwork\Flare\profile\Profile;
 
 class PeekAntiCheatStyle extends LogStyle{
 
-	public function fail(Profile $profile, ICheck $cause, FailReason $reason) : string{
+	public function fail(Profile $profile, Profile $viewer, ICheck $cause, FailReason $reason) : string{
 		$percentage = $cause instanceof BaseCheck ? $cause->getVL() / $cause->getPunishVL() : 0.0;
 		$perc = round($percentage * 100);
 		$ping = $profile instanceof PlayerProfile ? $profile->getPing() : -1;
@@ -21,7 +21,7 @@ class PeekAntiCheatStyle extends LogStyle{
 		$type = $cause instanceof BaseCheck ? $cause->getType() : "";
 		$typeStr = $type !== "" ? " ({$type})" : "";
 		return "§8[§7{$perc}%§8] §b{$profile->getName()}§8<§9{$ping}ms§8> §ffailed §c{$cause->getName()}{$typeStr}§r" . ($cause->isExperimental() ?
-				"§l§e*§r" : "") . ($profile->isVerboseEnabled() ? "§7, " . $reason->verbose : "");
+				"§l§e*§r" : "") . ($viewer->isVerboseEnabled() ? "§7, " . $reason->verbose : "");
 	}
 
 	public function getAliases() : array{

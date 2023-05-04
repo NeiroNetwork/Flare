@@ -29,7 +29,7 @@ class FailReportContent implements ReportContent{
 			$profile->getFlare()->getConsoleProfile();
 
 		if($targetProfile->tryAlert($this->cause)){
-			return $targetProfile->getLogStyle()->fail($profile, $this->cause, $this->failReason);
+			return $targetProfile->getLogStyle()->fail($profile, $targetProfile, $this->cause, $this->failReason);
 		}
 
 		return null;

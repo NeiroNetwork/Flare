@@ -30,7 +30,7 @@ class BadPacketA extends BaseCheck{
 		$md = $this->profile->getMovementData();
 
 		$pitch = abs($md->getRotation()->pitch);
-		if($pitch > 90){
+		if($pitch > 90.01){
 			$this->fail(new ViolationFailReason("Pitch: {$pitch}"));
 		}
 	}

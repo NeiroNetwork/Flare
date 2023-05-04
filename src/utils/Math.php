@@ -47,9 +47,9 @@ class Math{
 	}
 
 	public static function distanceSquaredBoundingBox(AxisAlignedBB $bb, Vector3 $point) : float{
-		$distX = max($bb->minX - $point->x, max(0, $point->x - $bb->maxX));
-		$distY = max($bb->minY - $point->y, max(0, $point->y - $bb->maxY));
-		$distZ = max($bb->minZ - $point->z, max(0, $point->z - $bb->maxZ));
+		$distX = max($bb->minX - $point->x, 0, $point->x - $bb->maxX);
+		$distY = max($bb->minY - $point->y, 0, $point->y - $bb->maxY);
+		$distZ = max($bb->minZ - $point->z, 0, $point->z - $bb->maxZ);
 		return ($distX ** 2 + $distY ** 2 + $distZ ** 2);
 	}
 

@@ -110,7 +110,8 @@ abstract class BaseCheck implements ICheck{
 			!$this->profile->getPlayer()->isClosed() &&
 			$this->profile->getPlayer()->hasBlockCollision() &&
 			!$this->profile->getPlayer()->canClimbWalls() &&
-			!$this->profile->getPlayer()->isCreative(); // literal: spectator
+			!$this->profile->getPlayer()->isCreative() &&
+			($this->profile->getTransactionPairing()->getLatestConfirmedTick() > -1 || !$this->profile->getFlare()->getTransactionPairingHost()->isEnabled()); // literal: spectator
 	}
 
 	public function isEnabled() : bool{

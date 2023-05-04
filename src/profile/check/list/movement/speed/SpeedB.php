@@ -29,7 +29,7 @@ class SpeedB extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 
-		if($md->getTeleportRecord()->getTickSinceAction() >= 2){
+		if($md->getTeleportRecord()->getTickSinceAction() >= 2 && $md->getFlyRecord()->getTickSinceAction() >= 4){
 			$deltaYaw = abs($md->getRotationDelta()->yaw);
 
 			$deltaXZ = $md->getDeltaXZ();
@@ -37,7 +37,7 @@ class SpeedB extends BaseCheck{
 
 			$accel = abs($deltaXZ - $lastDeltaXZ);
 
-			$base = $player->getMovementSpeed() * 10;
+			$base = $md->getMovementSpeed() * 10;
 
 			$sqAccel = $accel * 100;
 			if($deltaYaw > 4.0 * $base && $deltaXZ > 0.1 * $base){

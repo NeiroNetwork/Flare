@@ -61,13 +61,14 @@ class JumpA extends BaseCheck{
 				$sd->getHitHeadRecord()->getLength() >= 1 ||
 				$md->getRonGroundRecord()->getLength() >= 1 ||
 				$md->getOnGroundRecord()->getLength() >= 2 ||
-				$md->getMotionRecord()->getTickSinceAction() <= 5 ||
+				$md->getMotionRecord()->getTickSinceAction() <= 20 ||
 				$md->getTeleportRecord()->getTickSinceAction() <= 6 ||
 				$ki->getGlideRecord()->getTickSinceAction() <= 8 ||
 				$sd->getBounceRecord()->getTickSinceAction() <= 20 ||
 				$sd->getFlowRecord()->getTickSinceAction() <= 10 ||
 				$sd->getSlipRecord()->getTickSinceAction() <= 10 ||
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
+				$md->getFlyRecord()->getTickSinceAction() <= 5 ||
 				$player->isImmobile() ||
 				count($sd->getTouchingBlocks()) > 0 ||
 				$player->isSprinting() !== $this->jumpSprinting

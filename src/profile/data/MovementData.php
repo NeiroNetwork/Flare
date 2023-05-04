@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\data\report\DataReport;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
@@ -19,6 +18,10 @@ use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\player\Player;
 
 class MovementData{
 
@@ -106,6 +109,10 @@ class MovementData{
 	 * @var Vector3
 	 */
 	protected Vector3 $to;
+
+	protected Vector3 $eyePosition;
+
+	protected float $eyeHeight;
 
 	/**
 	 * @var EntityRotation
@@ -214,14 +221,14 @@ class MovementData{
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::LOW
 		));
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			EntityMotionEvent::class,
-			Closure::fromCallable([$this, "handleMotion"]),
+			$this->handleMotion(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -232,7 +239,7 @@ class MovementData{
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			EntityTeleportEvent::class,
-			Closure::fromCallable([$this, "handleTeleport"]),
+			$this->handleTeleport(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -240,7 +247,7 @@ class MovementData{
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerDeathEvent::class,
-			Closure::fromCallable([$this, "handleDeath"]),
+			$this->handleDeath(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -248,7 +255,7 @@ class MovementData{
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerRespawnEvent::class,
-			Closure::fromCallable([$this, "handleRespawn"]),
+			$this->handleRespawn(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -256,7 +263,7 @@ class MovementData{
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerJumpEvent::class,
-			Closure::fromCallable([$this, "handleJump"]),
+			$this->handleJump(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -274,6 +281,13 @@ class MovementData{
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 
 		$this->join->onAction();
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getLastMovementSpeed() : float{
+		return $this->lastMovementSpeed;
 	}
 
 	/**
@@ -567,6 +581,27 @@ class MovementData{
 		return $this->inputCount;
 	}
 
+	/**
+	 * @return Vector3
+	 */
+	public function getEyePosition() : Vector3{
+		return $this->eyePosition;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getEyeHeight() : float{
+		return $this->eyeHeight;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getMovementSpeed() : float{
+		return $this->movementSpeed;
+	}
+
 	protected function handleJump(PlayerJumpEvent $event) : void{
 		if($event->getPlayer() === $this->profile->getPlayer()){
 			$this->jump->onAction();
@@ -600,7 +635,8 @@ class MovementData{
 	protected function handleInput(PlayerAuthInputPacket $packet) : void{
 		$player = $this->profile->getPlayer();
 		$ki = $this->profile->getKeyInputs();
-		$position = $packet->getPosition()->subtract(0, 1.62, 0);
+		$position = $packet->getPosition()->subtract(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
+		$providerSupport = $this->profile->getSupport();
 
 		$rawRot = EntityRotation::create($packet->getYaw(), $packet->getPitch(), $packet->getHeadYaw());
 		$rot = EntityRotation::create(fmod($rawRot->yaw, 360), fmod($rawRot->pitch, 360), fmod($rawRot->headYaw, 360));
@@ -617,7 +653,7 @@ class MovementData{
 		$this->rawPosition = clone $position;
 		$this->roundedPosition = $position->round(4); // InGamePacketHandler #210
 		$d = $this->to->subtractVector($this->from);
-		$this->boundingBox = $player->getBoundingBox()->offsetCopy($d->x, $d->y, $d->z);
+		$this->boundingBox = $providerSupport->getBoundingBox($player->getId(), $position) ?? $player->getBoundingBox()->offsetCopy($d->x, $d->y, $d->z);
 
 		$this->clientTick = $packet->getTick();
 
@@ -650,10 +686,29 @@ class MovementData{
 		$this->realDeltaXZ = $this->realDelta->x ** 2 + $this->realDelta->z ** 2;
 
 		$this->lastMovementSpeed = $this->movementSpeed;
-		$this->movementSpeed = $player->getMovementSpeed() * ($ki->getSprintRecord()->getFlag() ? 1.3 :
-				1.0); // + sneak? でも本来はsneakしてもmovementSpeedは変わらない
+		$speedAttr = $providerSupport->getMovementSpeedAttribute($player->getId());
+		$defaultSpeed = $providerSupport->getActorBaseAbilitiesLayer($player->getId())?->getWalkSpeed();
+		$pairedSprinting = $providerSupport->checkActorMetadataGenericFlag($player->getId(), EntityMetadataFlags::SPRINTING) ?? false;
+		$speed = $speedAttr?->getCurrent();
 
-		if(!$player->hasBlockCollision()){
+		if($pairedSprinting && !is_null($speed)){
+			$speed /= 1.3;
+		}
+		$this->movementSpeed = $speed ?? ($defaultSpeed ?? 0.1);
+
+		if($ki->sprint() || $pairedSprinting){
+			$this->movementSpeed *= 1.3;
+		}
+		// 走りでの加速はクライアント側なのに、サーバー側も速度を適用している
+
+		$scale = $providerSupport->getActorNumericalMetadataProperty($player->getId(), EntityMetadataProperties::SCALE)?->getValue();
+		$this->eyeHeight = (MinecraftPhysics::PLAYER_EYE_HEIGHT) + ($ki->sneak() ? -0.15 : 0.0);
+		$this->eyePosition = $this->rawPosition->add(0, $this->eyeHeight, 0);
+
+		/**
+		 * @see Player::syncNetworkData()
+		 */
+		if(!$providerSupport->checkActorMetadataGenericFlag($player->getId(), EntityMetadataFlags::HAS_COLLISION)){
 			$this->onGround->update(false);
 		}else{
 			$bb = clone $this->boundingBox;
@@ -671,11 +726,18 @@ class MovementData{
 
 		$this->air->update(!$this->onGround->getFlag());
 
-		$this->immobile->update($player->isImmobile());
+		$this->immobile->update($providerSupport->checkActorMetadataGenericFlag(
+			$player->getId(),
+			EntityMetadataFlags::IMMOBILE
+		) ?? $player->isImmobile());
 
 		$this->void->update($position->y <= -39.75);
 
-		$this->fly->update($player->getAllowFlight());
+		//fixme: 名前は fly なのに実際は allow flight でやってる
+		$this->fly->update($providerSupport->checkActorBaseAbility(
+			$player->getId(),
+			AbilitiesLayer::ABILITY_FLYING
+		) ?? $player->getAllowFlight());
 
 		$this->move->update($packet->getMoveVecX() > 0 || $packet->getMoveVecZ() > 0);
 

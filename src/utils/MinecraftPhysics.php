@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\utils;
 
 use pocketmine\math\Vector3;
-use pocketmine\player\Player;
 
 class MinecraftPhysics{
 
 	const FRICTION_AIR = 0.02;
 	const FRICTION_GROUND = 0.2;
+
+	const PLAYER_EYE_HEIGHT = 1.62;
 
 	/**
 	 * Entity.java
@@ -65,8 +66,8 @@ class MinecraftPhysics{
 		return $xz / 0.91;
 	}
 
-	public static function moveDistancePerTick(Player $player) : float{
-		$base = $player->getMovementSpeed() * ($player->isSneaking() ? 0.3 : 1.0) * 10;
+	public static function moveDistancePerTick(float $speed, bool $isSneaking) : float{
+		$base = $speed * ($isSneaking ? 0.3 : 1.0) * 10;
 		return $base * 4.317 / 20;
 	}
 

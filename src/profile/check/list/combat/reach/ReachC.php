@@ -16,8 +16,6 @@ class ReachC extends BaseCheck{
 	use ClassNameAsCheckIdTrait;
 	use HandleEventCheckTrait;
 
-	private string $hashb = "";
-
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
@@ -31,15 +29,15 @@ class ReachC extends BaseCheck{
 		$player = $event->getPlayer();
 		$cd = $this->profile->getCombatData();
 
-		if($player->getScale() != 1.0){ // tick diff?
-			return;
-		}
-
 		if(is_null($cd->getClientAiming())){
 			return;
 		}
 
 		if($cd->getClientAiming()->getId() !== $entity->getId()){
+			return;
+		}
+
+		if($cd->getAimRecord()->getLength() <= 2){
 			return;
 		}
 
