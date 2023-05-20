@@ -2,6 +2,7 @@
 
 namespace NeiroNetwork\Flare\profile\latency;
 
+use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 
@@ -9,10 +10,8 @@ class LatencyHandler{
 
 	const TIMESTAMP_SIZE = 1000;
 
+	private static int $nextTimestamp = 0;
 	protected PlayerProfile $profile;
-
-	protected int $nextTimestamp;
-
 	/**
 	 * @var array<int, PendingLatencyInfo>
 	 */
@@ -21,29 +20,27 @@ class LatencyHandler{
 	public function __construct(PlayerProfile $profile){
 		$this->profile = $profile;
 		$this->pending = [];
-		$this->nextTimestamp = 0;
 	}
 
 	/**
-	 * @param \Closure(PendingLatencyInfo $latencyInfo): void $onResponse
+	 * @param Closure(PendingLatencyInfo $latencyInfo): void $onResponse
+	 * @param bool                                           $immediate
 	 *
 	 * @return PendingLatencyInfo
 	 */
-	public function request(\Closure $onResponse, bool $immediate = false) : PendingLatencyInfo{
-		$packet = NetworkStackLatencyPacket::request($this->nextTimestamp);
+	public function request(Closure $onResponse, bool $immediate = false) : PendingLatencyInfo{
+		$packet = NetworkStackLatencyPacket::request(self::nextTimestamp());
 		$latencyInfo = new PendingLatencyInfo($packet, $onResponse);
 
 		$this->profile->getPlayer()->getNetworkSession()->sendDataPacket($packet, $immediate);
 
 		$this->pending[$latencyInfo->getExceptResponseTimestamp()] = $latencyInfo;
 
-		$this->changeTimestamp();
-
 		return $latencyInfo;
 	}
 
-	protected function changeTimestamp() : void{
-		$this->nextTimestamp -= self::TIMESTAMP_SIZE;
+	public static function nextTimestamp() : int{
+		return self::$nextTimestamp -= self::TIMESTAMP_SIZE;
 	}
 
 	public function handleResponse(NetworkStackLatencyPacket $packet) : void{
