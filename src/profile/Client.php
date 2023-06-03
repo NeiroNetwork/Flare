@@ -27,25 +27,23 @@ final class Client{
 		DeviceOS::XBOX => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',
 		// UUIDv3    // Xbox One
 	];
-
-	private string $name;
-	private string $locale;
-	private string $clientUuid;
-	private int $device;
-	private string $model;
-	private string $gameVersion;
-	private string $deviceId;
-	private int $clientRandomId;
-	private string $selfSignedId;
-	private int $guiScale;
-	private string $langCode;
-	private string $playfabId;
-	private string $serverAddress;
-	private string $address;
-	private int $uiProfile;
-	private string $xuid;
-
-	private bool $xboxLive;
+	public readonly string $locale;
+	public readonly string $clientUuid;
+	public readonly int $device;
+	public readonly string $model;
+	public readonly string $gameVersion;
+	public readonly string $deviceId;
+	public readonly int $clientRandomId;
+	public readonly string $selfSignedId;
+	public readonly int $guiScale;
+	public readonly string $langCode;
+	public readonly string $playfabId;
+	public readonly string $serverAddress;
+	public readonly string $address;
+	public readonly int $uiProfile;
+	public readonly string $xuid;
+	public readonly bool $xboxLive;
+	public readonly string $name;
 
 	public function __construct(PlayerInfo $info, string $address){
 		$this->name = $info->getUsername();
@@ -64,11 +62,11 @@ final class Client{
 		$this->serverAddress = $e["ServerAddress"];
 		$this->address = $address;
 		$this->uiProfile = $e["UIProfile"];
-		$this->xuid = "unknown";
 		if($info instanceof XboxLivePlayerInfo){
 			$this->xuid = $info->getXuid();
 			$this->xboxLive = true;
 		}else{
+			$this->xuid = "unknown";
 			$this->xboxLive = false;
 		}
 	}
@@ -90,7 +88,7 @@ final class Client{
 		return new self($session->getPlayerInfo(), $session->getIp());
 	}
 
-	public static function convertDeviceIdToString(int $deviceId){
+	public static function convertDeviceIdToString(int $deviceId) : string{
 		$string = match ($deviceId) {
 			DeviceOS::ANDROID => "Android",
 			DeviceOS::IOS => "iOS",

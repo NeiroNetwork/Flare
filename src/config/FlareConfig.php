@@ -21,8 +21,7 @@ class FlareConfig{
 	public function __construct(string $folder){
 		$this->generic = new Config(Path::join($folder, "generic.yml"), Config::YAML, [
 			"inspectors" => [],
-			"test_server_mode" => false,
-			"transaction_pairing" => true
+			"test_server_mode" => false
 		]);
 
 		$this->profileDefault = new Config(Path::join($folder, "profile_default.yml"), Config::YAML, [
@@ -36,6 +35,7 @@ class FlareConfig{
 			"log_style" => "flare",
 			"verbose" => false,
 			"setback" => true,
+			"transaction_pairing" => true,
 			"collection" => false,
 			"bot" => true
 		]);
@@ -58,20 +58,20 @@ class FlareConfig{
 	public function validate() : void{
 		if(
 			LogStyle::search(
-				($logStyle = $this->profileDefault->get("log_style", null) ?? throw new \Exception("ProfileDefault: log_style key not found"))
+				($logStyle = $this->profileDefault->get("log_style", null) ?? throw new \RuntimeException("ProfileDefault: log_style key not found"))
 			)
 			=== null
 		){
-			throw new \Exception("ProfileDefault: log style \"$logStyle\" not found");
+			throw new \RuntimeException("ProfileDefault: log style \"$logStyle\" not found");
 		}
 
 		if(
 			LogStyle::search(
-				($logStyle = $this->console->get("log_style", null) ?? throw new \Exception("Console: log_style key not found"))
+				($logStyle = $this->console->get("log_style", null) ?? throw new \RuntimeException("Console: log_style key not found"))
 			)
 			=== null
 		){
-			throw new \Exception("Console: log style \"$logStyle\" not found");
+			throw new \RuntimeException("Console: log style \"$logStyle\" not found");
 		}
 	}
 

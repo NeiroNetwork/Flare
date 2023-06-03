@@ -42,7 +42,7 @@ class Supports{
 		$currentTick = Server::getInstance()->getTick();
 
 		foreach([
-					$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
+					$this->lagCompensator->compensate($viewer, Utils::getBestPing($viewer), $runtimeId),
 					MoveDelaySupport::getInstance()->predict($histories, $currentTick)
 				] as $result){
 			if(is_null($result)){

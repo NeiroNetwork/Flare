@@ -38,6 +38,9 @@ class TransactionPairingHost{
 			return;
 		}
 		foreach($this->profileManager->getAll() as $profile){
+			if(!$profile->isTransactionPairingEnabled()){
+				continue;
+			}
 			$profile->getTransactionPairing()->onStartOfTick($tick);
 		}
 	}
@@ -48,6 +51,9 @@ class TransactionPairingHost{
 		}
 
 		foreach($this->profileManager->getAll() as $profile){
+			if(!$profile->isTransactionPairingEnabled()){
+				continue;
+			}
 			$profile->getTransactionPairing()->onEndOfTick($tick);
 		}
 	}
@@ -77,6 +83,10 @@ class TransactionPairingHost{
 		$profile = $this->profileManager->fetch($player->getUniqueId()->toString());
 
 		if(is_null($profile)){
+			return;
+		}
+
+		if(!$profile->isTransactionPairingEnabled()){
 			return;
 		}
 

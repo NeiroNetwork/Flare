@@ -98,7 +98,9 @@ class PlayerProfile implements Profile{
 
 	protected LatencyHandler $latencyHandler;
 
-	protected TransactionPairing $transactionPairing;
+	protected ?TransactionPairing $transactionPairing;
+
+	protected bool $transactionPairingEnabled;
 
 	protected ActorStateProvider $actorStateProvider;
 
@@ -134,8 +136,8 @@ class PlayerProfile implements Profile{
 		$this->dataReportEnabled = $conf->get("collection");
 
 		$this->latencyHandler = new LatencyHandler($this);
-		$this->transactionPairing = new TransactionPairing($this, 20);
-		$this->actorStateProvider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
+		$this->transactionPairing = null;
+		$this->setTransactionPairingEnabled($conf->get("transaction_pairing"));
 		$this->support = new ProfileSupport($this);
 
 		$this->movementData = null;
@@ -214,6 +216,28 @@ class PlayerProfile implements Profile{
 		$this->logStyle = $logStyle;
 
 		return $this;
+	}
+
+	public function isTransactionPairingEnabled() : bool{
+		return $this->transactionPairingEnabled;
+	}
+
+	public function setTransactionPairingEnabled(bool $enabled) : void{
+		$changed = $this->transactionPairingEnabled !== $enabled;
+		$this->transactionPairingEnabled = $enabled;
+
+		if(!$changed){
+			return;
+		}
+
+		if($enabled){
+			$this->transactionPairing = new TransactionPairing($this, 20);
+			$this->actorStateProvider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
+		}else{
+			unset($this->transactionPairing);
+			$this->transactionPairing = null;
+			$this->actorStateProvider = new SimpleActorStateProvider($this, 40);
+		}
 	}
 
 	public function reload() : void{
@@ -452,6 +476,10 @@ class PlayerProfile implements Profile{
 		$this->close();
 	}
 
+	public function getPing() : int{
+		return Utils::getBestPing($this->player);
+	}
+
 	protected function handleInput(PlayerAuthInputPacket $packet) : void{
 		$player = $this->player;
 		$inputMode = $packet->getInputMode();
@@ -467,7 +495,7 @@ class PlayerProfile implements Profile{
 		}
 		$fps = $this->getCombatData()->getAimTriggerPerSecond();
 		if($this->debugEnabled){
-			$ping = Utils::getPing($player);
+			$ping = Utils::getBestPing($player);
 			$tick = $this->getServerTick();
 			$confirmedTick = $this->getTransactionPairing()->getLatestConfirmedTick();
 			$deltaTick = $tick - $confirmedTick;
@@ -512,10 +540,6 @@ class PlayerProfile implements Profile{
 		return $this->combatData ?? throw new RuntimeException("must not be called before start");
 	}
 
-	public function getPing() : int{
-		return Utils::getPing($this->player);
-	}
-
 	public function getServerTick() : int{
 		return $this->flare->getPlugin()->getServer()->getTick();
 	}
@@ -524,7 +548,7 @@ class PlayerProfile implements Profile{
 	 * @return TransactionPairing
 	 */
 	public function getTransactionPairing() : TransactionPairing{
-		return $this->transactionPairing;
+		return $this->transactionPairing ?? throw new RuntimeException("Transaction pairing not enabled");
 	}
 
 	protected function handlePacketLoss(PlayerPacketLossEvent $event) : void{

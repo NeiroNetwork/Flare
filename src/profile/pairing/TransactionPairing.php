@@ -122,7 +122,7 @@ class TransactionPairing{
 		$this->inTick = true;
 		$this->serverTick = $tick;
 
-		if($this->serverTick - $this->lastTick > 100){
+		if($this->serverTick - $this->lastTick > 140){
 			$this->profile->disconnectPlayerAndClose(FlareKickReasons::pairing_not_responded($this->profile->getPlayer()->getName(), $this->latestConfirmedTick));
 			return;
 		}

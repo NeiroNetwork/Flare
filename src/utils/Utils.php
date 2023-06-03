@@ -11,7 +11,7 @@ use pocketmine\Server;
 class Utils{
 
 	public static function mustStartedException() : void{
-		throw new \Exception("must not be called before started");
+		throw new \RuntimeException("must not be called before started");
 	}
 
 	public static function getEnumName(string $enumClass, int $id) : ?string{
@@ -39,7 +39,7 @@ class Utils{
 		return null;
 	}
 
-	public static function getPing(Player $player) : int{
+	public static function getBestPing(Player $player) : int{
 		if(Server::getInstance()->getPluginManager()->getPlugin("WaterdogPEAccepter") !== null){
 			return (int) WdpePlayer::getRespondTime($player);
 		}else{

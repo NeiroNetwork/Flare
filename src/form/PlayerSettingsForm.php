@@ -27,6 +27,7 @@ class PlayerSettingsForm extends CustomForm{
 			new Toggle("Log", $profile->isLogEnabled(), "log_enabled"),
 			new Toggle("Verbose", $profile->isVerboseEnabled(), "verbose_enabled"),
 			new Toggle("Debug", $profile->isDebugEnabled(), "debug_enabled"),
+			new Toggle("Transaction Pairing", $this->profile->isTransactionPairingEnabled(), "transaction_pairing_enabled"),
 			new Toggle("Observer: Check", $profile->getObserver()->isEnabled(), "check_enabled"),
 			new Toggle("Observer: Punishment", $profile->getObserver()->isPunishEnabled(), "punishment_enabled"),
 			new Slider("Alert Cool Down", 0, 50, 1, $profile->getAlertCoolDown(), "alert_cool_down"),
@@ -59,6 +60,7 @@ class PlayerSettingsForm extends CustomForm{
 			$punishEnabled = $response->getToggleResult("punishment_enabled")->getValue();
 			$alertCoolDown = $response->getSliderResult("alert_cool_down")->getInt();
 			$logCoolDown = $response->getSliderResult("log_cool_down")->getInt();
+			$transactionPairingEnabled = $response->getToggleResult("transaction_pairing_enabled")->getValue();
 			$styleName = $response->getSelectorResult("style")->getOptionName() ?? throw new InvalidResponseException("Option name: null");
 		}catch(InvalidResponseException $e){
 			return;
@@ -68,6 +70,7 @@ class PlayerSettingsForm extends CustomForm{
 		$this->profile->setLogEnabled($logEnabled);
 		$this->profile->setVerboseEnabled($verboseEnabled);
 		$this->profile->setDebugEnabled($debugEnabled);
+		$this->profile->setTransactionPairingEnabled($transactionPairingEnabled);
 
 		$this->profile->getObserver()->setEnabled($checkEnabled);
 		$this->profile->getObserver()->setPunishEnabled($punishEnabled);

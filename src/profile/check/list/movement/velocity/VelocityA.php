@@ -101,7 +101,7 @@ class VelocityA extends BaseCheck{
 		$count = count($this->predictList);
 		$predictList = array_values($this->predictList);
 		$allow = 5;
-		$allow += $this->profile->getFlare()->getSupports()->getLagCompensator()->getPingValue(Utils::getPing($this->profile->getPlayer()));
+		$allow += $this->profile->getFlare()->getSupports()->getLagCompensator()->getPingValue(Utils::getBestPing($this->profile->getPlayer()));
 		$allow = min(10, $allow);
 
 		if($count <= 7){
