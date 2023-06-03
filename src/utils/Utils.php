@@ -51,7 +51,7 @@ class Utils{
 		return hrtime(true) / 1e+9;
 	}
 
-	public static function getTimeMilis() : float{
+	public static function getTimeMillis() : float{
 		return hrtime(true) / 1e+6;
 	}
 
