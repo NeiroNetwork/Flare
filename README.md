@@ -1,16 +1,16 @@
 # Flare
 
 🔌アンチチートv2
-PeekAntiCheatLite --> Flare  
+PeekAntiCheatLite --> Flare
 
-⚠ ターゲットPMMPバージョン: `4.18.0`
+⚠ ターゲットPMMPバージョン: `5.0.0`
 
 ## Dependencies
 
 ### Plugin
 
 [WaterdogPEAccepter](https://github.com/NeiroNetwork/WaterdogPEAccepter)  
-プレイヤーのPing取得に使用されます  
+プレイヤーのPing取得に使用されます
 
 [VanillaCommands](https://github.com/NeiroNetwork/VanillaCommands)  
 コマンドのパラメーター追加に使用されます
