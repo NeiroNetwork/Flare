@@ -92,7 +92,6 @@ class Flare{
 		$this->supports = new Supports();
 
 		$this->transactionPairingHost = new TransactionPairingHost($this->profileManager);
-		$this->transactionPairingHost->setEnabled($this->config->getGeneric()->get("transaction_pairing"));
 
 		$this->schedulerHeartbeater = null;
 	}

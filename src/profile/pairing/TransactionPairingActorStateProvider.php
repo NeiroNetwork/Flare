@@ -22,7 +22,7 @@ class TransactionPairingActorStateProvider extends PacketBaseActorStateProvider{
 		$transactionPairing->addConfirmHandler($this->handleConfirm(...));
 	}
 
-	public function __destruct(){
+	public function dispose() : void{
 		$this->transactionPairing->removeConfirmHandler($this->handleConfirm(...));
 	}
 

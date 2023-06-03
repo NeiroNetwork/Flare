@@ -31,7 +31,7 @@ class AuraD extends BaseCheck{
 		$md = $this->profile->getMovementData();
 
 		$clientPosition = $event->getPlayerPosition()->round(4); // server position is fixed to 4
-		$serverPosition = $md->getEyePosition();
+		$serverPosition = $player->getEyePos();
 
 		if(
 			$serverPosition->subtractVector($clientPosition)->lengthSquared() > 0.01

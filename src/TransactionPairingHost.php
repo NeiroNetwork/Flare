@@ -12,31 +12,12 @@ class TransactionPairingHost{
 
 	protected ProfileManager $profileManager;
 
-	protected bool $enabled;
-
 	public function __construct(ProfileManager $profileManager){
 		$this->profileManager = $profileManager;
-		$this->enabled = true;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isEnabled() : bool{
-		return $this->enabled;
-	}
-
-	/**
-	 * @param bool $enabled
-	 */
-	public function setEnabled(bool $enabled) : void{
-		$this->enabled = $enabled;
-	}
 
 	public function onStartOfTick(int $tick) : void{
-		if(!$this->enabled){
-			return;
-		}
 		foreach($this->profileManager->getAll() as $profile){
 			if(!$profile->isTransactionPairingEnabled()){
 				continue;
@@ -46,9 +27,6 @@ class TransactionPairingHost{
 	}
 
 	public function onEndOfTick(int $tick) : void{
-		if(!$this->enabled){
-			return;
-		}
 
 		foreach($this->profileManager->getAll() as $profile){
 			if(!$profile->isTransactionPairingEnabled()){
@@ -75,11 +53,7 @@ class TransactionPairingHost{
 		if(is_null($player)){
 			return;
 		}
-
-		if(!$this->enabled){
-			return;
-		}
-
+		
 		$profile = $this->profileManager->fetch($player->getUniqueId()->toString());
 
 		if(is_null($profile)){
