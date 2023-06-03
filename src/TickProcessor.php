@@ -29,7 +29,7 @@ class TickProcessor{
 
 	public function execute() : void{
 		$this->lastTime = $this->currentTime;
-		$this->currentTime = Utils::getTimeMilis();
+		$this->currentTime = Utils::getTimeMillis();
 
 		$this->deltaTime = $this->currentTime - $this->lastTime;
 
@@ -73,6 +73,6 @@ class TickProcessor{
 	}
 
 	public function getTimeSinceLastTick() : float{
-		return Utils::getTimeMilis() - $this->currentTime;
+		return Utils::getTimeMillis() - $this->currentTime;
 	}
 }

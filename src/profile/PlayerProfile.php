@@ -137,6 +137,7 @@ class PlayerProfile implements Profile{
 
 		$this->latencyHandler = new LatencyHandler($this);
 		$this->transactionPairing = null;
+		$this->transactionPairingEnabled = false;
 		$this->setTransactionPairingEnabled($conf->get("transaction_pairing"));
 		$this->support = new ProfileSupport($this);
 

@@ -36,7 +36,7 @@ class Math{
 		return self::getGCD($remainder, $a, $depth + 1);
 	}
 
-	public static function getIntQuotient(float $dividend, float $divisor){
+	public static function getIntQuotient(float $dividend, float $divisor) : int{
 		$ans = $dividend / $divisor;
 		$error = max($dividend, $divisor) * 1E-3;
 		return (int) ($ans + $error);

@@ -62,13 +62,13 @@ class WatchBot{
 		$this->player = $player;
 	}
 
-	public static function createFakePlayer(Vector3 $position){
+	public static function createFakePlayer(Vector3 $position) : FakePlayer{
 		$name = self::NAMES[array_rand(self::NAMES)];
-		$name .= (string) self::$nextId++;
+		$name .= self::$nextId++;
 		return FakePlayer::simple($name, $position);
 	}
 
-	public function destroyFakePlayer(){
+	public function destroyFakePlayer() : void{
 		if($this->fakePlayer !== null){
 			if($this->isSpawned()){
 				$this->fakePlayer->despawnFromAll();
@@ -78,7 +78,7 @@ class WatchBot{
 	}
 
 	public function isSpawned() : bool{
-		return $this->fakePlayer !== null ? $this->fakePlayer->isSpawned() : false;
+		return $this->fakePlayer !== null && $this->fakePlayer->isSpawned();
 	}
 
 	public function move(Vector3 $to, float $yaw, float $headYaw, float $pitch) : void{
@@ -89,10 +89,9 @@ class WatchBot{
 		return $this->fakePlayer;
 	}
 
-	public function setFakePlayer(?FakePlayer $fakePlayer){
+	public function setFakePlayer(?FakePlayer $fakePlayer) : void{
 		if($fakePlayer?->isSpawned()){
-			throw new \Exception("please provide a not spawned fake player");
-			return;
+			throw new \RuntimeException("please provide a not spawned fake player");
 		}
 		$this->fakePlayer = $fakePlayer;
 	}
