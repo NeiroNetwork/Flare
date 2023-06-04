@@ -47,6 +47,10 @@ class Utils{
 		}
 	}
 
+	public static function ms2tick(float $time) : int{
+		return (int) floor($time / 50);
+	}
+
 	public static function getTime() : float{
 		return hrtime(true) / 1e+9;
 	}

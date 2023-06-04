@@ -8,7 +8,6 @@ use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
-use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
@@ -100,9 +99,11 @@ class VelocityA extends BaseCheck{
 		$trying = array_values($this->deltaList);
 		$count = count($this->predictList);
 		$predictList = array_values($this->predictList);
+
+		$pingValue = $this->profile->getLatencyTick();
+		$min = $pingValue;
 		$allow = 5;
-		$allow += $this->profile->getFlare()->getSupports()->getLagCompensator()->getPingValue(Utils::getBestPing($this->profile->getPlayer()));
-		$allow = min(10, $allow);
+		$allow += $pingValue;
 
 		if($count <= 7){
 			return;
@@ -115,7 +116,20 @@ class VelocityA extends BaseCheck{
 			"tries" => 0
 		];
 
-		for($_ = 0; $_ < $allow; $_++){
+		$skip = function() use (&$trying) : void{
+			unset($trying[array_key_first($trying)]);
+			$trying = array_values($trying);
+		};
+
+		for($_ = 0; $_ < $min; $_++){
+			$skip();
+
+			if(count($trying) <= 0){
+				return;
+			}
+		}
+
+		for($k = $min; $k < $allow; $k++){
 			if(count($trying) <= 1){
 				break;
 			}
@@ -135,16 +149,16 @@ class VelocityA extends BaseCheck{
 				}
 			}
 
-			unset($trying[array_key_first($trying)]);
-			$trying = array_values($trying);
-			$need = ($count - $_ - 1) - (int) round($count / 12);
-			$this->broadcastDebugMessage("completes: {$completes}/{$need} count: {$count} tries: {$_}");
+			$skip();
+
+			$need = ($count - $k - 1) - (int) round($count / 12);
+			$this->broadcastDebugMessage("completes: {$completes}/{$need} count: {$count} tries: {$k}");
 
 			if($maxCompleteSection["completes"] < $completes){
 				$maxCompleteSection["completes"] = $completes;
 				$maxCompleteSection["need"] = $need;
 				$maxCompleteSection["count"] = $count;
-				$maxCompleteSection["tries"] = $_;
+				$maxCompleteSection["tries"] = $k;
 			}
 
 			if($completes >= $need){

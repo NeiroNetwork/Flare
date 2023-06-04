@@ -456,6 +456,57 @@ class PlayerProfile implements Profile{
 		$this->close();
 	}
 
+	/**
+	 * @return int
+	 *
+	 * 応答時間(ping, latency)をtickにして返します。トランザクションペアリングが有効になっている場合はそれから取得します。
+	 */
+	public function getLatencyTick() : int{
+		return $this->isTransactionPairingEnabled() ?
+			$this->getTransactionPairing()->getServerTick() - $this->getTransactionPairing()->getLatestConfirmedTick() :
+			Utils::ms2tick($this->getPing());
+	}
+
+	public function isTransactionPairingEnabled() : bool{
+		return $this->transactionPairingEnabled;
+	}
+
+	public function setTransactionPairingEnabled(bool $enabled) : void{
+		$changed = $this->transactionPairingEnabled !== $enabled;
+		$this->transactionPairingEnabled = $enabled;
+
+		if(!$changed){
+			return;
+		}
+
+		$this->actorStateProvider->dispose();
+
+		if($enabled){
+			$this->transactionPairing = new TransactionPairing($this, 20);
+			$provider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
+			$this->actorStateProvider->copy($provider);
+			$this->actorStateProvider = $provider;
+		}else{
+			unset($this->transactionPairing);
+			$this->transactionPairing = null;
+			$provider = new SimpleActorStateProvider($this, 40);
+			$this->actorStateProvider->copy($provider);
+			$this->actorStateProvider = $provider;
+		}
+
+	}
+
+	public function getServerTick() : int{
+		return $this->flare->getPlugin()->getServer()->getTick();
+	}
+
+	/**
+	 * @return TransactionPairing
+	 */
+	public function getTransactionPairing() : TransactionPairing{
+		return $this->transactionPairing ?? throw new RuntimeException("Transaction pairing not enabled");
+	}
+
 	public function getPing() : int{
 		return Utils::getBestPing($this->player);
 	}
@@ -519,46 +570,6 @@ class PlayerProfile implements Profile{
 	 */
 	public function getCombatData() : CombatData{
 		return $this->combatData ?? throw new RuntimeException("must not be called before start");
-	}
-
-	public function getServerTick() : int{
-		return $this->flare->getPlugin()->getServer()->getTick();
-	}
-
-	public function isTransactionPairingEnabled() : bool{
-		return $this->transactionPairingEnabled;
-	}
-
-	public function setTransactionPairingEnabled(bool $enabled) : void{
-		$changed = $this->transactionPairingEnabled !== $enabled;
-		$this->transactionPairingEnabled = $enabled;
-
-		if(!$changed){
-			return;
-		}
-
-		$this->actorStateProvider->dispose();
-
-		if($enabled){
-			$this->transactionPairing = new TransactionPairing($this, 20);
-			$provider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
-			$this->actorStateProvider->copy($provider);
-			$this->actorStateProvider = $provider;
-		}else{
-			unset($this->transactionPairing);
-			$this->transactionPairing = null;
-			$provider = new SimpleActorStateProvider($this, 40);
-			$this->actorStateProvider->copy($provider);
-			$this->actorStateProvider = $provider;
-		}
-
-	}
-
-	/**
-	 * @return TransactionPairing
-	 */
-	public function getTransactionPairing() : TransactionPairing{
-		return $this->transactionPairing ?? throw new RuntimeException("Transaction pairing not enabled");
 	}
 
 	protected function handlePacketLoss(PlayerPacketLossEvent $event) : void{

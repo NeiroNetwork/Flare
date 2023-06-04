@@ -87,7 +87,7 @@ class FlareEventListener implements Listener{
 
 			$this->flare->getReporter()->autoUnsubscribe($player);
 
-			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()}§f", $this->flare));
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()->getText()}§f", $this->flare));
 		}else{
 			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが §c§l参加前に §r§f退出しました: §c{$event->getQuitReason()}§f", $this->flare));
 		}
