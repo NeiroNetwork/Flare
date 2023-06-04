@@ -7,14 +7,15 @@ namespace NeiroNetwork\Flare\profile\check\list\packet\badpacket;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 
 class BadPacketC extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
+	use HandleEventCheckTrait;
 
 	/**
 	 * @var int[]
@@ -27,17 +28,7 @@ class BadPacketC extends BaseCheck{
 	}
 
 	public function onLoad() : void{
-		$this->hash = $this->profile->getFlare()->getEventEmitter()->registerPacketHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerActionPacket::NETWORK_ID,
-			function(PlayerActionPacket $packet) : void{
-				if($this->tryCheck()){
-					$this->handle($packet);
-				}
-			},
-			false,
-			EventPriority::MONITOR
-		);
+		$this->registerPacketHandler($this->handle(...));
 	}
 
 	public function handle(PlayerActionPacket $packet) : void{
@@ -47,14 +38,5 @@ class BadPacketC extends BaseCheck{
 		if($packet->action === PlayerAction::JUMP){
 			$this->fail(new ViolationFailReason(""));
 		}
-	}
-
-	public function onUnload() : void{
-		$this->profile->getFlare()->getEventEmitter()->unregisterPacketHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerActionPacket::NETWORK_ID,
-			$this->hash,
-			EventPriority::MONITOR
-		);
 	}
 }

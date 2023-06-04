@@ -8,12 +8,13 @@ use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\event\EventPriority;
 
 class BadPacketB extends BaseCheck{
 
 	use ClassNameAsCheckIdTrait;
+	use HandleEventCheckTrait;
 
 	/**
 	 * @var int[]
@@ -26,18 +27,7 @@ class BadPacketB extends BaseCheck{
 	}
 
 	public function onLoad() : void{
-		$this->hash = $this->profile->getFlare()->getEventEmitter()->registerPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			function(PlayerAttackEvent $event) : void{
-				assert($event->getPlayer() === $this->profile->getPlayer());
-				if($this->tryCheck()){
-					$this->handle($event);
-				}
-			},
-			false,
-			EventPriority::MONITOR
-		);
+		$this->registerEventHandler($this->handle(...));
 	}
 
 	public function handle(PlayerAttackEvent $event) : void{
@@ -57,14 +47,5 @@ class BadPacketB extends BaseCheck{
 				}
 			}
 		}
-	}
-
-	public function onUnload() : void{
-		$this->profile->getFlare()->getEventEmitter()->unregisterPlayerEventHandler(
-			$this->profile->getPlayer()->getUniqueId()->toString(),
-			PlayerAttackEvent::class,
-			$this->hash,
-			EventPriority::MONITOR
-		);
 	}
 }
