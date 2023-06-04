@@ -98,4 +98,6 @@ interface ActorStateProvider{
 	 * @return Map<int, Map<int, AbilitiesData>>
 	 */
 	public function getAbilitiesTickMap() : Map;
+
+	public function dispose() : void;
 }

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\player;
 
-use Lyrica0954\PeekAntiCheat\ClassLogger;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Skin;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\convert\LegacySkinAdapter;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
@@ -26,7 +23,6 @@ use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
-use pocketmine\network\mcpe\protocol\types\UpdateAbilitiesPacketLayer;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\player\Player;
 use pocketmine\Server;
@@ -61,11 +57,14 @@ class FakePlayer{
 		self::$entityRuntimeIds[$this->eid] = $this;
 	}
 
-	public static function simple(string $username, Vector3 $position){
+	public static function simple(string $username, Vector3 $position) : FakePlayer{
 		return new self($username, str_repeat("\x00", 8192), $position);
 	}
 
-	public static function getEntityRuntimeIds(){
+	/**
+	 * @return FakePlayer[]
+	 */
+	public static function getEntityRuntimeIds() : array{
 		return self::$entityRuntimeIds;
 	}
 
@@ -87,12 +86,12 @@ class FakePlayer{
 		return $player->size->getEyeHeight();
 	}
 
-	public function sendMoveTo(Player $player, Vector3 $to, float $yaw, float $headYaw, float $pitch){
+	public function sendMoveTo(Player $player, Vector3 $to, float $yaw, float $headYaw, float $pitch) : void{
 		$packet = $this->getMovePacket($to->add(0, 1.62, 0), $yaw, $headYaw, $pitch);
 		$player->getNetworkSession()->sendDataPacket($packet);
 	}
 
-	protected function getMovePacket(Vector3 $to, float $yaw, float $headYaw, float $pitch){
+	protected function getMovePacket(Vector3 $to, float $yaw, float $headYaw, float $pitch) : MoveActorAbsolutePacket{
 		return MoveActorAbsolutePacket::create(
 			$this->eid,
 			$to,
@@ -103,7 +102,7 @@ class FakePlayer{
 		);
 	}
 
-	public function spawnTo(Player $player){
+	public function spawnTo(Player $player) : void{
 		$this->spawned = true;
 		$packets = [$this->getPlayerListPacket(), $this->getAddPlayerPacket()];
 		foreach($packets as $packet){
@@ -113,16 +112,11 @@ class FakePlayer{
 		}
 	}
 
-	/**
-	 * @return PlayerListPacket|null
-	 */
-	protected function getPlayerListPacket() : ?PlayerListPacket{
+	protected function getPlayerListPacket() : PlayerListPacket{
 		$packet = new PlayerListPacket;
 		$packet->type = PlayerListPacket::TYPE_ADD;
-		$adapter = SkinAdapterSingleton::get();
-		if(!$adapter instanceof LegacySkinAdapter){
-			return null;
-		}
+		$adapter = TypeConverter::getInstance()->getSkinAdapter();
+
 		$packet->entries = [
 			PlayerListEntry::createAdditionEntry(
 				$this->uuid,
@@ -173,14 +167,14 @@ class FakePlayer{
 		return 1 << $flag;
 	}
 
-	public function despawnFromAll(){
+	public function despawnFromAll() : void{
 		$this->spawned = false;
 		foreach(Server::getInstance()->getOnlinePlayers() as $player){
 			$this->despawnFrom($player);
 		}
 	}
 
-	public function despawnFrom(Player $player){
+	public function despawnFrom(Player $player) : void{
 		$this->spawned = false;
 		$packet = new PlayerListPacket;
 		$packet->type = PlayerListPacket::TYPE_REMOVE;
@@ -194,7 +188,7 @@ class FakePlayer{
 		}
 	}
 
-	protected function getRemoveActorPacket(){
+	protected function getRemoveActorPacket() : RemoveActorPacket{
 		return RemoveActorPacket::create($this->eid);
 	}
 

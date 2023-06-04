@@ -176,6 +176,23 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		return new Map($this->tickAbilities->getAll());
 	}
 
+
+	public function copy(PacketBaseActorStateProvider $provider) : void{
+		$provider->position = clone $this->position;
+		$provider->motion = clone $this->motion;
+		$provider->networkProperties = clone $this->networkProperties;
+		$provider->abilities = clone $this->abilities;
+		$provider->attributes = clone $this->attributes;
+		$provider->effects = clone $this->effects;
+
+		$provider->tickPosition = clone $this->tickPosition;
+		$provider->tickMotion = clone $this->tickMotion;
+		$provider->tickNetworkProperties = clone $this->tickNetworkProperties;
+		$provider->tickAbilities = clone $this->tickAbilities;
+		$provider->tickAttributes = clone $this->tickAttributes;
+		$provider->tickEffects = clone $this->tickEffects;
+	}
+
 	public function handleMoveActorAbsolute(MoveActorAbsolutePacket $packet, int $tick) : void{
 		$pos = $packet->position;
 		$this->position->put($packet->actorRuntimeId, clone $pos);

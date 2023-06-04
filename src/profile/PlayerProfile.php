@@ -220,28 +220,6 @@ class PlayerProfile implements Profile{
 		return $this;
 	}
 
-	public function isTransactionPairingEnabled() : bool{
-		return $this->transactionPairingEnabled;
-	}
-
-	public function setTransactionPairingEnabled(bool $enabled) : void{
-		$changed = $this->transactionPairingEnabled !== $enabled;
-		$this->transactionPairingEnabled = $enabled;
-
-		if(!$changed){
-			return;
-		}
-
-		if($enabled){
-			$this->transactionPairing = new TransactionPairing($this, 20);
-			$this->actorStateProvider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
-		}else{
-			unset($this->transactionPairing);
-			$this->transactionPairing = null;
-			$this->actorStateProvider = new SimpleActorStateProvider($this, 40);
-		}
-	}
-
 	public function reload() : void{
 		if($this->started){
 			$this->shutdown();
@@ -499,7 +477,8 @@ class PlayerProfile implements Profile{
 		if($this->debugEnabled){
 			$ping = Utils::getBestPing($player);
 			$tick = $this->getServerTick();
-			$confirmedTick = $this->getTransactionPairing()->getLatestConfirmedTick();
+			$confirmedTick = $this->isTransactionPairingEnabled() ?
+				$this->getTransactionPairing()->getLatestConfirmedTick() : $this->getServerTick();
 			$deltaTick = $tick - $confirmedTick;
 			$player->sendActionBarMessage("§7---------- Debug Mode ----------\n§7Ping: §b{$ping}ms§7 Tick: §b{$tick}§7 | §e{$confirmedTick}§7, §c({$deltaTick})§7\n§7APD: §b{$fps}/20");
 		}
@@ -544,6 +523,35 @@ class PlayerProfile implements Profile{
 
 	public function getServerTick() : int{
 		return $this->flare->getPlugin()->getServer()->getTick();
+	}
+
+	public function isTransactionPairingEnabled() : bool{
+		return $this->transactionPairingEnabled;
+	}
+
+	public function setTransactionPairingEnabled(bool $enabled) : void{
+		$changed = $this->transactionPairingEnabled !== $enabled;
+		$this->transactionPairingEnabled = $enabled;
+
+		if(!$changed){
+			return;
+		}
+
+		$this->actorStateProvider->dispose();
+
+		if($enabled){
+			$this->transactionPairing = new TransactionPairing($this, 20);
+			$provider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
+			$this->actorStateProvider->copy($provider);
+			$this->actorStateProvider = $provider;
+		}else{
+			unset($this->transactionPairing);
+			$this->transactionPairing = null;
+			$provider = new SimpleActorStateProvider($this, 40);
+			$this->actorStateProvider->copy($provider);
+			$this->actorStateProvider = $provider;
+		}
+
 	}
 
 	/**

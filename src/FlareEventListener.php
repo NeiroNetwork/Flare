@@ -57,7 +57,7 @@ class FlareEventListener implements Listener{
 		$client = new Client($event->getPlayerInfo(), $event->getIp());
 
 		if(!$client->isValid()){
-			$event->setKickReason(FlareKickReasons::PRE_KICK_REASON_INVALID_CLIENT, FlareKickReasons::invalid_client($event->getPlayerInfo()->getUsername()));
+			$event->setKickFlag(FlareKickReasons::PRE_KICK_REASON_INVALID_CLIENT, FlareKickReasons::invalid_client($event->getPlayerInfo()->getUsername()));
 
 			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§c不正な変更が検出されたため、ログインを拒否しました §7(DeviceID: {$client->getDeviceId()}, Player: {$client->getName()}, OS: {$client->getDevice()})", $this->flare));
 		}
@@ -218,13 +218,13 @@ class FlareEventListener implements Listener{
 
 				return; // todo: 
 
-				if($address instanceof InternetAddress){
-					$isIpv6 = $address->getVersion() === 4 ? false : true;
-					$newInterface = new TransparentRakLibInterface($this->flare->getPlugin()->getServer(), $address->getIp(), $address->getPort(), $isIpv6);
-					$this->flare->getPlugin()->getServer()->getNetwork()->registerInterface($newInterface);
-					$event->cancel();
-					$this->rakLibOverrideSuccess = true;
-				}
+				// if($address instanceof InternetAddress){
+				// 	$isIpv6 = $address->getVersion() === 4 ? false : true;
+				// 	$newInterface = new TransparentRakLibInterface($this->flare->getPlugin()->getServer(), $address->getIp(), $address->getPort(), $isIpv6);
+				// 	$this->flare->getPlugin()->getServer()->getNetwork()->registerInterface($newInterface);
+				// 	$event->cancel();
+				// 	$this->rakLibOverrideSuccess = true;
+				// }
 			}
 		}
 

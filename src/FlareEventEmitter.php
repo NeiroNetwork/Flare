@@ -51,6 +51,7 @@ class FlareEventEmitter{
 		$this->packetHandlers = [];
 		$this->eventHandlers = [];
 		$this->eventListeners = [];
+		$this->playerEventHandlers = [];
 		$this->sendPacketHandlers = [];
 
 		$this->timings = FlareTimings::global()->eventEmitter;

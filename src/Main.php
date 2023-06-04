@@ -14,7 +14,6 @@ use NeiroNetwork\Flare\moderation\ModerationItemListener;
 use NeiroNetwork\Flare\network\NACKHandler;
 use NeiroNetwork\Flare\support\MoveDelaySupport;
 use pocketmine\plugin\PluginBase;
-use pocketmine\snooze\SleeperNotifier;
 
 class Main extends PluginBase{
 
@@ -45,13 +44,13 @@ class Main extends PluginBase{
 		$this->flare = new Flare($this);
 
 		// task or sleeper
-		$notifier = new SleeperNotifier();
-		$this->getServer()->getTickSleeper()->addNotifier($notifier, function() use ($notifier) : void{
+		$handlerEntry = $this->getServer()->getTickSleeper()->addNotifier(function() use (&$handlerEntry) : void{
 			$this->flare->start();
-			$this->getServer()->getTickSleeper()->removeNotifier($notifier);
+
+			$this->getServer()->getTickSleeper()->removeNotifier($handlerEntry->getNotifierId());
 		});
 
-		$notifier->wakeupSleeper(); // ??? main -> main
+		$handlerEntry->createNotifier()->wakeupSleeper();
 
 		$map = $this->getServer()->getCommandMap();
 

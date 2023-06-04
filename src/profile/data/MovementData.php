@@ -728,8 +728,8 @@ class MovementData{
 
 		$this->immobile->update($providerSupport->checkActorMetadataGenericFlag(
 			$player->getId(),
-			EntityMetadataFlags::IMMOBILE
-		) ?? $player->isImmobile());
+			EntityMetadataFlags::NO_AI // todo: player client predictions is working?
+		) ?? $player->hasNoClientPredictions());
 
 		$this->void->update($position->y <= -39.75);
 

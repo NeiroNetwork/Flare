@@ -22,7 +22,7 @@ class NumericalSampling implements Countable{
 		$this->max = $max;
 	}
 
-	public static function fromArray(array $ar, int $max = -1){
+	public static function fromArray(array $ar, int $max = -1) : static{
 		$s = new static($max);
 		foreach($ar as $v){
 			$s->add($v);
@@ -30,7 +30,7 @@ class NumericalSampling implements Countable{
 		return $s;
 	}
 
-	public function add(float $sample){
+	public function add(float $sample) : void{
 		array_unshift($this->list, $sample);
 		if($this->max > 0){
 			if(count($this->list) > $this->max){

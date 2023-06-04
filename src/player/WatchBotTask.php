@@ -42,7 +42,7 @@ class WatchBotTask extends Task{
 		}
 	}
 
-	private function moveAround(WatchBot $bot){
+	private function moveAround(WatchBot $bot) : void{
 		$hash = spl_object_hash($bot);
 		if(isset($this->sq[$hash])){
 			$this->sq[$hash] += 0.5;

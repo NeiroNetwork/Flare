@@ -20,7 +20,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskHandler;
 use pocketmine\scheduler\TaskScheduler;
-use pocketmine\snooze\SleeperNotifier;
+use pocketmine\snooze\SleeperHandlerEntry;
 use Symfony\Component\Filesystem\Path;
 
 class Flare{
@@ -53,7 +53,7 @@ class Flare{
 	protected ?TaskHandler $schedulerHeartbeater;
 
 	protected TransactionPairingHost $transactionPairingHost;
-	protected SleeperNotifier $heartbeatCheckNotifier;
+	protected SleeperHandlerEntry $heartbeatCheckNotifier;
 
 	protected Supports $supports;
 
@@ -92,7 +92,6 @@ class Flare{
 		$this->supports = new Supports();
 
 		$this->transactionPairingHost = new TransactionPairingHost($this->profileManager);
-		$this->transactionPairingHost->setEnabled($this->config->getGeneric()->get("transaction_pairing"));
 
 		$this->schedulerHeartbeater = null;
 	}
@@ -121,17 +120,17 @@ class Flare{
 			// transaction pairing
 
 
-			$this->heartbeatCheckNotifier = new SleeperNotifier();
-
 			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function(){
 				$this->transactionPairingHost->onStartOfTick($this->plugin->getServer()->getTick());
 
-				$this->heartbeatCheckNotifier->wakeupSleeper();
+				$this->heartbeatCheckNotifier->createNotifier()->wakeupSleeper();
 			}), 1);
 
-			$this->plugin->getServer()->getTickSleeper()->addNotifier($this->heartbeatCheckNotifier, function(){
+			$handlerEntry = $this->plugin->getServer()->getTickSleeper()->addNotifier(function() use (&$handlerEntry) : void{
 				$this->transactionPairingHost->onEndOfTick($this->plugin->getServer()->getTick());
 			});
+
+			$this->heartbeatCheckNotifier = $handlerEntry;
 		}
 	}
 
@@ -166,7 +165,7 @@ class Flare{
 
 			$this->schedulerHeartbeater->cancel();
 
-			$this->plugin->getServer()->getTickSleeper()->removeNotifier($this->heartbeatCheckNotifier);
+			$this->plugin->getServer()->getTickSleeper()->removeNotifier($this->heartbeatCheckNotifier->getNotifierId());
 		}
 	}
 

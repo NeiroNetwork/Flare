@@ -16,14 +16,13 @@ class PlayerUtil{
 		$flagSetProp = $list[$propertyId] ?? null;
 		if($flagSetProp instanceof LongMetadataProperty){
 			$flags = $flagSetProp->getValue();
-			$contained = ($flags & (1 << $flagId)) !== 0;
-			return $contained;
+			return ($flags & (1 << $flagId)) !== 0;
 		}else{
 			return null;
 		}
 	}
 
-	public static function getPropertyIdFromGenericFlag(int $flagId){
+	public static function getPropertyIdFromGenericFlag(int $flagId) : int{
 		$propertyId = $flagId >= 64 ? EntityMetadataProperties::FLAGS2 : EntityMetadataProperties::FLAGS;
 		return $propertyId;
 	}

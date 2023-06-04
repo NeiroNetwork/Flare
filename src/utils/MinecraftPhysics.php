@@ -71,7 +71,7 @@ class MinecraftPhysics{
 		return $base * 4.317 / 20;
 	}
 
-	public static function moveFlying(float $forward, float $strafe, float $yaw, float $friction){
+	public static function moveFlying(float $forward, float $strafe, float $yaw, float $friction) : Vector3{
 		$f = $strafe ** 2 + $forward ** 2;
 		if($f >= 1.0E-4){ # Entity.java EnttyLivingBase.java
 			$f = sqrt($f);

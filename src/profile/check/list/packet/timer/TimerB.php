@@ -39,7 +39,7 @@ class TimerB extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 
-		$curr = Utils::getTimeMilis();
+		$curr = Utils::getTimeMillis();
 
 		if(
 			$md->getJoinRecord()->getTickSinceAction() < 120 ||

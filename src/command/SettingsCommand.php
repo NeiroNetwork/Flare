@@ -11,9 +11,17 @@ use NeiroNetwork\VanillaCommands\parameter\BasicParameters;
 use NeiroNetwork\VanillaCommands\parameter\Parameter;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
+use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\Player;
 
 class SettingsCommand extends Command implements ParameterCommand{
+
+	public function __construct(string $name, Translatable|string $description = "", Translatable|string|null $usageMessage = null, array $aliases = []){
+		parent::__construct($name, $description, $usageMessage, $aliases);
+
+		$this->setPermission(DefaultPermissions::ROOT_OPERATOR);
+	}
 
 	public function registerParameters() : void{
 		Parameter::getInstance()->add($this->getName(), [
@@ -21,7 +29,7 @@ class SettingsCommand extends Command implements ParameterCommand{
 		]);
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args) : void{
 		if(!$sender instanceof Player){
 			return;
 		}

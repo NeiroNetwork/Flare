@@ -24,7 +24,7 @@ class ConsoleProfile implements Profile{
 
 	protected BroadcastLoggerForwarder $console;
 
-	public function __construct(Flare $flare, \AttachableThreadedLogger $logger, Language $language){
+	public function __construct(Flare $flare, \Logger $logger, Language $language){
 		$this->flare = $flare;
 		$server = $flare->getPlugin()->getServer();
 		$this->console = new BroadcastLoggerForwarder($server, $logger, $language);

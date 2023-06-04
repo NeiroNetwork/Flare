@@ -28,7 +28,9 @@ class SimpleActorStateProvider extends PacketBaseActorStateProvider{
 			$this->eventLink->add($emitter->registerSendPacketHandler(
 				$uuid,
 				$networkId,
-				$handler,
+				function($packet) use ($handler) : void{
+					$handler($packet, $this->profile->getServerTick());
+				},
 				false,
 				EventPriority::LOWEST
 			));
@@ -42,7 +44,7 @@ class SimpleActorStateProvider extends PacketBaseActorStateProvider{
 		$register(UpdateAbilitiesPacket::NETWORK_ID, $this->handleUpdateAbilities(...));
 	}
 
-	public function __destruct(){
+	public function dispose() : void{
 		$this->eventLink->unregisterAll();
 	}
 

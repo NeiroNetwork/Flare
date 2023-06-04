@@ -31,7 +31,7 @@ class ProfileManager{
 		$this->list[$uuid]->start();
 	}
 
-	public function remove(string $uuid){
+	public function remove(string $uuid) : void{
 		$this->list[$uuid]?->close();
 		unset($this->list[$uuid]);
 	}

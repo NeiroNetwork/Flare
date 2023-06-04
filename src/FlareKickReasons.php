@@ -11,7 +11,7 @@ use pocketmine\utils\Binary;
 
 class FlareKickReasons{
 
-	public const PRE_KICK_REASON_INVALID_CLIENT = PlayerPreLoginEvent::KICK_REASON_PLUGIN;
+	public const PRE_KICK_REASON_INVALID_CLIENT = PlayerPreLoginEvent::KICK_FLAG_PLUGIN;
 	/**
 	 * @var bool
 	 *

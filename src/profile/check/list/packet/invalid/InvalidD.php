@@ -37,7 +37,7 @@ class InvalidD extends BaseCheck{
 				$md->getTeleportRecord()->getTickSinceAction() >= 6 &&
 				$md->getFlyRecord()->getTickSinceAction() >= 20 &&
 				$ki->getSwimRecord()->getTickSinceAction() >= 20 &&
-				!$player->isImmobile()
+				$md->getImmobileRecord()->getTickSinceAction() >= 5
 			){
 				$this->fail(new ViolationFailReason(""));
 			}
