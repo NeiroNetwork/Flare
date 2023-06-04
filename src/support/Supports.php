@@ -9,6 +9,9 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\Server;
 
+/**
+ * @deprecated
+ */
 class Supports{
 
 	protected EntityMoveRecorder $recorder;
