@@ -11,7 +11,7 @@ use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class TransactionData {
+class TransactionData{
 
 	/**
 	 * @var InstantActionRecord
@@ -22,7 +22,7 @@ class TransactionData {
 	 */
 	protected InstantActionRecord $inventoryClose;
 
-	public function __construct(protected PlayerProfile $profile) {
+	public function __construct(protected PlayerProfile $profile){
 		$player = $profile->getPlayer();
 		$emitter = $profile->getFlare()->getEventEmitter();
 		$uuid = $player->getUniqueId()->toString();
@@ -53,25 +53,12 @@ class TransactionData {
 		ProfileData::autoPropertyValue($this);
 	}
 
-	protected function handleContainerOpen(ContainerOpenPacket $packet): void {
-		$this->inventoryOpen->onAction();
-	}
-
-	protected function handleContainerClose(ContainerClosePacket $packet): void {
-		$this->inventoryClose->onAction();
-	}
-
-	protected function handleInput(PlayerAuthInputPacket $packet): void {
-		$this->inventoryClose->update();
-		$this->inventoryOpen->update();
-	}
-
 	/**
 	 * Get the value of inventoryOpen
 	 *
 	 * @return InstantActionRecord
 	 */
-	public function getInventoryOpenRecord(): InstantActionRecord {
+	public function getInventoryOpenRecord() : InstantActionRecord{
 		return $this->inventoryOpen;
 	}
 
@@ -80,7 +67,20 @@ class TransactionData {
 	 *
 	 * @return InstantActionRecord
 	 */
-	public function getInventoryCloseRecord(): InstantActionRecord {
+	public function getInventoryCloseRecord() : InstantActionRecord{
 		return $this->inventoryClose;
+	}
+
+	protected function handleContainerOpen(ContainerOpenPacket $packet) : void{
+		$this->inventoryOpen->onAction();
+	}
+
+	protected function handleContainerClose(ContainerClosePacket $packet) : void{
+		$this->inventoryClose->onAction();
+	}
+
+	protected function handleInput(PlayerAuthInputPacket $packet) : void{
+		$this->inventoryClose->update();
+		$this->inventoryOpen->update();
 	}
 }

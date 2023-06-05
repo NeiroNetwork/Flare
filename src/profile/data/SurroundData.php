@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Liquid;
@@ -16,11 +16,9 @@ use pocketmine\event\block\BlockEvent;
 use pocketmine\event\block\BlockFormEvent;
 use pocketmine\event\block\BlockUpdateEvent;
 use pocketmine\event\EventPriority;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\world\particle\FlameParticle;
 
-class SurroundData {
+class SurroundData{
 
 	/**
 	 * @var Block[]
@@ -46,6 +44,11 @@ class SurroundData {
 	 * @var Block[]
 	 */
 	protected array $complexBlocks;
+
+	/**
+	 * @var Block[]
+	 */
+	protected array $ableToStepBlocks;
 
 	/**
 	 * @var Block
@@ -85,7 +88,7 @@ class SurroundData {
 	 */
 	protected ActionRecord $climb;
 
-	public function __construct(protected PlayerProfile $profile) {
+	public function __construct(protected PlayerProfile $profile){
 		$uuid = $profile->getPlayer()->getUniqueId()->toString();
 		$emitter = $this->profile->getFlare()->getEventEmitter();
 		$plugin = $this->profile->getFlare()->getPlugin();
@@ -93,14 +96,14 @@ class SurroundData {
 		$links->add($emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::NORMAL
 		));
 
 		($hash = $emitter->registerEventHandler(
 			BlockUpdateEvent::class,
-			Closure::fromCallable([$this, "handleBlockUpdate"]),
+			$this->handleBlockUpdate(...),
 			false,
 			EventPriority::MONITOR
 		)) !== null ? $links->add($hash) : null;
@@ -108,7 +111,7 @@ class SurroundData {
 
 		($hash = $emitter->registerEventHandler(
 			BlockFormEvent::class,
-			Closure::fromCallable([$this, "handleBlockForm"]),
+			$this->handleBlockForm(...),
 			false,
 			EventPriority::MONITOR
 		)) !== null ? $links->add($hash) : null;
@@ -118,29 +121,122 @@ class SurroundData {
 		$this->step = VanillaBlocks::AIR();
 	}
 
-	protected function handleBlockChanges(BlockEvent $event): void {
+	public function getSlipRecord() : ActionRecord{
+		return $this->slip;
+	}
+
+	public function getBounceRecord() : ActionRecord{
+		return $this->bounce;
+	}
+
+	public function getHitHeadRecord() : ActionRecord{
+		return $this->hithead;
+	}
+
+	public function getCobwebRecord() : ActionRecord{
+		return $this->cobweb;
+	}
+
+	public function getFlowRecord() : ActionRecord{
+		return $this->flow;
+	}
+
+	public function getClimbRecord() : ActionRecord{
+		return $this->climb;
+	}
+
+	public function getNearbyUpdateRecord() : InstantActionRecord{
+		return $this->nearbyUpdate;
+	}
+
+	public function getCollideUpdateRecord() : InstantActionRecord{
+		return $this->collideUpdate;
+	}
+
+	/**
+	 * Get the value of nearbyBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getNearbyBlocks() : array{
+		return $this->nearbyBlocks;
+	}
+
+	/**
+	 * Get the value of stepBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getStepBlocks() : array{
+		return $this->stepBlocks;
+	}
+
+	/**
+	 * Get the value of overheadBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getOverheadBlocks() : array{
+		return $this->overheadBlocks;
+	}
+
+	/**
+	 * Get the value of step
+	 *
+	 * @return Block
+	 */
+	public function getStep() : Block{
+		return $this->step;
+	}
+
+	/**
+	 * Get the value of touchingBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getTouchingBlocks() : array{
+		return $this->touchingBlocks;
+	}
+
+	/**
+	 * @return Block[]
+	 */
+	public function getAbleToStepBlocks() : array{
+		return $this->ableToStepBlocks;
+	}
+
+	/**
+	 * Get the value of complexBlocks
+	 *
+	 * @return Block[]
+	 */
+	public function getComplexBlocks() : array{
+		return $this->complexBlocks;
+	}
+
+	protected function handleBlockUpdate(BlockUpdateEvent $event) : void{
+		$this->handleBlockChanges($event);
+	}
+
+	protected function handleBlockChanges(BlockEvent $event) : void{
 		$block = $event->getBlock();
 		$player = $this->profile->getPlayer();
 		$distSquared = $player->getPosition()->distanceSquared($block->getPosition());
-		if ($distSquared <= 49) { // 7
+		if($distSquared <= 49){ // 7
 			$this->nearbyUpdate->onAction();
 		}
 
-		if ($block->collidesWithBB($player->getBoundingBox()->expandedCopy(0.25, 0.2, 0.25))) {
+		if($block->collidesWithBB($this->profile->getMovementData()->getBoundingBox()->expandedCopy(0.25, 0.2, 0.25))){
 			$this->collideUpdate->onAction();
 		}
 	}
 
-	protected function handleBlockUpdate(BlockUpdateEvent $event): void {
+	protected function handleBlockForm(BlockFormEvent $event) : void{
 		$this->handleBlockChanges($event);
 	}
 
-	protected function handleBlockForm(BlockFormEvent $event): void {
-		$this->handleBlockChanges($event);
-	}
-
-	protected function handleInput(PlayerAuthInputPacket $packet): void {
-		$position = $packet->getPosition()->subtract(0, 1.62, 0);
+	protected function handleInput(PlayerAuthInputPacket $packet) : void{
+		$position = $packet->getPosition()->subtract(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
 		$d = $this->profile->getMovementData()->getTo()->subtractVector($this->profile->getMovementData()->getFrom());
 		$player = $this->profile->getPlayer();
 
@@ -160,6 +256,7 @@ class SurroundData {
 		$this->touchingBlocks = [];
 		$this->overheadBlocks = [];
 		$this->complexBlocks = [];
+		$this->ableToStepBlocks = [];
 
 		$cobweb = false;
 		$flow = false;
@@ -177,38 +274,42 @@ class SurroundData {
 		$touchBB = clone $playerBB;
 		$touchBB->expand(0.14, 0.0, 0.14);
 
-		foreach ($this->nearbyBlocks as $block) {
-			if ($block instanceof Cobweb) {
+		foreach($this->nearbyBlocks as $block){
+			if($block instanceof Cobweb){
 				$cobweb = true;
 			}
 
-			if ($block instanceof Liquid) {
+			if($block instanceof Liquid){
 				$flow = true;
 			}
 
-			if ($block->canClimb() && $player->canClimb()) {
+			if($block->canClimb() && $player->canClimb()){
 				$climb = true;
 			}
 
-			if (count($block->getCollisionBoxes()) > 1) {
+			if(count($block->getCollisionBoxes()) > 1){
 				$this->complexBlocks[] = $block;
 			}
 
-			if ($block->getPosition()->y < $position->y) {
+			if($block->getPosition()->y < $position->y){
 				$this->stepBlocks[] = $block;
-			} elseif ($block->getPosition()->y > ($position->y + $player->size->getHeight())) {
+			}elseif($block->getPosition()->y > ($position->y + $this->profile->getMovementData()->getEyeHeight())){
 				$this->overheadBlocks[] = $block;
 			}
 
-			if ($checkHittingHead) {
-				if ($block->collidesWithBB($headBB)) {
+			if($checkHittingHead){
+				if($block->collidesWithBB($headBB)){
 					$hittingHead = true;
 					$checkHittingHead = false;
 				}
 			}
 
-			if ($block->collidesWithBB($touchBB)) {
+			if($block->collidesWithBB($touchBB)){
 				$this->touchingBlocks[] = $block;
+			}
+
+			if(BlockUtil::isAbleToStep($block)){
+				$this->ableToStepBlocks[] = $block;
 			}
 		}
 
@@ -220,91 +321,5 @@ class SurroundData {
 
 		$this->nearbyUpdate->update();
 		$this->collideUpdate->update();
-	}
-
-	public function getSlipRecord(): ActionRecord {
-		return $this->slip;
-	}
-
-	public function getBounceRecord(): ActionRecord {
-		return $this->bounce;
-	}
-
-	public function getHitHeadRecord(): ActionRecord {
-		return $this->hithead;
-	}
-
-	public function getCobwebRecord(): ActionRecord {
-		return $this->cobweb;
-	}
-
-	public function getFlowRecord(): ActionRecord {
-		return $this->flow;
-	}
-
-	public function getClimbRecord(): ActionRecord {
-		return $this->climb;
-	}
-
-	public function getNearbyUpdateRecord(): InstantActionRecord {
-		return $this->nearbyUpdate;
-	}
-
-	public function getCollideUpdateRecord(): InstantActionRecord {
-		return $this->collideUpdate;
-	}
-
-	/**
-	 * Get the value of nearbyBlocks
-	 *
-	 * @return Block[]
-	 */
-	public function getNearbyBlocks(): array {
-		return $this->nearbyBlocks;
-	}
-
-	/**
-	 * Get the value of stepBlocks
-	 *
-	 * @return Block[]
-	 */
-	public function getStepBlocks(): array {
-		return $this->stepBlocks;
-	}
-
-	/**
-	 * Get the value of overheadBlocks
-	 *
-	 * @return Block[]
-	 */
-	public function getOverheadBlocks(): array {
-		return $this->overheadBlocks;
-	}
-
-	/**
-	 * Get the value of step
-	 *
-	 * @return Block
-	 */
-	public function getStep(): Block {
-		return $this->step;
-	}
-
-	/**
-	 * Get the value of touchingBlocks
-	 *
-	 * @return Block[]
-	 */
-	public function getTouchingBlocks(): array {
-		return $this->touchingBlocks;
-	}
-
-	/**
-	 * Get the value of complexBlocks
-	 *
-	 * @return Block[]
-	 */
-	public function getComplexBlocks(): array {
-		return $this->complexBlocks;
 	}
 }

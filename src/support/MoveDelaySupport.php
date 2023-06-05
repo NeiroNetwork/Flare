@@ -5,82 +5,86 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\support;
 
 use NeiroNetwork\Flare\utils\Utils;
-use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
-use pocketmine\player\Player;
-use pocketmine\Server;
 
-class MoveDelaySupport {
+class MoveDelaySupport{
 
+	private static ?self $instance = null;
 	protected int $interpolationRange;
 
-	public static function default(EntityMoveRecorder $recorder): self {
-		return new self($recorder, 4, true);
-	}
-
-	public function __construct(
-		protected EntityMoveRecorder $recorder,
+	private function __construct(
 		protected int $tick,
 		protected bool $interpolate
-	) {
-
-		if ($recorder->getSize() < $tick) {
-			throw new \Exception("EntityMoveRecorder size \"{$recorder->getSize()}\" must be bigger than tick \"$tick\"");
-		}
-
+	){
 		$this->interpolationRange = 2;
 	}
 
-	public function isInterpolationEnabled(): bool {
-		return $this->interpolate;
+	public static function init(int $tick, bool $interpolate) : void{
+		if(!is_null(self::$instance)){
+			return;
+		}
+		self::$instance = new self($tick, $interpolate);
 	}
 
-	public function getTick(): int {
-		return $this->tick;
+	public static function getInstance() : self{
+		if(is_null(self::$instance)){
+			throw new \RuntimeException("not initialized");
+		}
+
+		return self::$instance;
 	}
 
 	/**
-	 * @param Player $viewer
-	 * @param int $runtimeId
-	 * 
+	 * @param array<int, Vector3> $histories
+	 * @param int                 $currentTick
+	 *
 	 * @return Vector3|null
 	 */
-	public function predict(Player $viewer, int $runtimeId): ?Vector3 {
-		$currentTick = Server::getInstance()->getTick();
-		$histories = $this->recorder->get($viewer, $runtimeId);
+	public function predict(array $histories, int $currentTick) : ?Vector3{
 		$historyCount = count($histories);
-		if ($historyCount <= $this->tick) {
+		if($historyCount <= $this->tick){
 			return null;
 		}
 
+		$keys = array_keys($histories);
+
 		$baseTick = $currentTick - $this->tick;
 
-		$baseResult = Utils::findAscending(array_keys($histories), $baseTick);
+		$baseResult = Utils::findAscending($keys, $baseTick);
 
-		if (is_null($baseResult)) {
+		if(is_null($baseResult)){
 			return null;
 		}
 
 		$base = $histories[$baseResult];
 
-		if (!$this->isInterpolationEnabled()) {
+		if(!$this->isInterpolationEnabled()){
 			return $base;
 		}
 
 		// 補完ではない
 		// averaging?
 
-		$regs = Utils::findArrayRange(array_keys($histories), $baseTick - 1, $this->interpolationRange);
-		$results = array_map(function ($v) use ($histories) {
+		$regs = Utils::findArrayRange($keys, $baseTick - 1, $this->interpolationRange);
+		$results = array_map(function($v) use ($histories){
 			return $histories[$v];
 		}, $regs);
 
-		if (count($results) <= 0) {
+		$resultCount = count($results);
+		if($resultCount <= 0){
 			return $base;
 		}
 
 		$sum = Vector3::sum(...$results);
 
-		return $sum->divide(max(1, count($results)));
+		return $sum->divide($resultCount);
+	}
+
+	public function isInterpolationEnabled() : bool{
+		return $this->interpolate;
+	}
+
+	public function getTick() : int{
+		return $this->tick;
 	}
 }

@@ -7,8 +7,7 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\jump;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\profile\data\ActionNotifier;
 use NeiroNetwork\Flare\profile\data\ActionRecord;
@@ -16,22 +15,25 @@ use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class JumpA extends BaseCheck implements HandleInputPacketCheck {
+class JumpA extends BaseCheck{
+
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected ?Vector3 $motion;
 	protected bool $jumpSprinting;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function onLoad(): void {
-		$this->registerInputPacketHandler();
+	public function onLoad() : void{
+
+		$this->registerPacketHandler($this->handle(...));
+
 
 		$notifier = new ActionNotifier();
-		$notifier->notifyAction(function (ActionRecord $record): void {
+		$notifier->notifyAction(function(ActionRecord $record) : void{
 			$md = $this->profile->getMovementData();
 			$this->motion = $md->getDelta();
 			$this->motion->y = $this->profile->getPlayer()->getJumpVelocity();
@@ -45,7 +47,7 @@ class JumpA extends BaseCheck implements HandleInputPacketCheck {
 		$this->jumpSprinting = false;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -53,23 +55,24 @@ class JumpA extends BaseCheck implements HandleInputPacketCheck {
 		$cd = $this->profile->getCombatData();
 		$ki = $this->profile->getKeyInputs();
 
-		if ($this->motion !== null) {
-			if (
+		if($this->motion !== null){
+			if(
 				abs($md->getRotation()->yaw - $md->getLastRotation()->yaw) > 3 ||
 				$sd->getHitHeadRecord()->getLength() >= 1 ||
 				$md->getRonGroundRecord()->getLength() >= 1 ||
 				$md->getOnGroundRecord()->getLength() >= 2 ||
-				$md->getMotionRecord()->getTickSinceAction() <= 5 ||
+				$md->getMotionRecord()->getTickSinceAction() <= 20 ||
 				$md->getTeleportRecord()->getTickSinceAction() <= 6 ||
 				$ki->getGlideRecord()->getTickSinceAction() <= 8 ||
 				$sd->getBounceRecord()->getTickSinceAction() <= 20 ||
 				$sd->getFlowRecord()->getTickSinceAction() <= 10 ||
 				$sd->getSlipRecord()->getTickSinceAction() <= 10 ||
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
-				$player->isImmobile() ||
+				$md->getFlyRecord()->getTickSinceAction() <= 5 ||
+				$md->getImmobileRecord()->getTickSinceAction() <= 2 ||
 				count($sd->getTouchingBlocks()) > 0 ||
 				$player->isSprinting() !== $this->jumpSprinting
-			) {
+			){
 				$this->motion = null;
 				$this->jumpSprinting = false;
 				return;
@@ -91,11 +94,11 @@ class JumpA extends BaseCheck implements HandleInputPacketCheck {
 			$predictionLength = $this->motion->lengthSquared();
 
 			$diff = 0;
-			if ($motionLength <= $predictionLength) {
+			if($motionLength <= $predictionLength){
 				$diff = $this->motion->subtractVector($motion)->length();
 			}
 
-			if ($diff > 0.07 && $md->getAirRecord()->getLength() >= 5) {
+			if($diff > 0.07 && $md->getAirRecord()->getLength() >= 5){
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
 		}

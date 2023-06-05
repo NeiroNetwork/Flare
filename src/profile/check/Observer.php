@@ -4,21 +4,12 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check;
 
-use Closure;
 use NeiroNetwork\Flare\FlareKickReasons;
 use NeiroNetwork\Flare\player\WatchBot;
-use NeiroNetwork\Flare\profile\check\list\movement\motion\MotionA;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\reporter\FailReportContent;
-use pocketmine\event\EventPriority;
-use pocketmine\event\RegisteredListener;
-use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\network\mcpe\protocol\EventPacket;
-use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginManager;
-use pocketmine\utils\Utils;
 
-class Observer {
+class Observer{
 
 	protected PlayerProfile $profile;
 
@@ -44,7 +35,7 @@ class Observer {
 	 */
 	protected bool $punishEnabled;
 
-	public function __construct(PlayerProfile $profile) {
+	public function __construct(PlayerProfile $profile){
 		$this->profile = $profile;
 		$this->list = [];
 		$this->closed = false;
@@ -56,8 +47,100 @@ class Observer {
 		$this->punishEnabled = $conf->get("punish");
 	}
 
-	public function spawnWatchBot(int $duration): bool {
-		if ($this->watchBot?->isSpawned() ?? true) {
+	public function isClosed() : bool{
+		return $this->closed;
+	}
+
+	public function getProfile() : PlayerProfile{
+		return $this->profile;
+	}
+
+	public function registerCheck(ICheck $check) : void{
+		if($this->closed){
+			throw new \RuntimeException("observer closed");
+		}
+
+		if(isset($this->list[$check->getFullId()])){
+			throw new \RuntimeException("check \"{$check->getFullId()}\" is already registered");
+		}
+		$this->list[$check->getFullId()] = $check;
+
+		$check->onLoad();
+
+		$check->setEnabled($this->checkEnabled);
+	}
+
+	public function setEnabled(bool $enabled) : void{
+		foreach($this->list as $check){
+			$check->setEnabled($enabled);
+		}
+
+		$this->checkEnabled = $enabled;
+	}
+
+	public function getCheck(string $fullId) : ?ICheck{
+		if($this->closed){
+			throw new \RuntimeException("observer closed");
+		}
+
+		return $this->list[$fullId] ?? null;
+	}
+
+	/**
+	 * @return ICheck[]
+	 */
+	public function getAllChecks() : array{
+		if($this->closed){
+			throw new \RuntimeException("observer closed");
+		}
+
+		return $this->list;
+	}
+
+	public function requestPunish(ICheck $cause) : bool{
+		$vl = true;
+		if($cause instanceof BaseCheck){
+			$vl = $cause->getVL() >= $cause->getPunishVL();
+		}
+
+		return $vl;
+	}
+
+	public function doPunish() : void{
+		// requestPunish に移動するべき？
+		if(!$this->punishEnabled){
+			return;
+		}
+		$this->profile->disconnectPlayerAndClose(FlareKickReasons::unfair_advantage($this->profile->getPlayer()->getName()));
+	}
+
+	public function close() : void{
+		if($this->closed){
+			throw new \RuntimeException("observer already closed");
+		}
+
+		$this->closed = true;
+		foreach($this->list as $check){
+			$check->onUnload();
+		}
+
+		$this->list = [];
+	}
+
+	public function requestFail(ICheck $cause, FailReason $reason) : bool{
+		return true;
+	}
+
+	public function doFail(ICheck $cause, FailReason $reason) : void{
+		$this->profile->getFlare()->getReporter()->report(new FailReportContent($cause, $reason));
+
+		if($cause->getCheckGroup() === CheckGroup::COMBAT){
+			$this->spawnWatchBot(120);
+		}
+	}
+
+	public function spawnWatchBot(int $duration) : bool{
+		if($this->watchBot?->isSpawned() ?? false){
 			return false;
 		}
 
@@ -68,114 +151,21 @@ class Observer {
 		return true;
 	}
 
-	public function setEnabled(bool $enabled): void {
-		foreach ($this->list as $check) {
-			$check->setEnabled($enabled);
-		}
-
-		$this->checkEnabled = $enabled;
-	}
-
-	public function isClosed(): bool {
-		return $this->closed;
-	}
-
-	public function close(): void {
-		if ($this->closed) {
-			throw new \Exception("observer already closed");
-		}
-
-		$this->closed = true;
-		foreach ($this->list as $check) {
-			$check->onUnload();
-		}
-
-		$this->list = [];
-	}
-
-	public function getProfile(): PlayerProfile {
-		return $this->profile;
-	}
-
-	public function registerCheck(ICheck $check): void {
-		if ($this->closed) {
-			throw new \Exception("observer closed");
-		}
-
-		if (isset($this->list[$check->getFullId()])) {
-			throw new \Exception("check \"{$check->getFullId()}\" is already registered");
-		}
-		$this->list[$check->getFullId()] = $check;
-
-		$check->onLoad();
-
-		$check->setEnabled($this->checkEnabled);
-	}
-
-	public function getCheck(string $fullId): ?ICheck {
-		if ($this->closed) {
-			throw new \Exception("observer closed");
-		}
-
-		return $this->list[$fullId] ?? null;
-	}
-
 	/**
-	 * @return ICheck[]
-	 */
-	public function getAllChecks(): array {
-		if ($this->closed) {
-			throw new \Exception("observer closed");
-		}
-
-		return $this->list;
-	}
-
-	public function requestPunish(ICheck $cause): bool {
-		$vl = true;
-		if ($cause instanceof BaseCheck) {
-			$vl = $cause->getVL() > $cause->getPunishVL();
-		}
-
-		return $vl;
-	}
-
-	public function doPunish(): void {
-		// requestPunish に移動するべき？
-		if (!$this->punishEnabled) {
-			return;
-		}
-		$this->profile->getPlayer()->disconnect(FlareKickReasons::unfair_advantage($this->profile->getPlayer()->getName()));
-		$this->profile->close();
-	}
-
-	public function requestFail(ICheck $cause, FailReason $reason): bool {
-		return true;
-	}
-
-	public function doFail(ICheck $cause, FailReason $reason): void {
-		$this->profile->getFlare()->getReporter()->report(new FailReportContent($cause, $reason));
-
-		if ($cause->getCheckGroup() === CheckGroup::COMBAT) {
-			$this->spawnWatchBot(120);
-		}
-	}
-
-	/**
-	 * Get the value of checkEnabled
-	 *
 	 * @return bool
 	 */
-	public function isCheckEnabled(): bool {
+	public function isEnabled() : bool{
 		return $this->checkEnabled;
 	}
 
 	/**
-	 * Get the value of punishEnabled
-	 *
 	 * @return bool
 	 */
-	public function isPunishEnabled(): bool {
+	public function isPunishEnabled() : bool{
 		return $this->punishEnabled;
+	}
+
+	public function setPunishEnabled(bool $punishEnabled) : void{
+		$this->punishEnabled = $punishEnabled;
 	}
 }

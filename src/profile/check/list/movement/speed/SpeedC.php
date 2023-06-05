@@ -7,36 +7,37 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\speed;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use NeiroNetwork\Flare\utils\Statistics;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedC extends BaseCheck implements HandleInputPacketCheck {
+class SpeedC extends BaseCheck{
+
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected NumericalSampling $samples;
 	protected int $speedTicks;
 
-	public function onLoad(): void {
-		$this->registerInputPacketHandler();
+	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+
 		$this->samples = new NumericalSampling(24);
 		$this->speedTicks = 0;
 	}
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function onEnable(): void {
+	public function onEnable() : void{
 		$this->samples->clear();
 	}
 
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		//$this->debug((string) $this->profile->getMovementData()->getDistance());
 		$player = $this->profile->getPlayer();
@@ -44,15 +45,17 @@ class SpeedC extends BaseCheck implements HandleInputPacketCheck {
 		$sd = $this->profile->getSurroundData();
 		$ki = $this->profile->getKeyInputs();
 
-		if (
+		if(
 			$md->getJoinRecord()->getTickSinceAction() >= 200 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 10 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 30 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 10 &&
 			$ki->getGlideRecord()->getTickSinceAction() >= 30
-		) {
+		){
 
-			if ($player->getMovementSpeed() > 0.25) {
+			$movementSpeed = $md->getMovementSpeed();
+
+			if($movementSpeed > 0.25){
 				return;
 			}
 
@@ -61,24 +64,24 @@ class SpeedC extends BaseCheck implements HandleInputPacketCheck {
 			$speed = Statistics::average($this->samples->getAll());
 
 			$ice = (($sd->getSlipRecord()->getTickSinceAction() <= 20) ? 0.675 : 0);
-			$maxSpeed = (0.2 + 0.2 + $ice) * max(1.0, ($player->getMovementSpeed() * 10));
+			$maxSpeed = (0.2 + 0.2 + $ice) * max(1.0, ($movementSpeed * 10));
 
-			if ($player->getMovementSpeed() != 0.1) {
+			if($md->getSpeedChangeRecord()->getFlag()){
 				$this->speedTicks++;
-				if ($this->speedTicks === 1) {
+				if($this->speedTicks === 1){
 					$this->samples->clear();
 				}
-			} else {
-				if ($this->speedTicks >= 1) {
+			}else{
+				if($this->speedTicks >= 1){
 					$this->samples->clear();
 				}
 				$this->speedTicks = 0;
 			}
 
-			if ($speed > $maxSpeed) {
+			if($speed > $maxSpeed){
 				$this->fail(new ViolationFailReason("AvgSpeed: $speed"));
 			}
-		} else {
+		}else{
 			$this->samples->clear();
 		}
 	}

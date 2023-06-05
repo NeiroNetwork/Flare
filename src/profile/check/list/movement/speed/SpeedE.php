@@ -7,31 +7,31 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\speed;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class SpeedE extends BaseCheck implements HandleInputPacketCheck {
+class SpeedE extends BaseCheck{
+
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected float $lastRealDeltaXZ;
 
-	public function onLoad(): void {
-		$this->registerInputPacketHandler();
+	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+
 	}
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function isExperimental(): bool {
+	public function isExperimental() : bool{
 		return true;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -42,7 +42,7 @@ class SpeedE extends BaseCheck implements HandleInputPacketCheck {
 
 
 		$diffYaw = abs($md->getRotationDelta()->yaw);
-		if (
+		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
 			$md->getJumpRecord()->getTickSinceAction() >= 6 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
@@ -61,12 +61,14 @@ class SpeedE extends BaseCheck implements HandleInputPacketCheck {
 				($md->getOnGroundRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 3) ||
 				($md->getRonGroundRecord()->getLength() >= 7 && $md->getOnGroundRecord()->getLength() >= 7)
 			)
-		) {
+		){
 
-			if ($md->getMoveRecord()->getLength() < 8 && $md->getMoveRecord()->getLength() > 2) {
+			if($md->getMoveRecord()->getLength() < 8 && $md->getMoveRecord()->getLength() > 2){
 				$diff = $md->getRealDeltaXZ() - $md->getLastRealDeltaXZ();
-				if ($diff < 1.0e-6) {
-					$this->fail(new ViolationFailReason("Diff: $diff"));
+				if($diff < 1.0e-6){
+					if($this->preFail()){
+						$this->fail(new ViolationFailReason("Diff: $diff"));
+					}
 				}
 			}
 		}

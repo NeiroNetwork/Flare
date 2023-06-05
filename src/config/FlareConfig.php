@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\config;
 
-use Exception;
 use NeiroNetwork\Flare\profile\LogStyle;
 use pocketmine\utils\Config;
 use Symfony\Component\Filesystem\Path;
 
-class FlareConfig {
+class FlareConfig{
 
 	protected Config $generic;
 
@@ -19,7 +18,7 @@ class FlareConfig {
 
 	protected PlayerConfigStore $playerConfig;
 
-	public function __construct(string $folder) {
+	public function __construct(string $folder){
 		$this->generic = new Config(Path::join($folder, "generic.yml"), Config::YAML, [
 			"inspectors" => [],
 			"test_server_mode" => false
@@ -36,6 +35,7 @@ class FlareConfig {
 			"log_style" => "flare",
 			"verbose" => false,
 			"setback" => true,
+			"transaction_pairing" => true,
 			"collection" => false,
 			"bot" => true
 		]);
@@ -43,6 +43,7 @@ class FlareConfig {
 		$this->console = new Config(Path::join($folder, "console.yml"), Config::YAML, [
 			"alert" => true,
 			"log" => true,
+			"debug" => true,
 			"log_style" => "flare",
 			"verbose" => false,
 			"log_cooldown" => 0,
@@ -54,29 +55,29 @@ class FlareConfig {
 		$this->validate();
 	}
 
-	public function validate(): void {
-		if (
+	public function validate() : void{
+		if(
 			LogStyle::search(
-				($logStyle = $this->profileDefault->get("log_style", null) ?? throw new \Exception("ProfileDefault: log_style key not found"))
+				($logStyle = $this->profileDefault->get("log_style", null) ?? throw new \RuntimeException("ProfileDefault: log_style key not found"))
 			)
 			=== null
-		) {
-			throw new \Exception("ProfileDefault: log style \"$logStyle\" not found");
+		){
+			throw new \RuntimeException("ProfileDefault: log style \"$logStyle\" not found");
 		}
 
-		if (
+		if(
 			LogStyle::search(
-				($logStyle = $this->console->get("log_style", null) ?? throw new \Exception("Console: log_style key not found"))
+				($logStyle = $this->console->get("log_style", null) ?? throw new \RuntimeException("Console: log_style key not found"))
 			)
 			=== null
-		) {
-			throw new \Exception("Console: log style \"$logStyle\" not found");
+		){
+			throw new \RuntimeException("Console: log style \"$logStyle\" not found");
 		}
 	}
 
-	public function close(bool $save = true) {
-		if ($save) {
-			foreach ($this->getAll() as $config) {
+	public function close(bool $save = true){
+		if($save){
+			foreach($this->getAll() as $config){
 				$config->save();
 			}
 		}
@@ -85,7 +86,7 @@ class FlareConfig {
 	/**
 	 * @return Config[]
 	 */
-	public function getAll(): array {
+	public function getAll() : array{
 		return array_merge(
 			[
 				$this->generic,
@@ -96,8 +97,8 @@ class FlareConfig {
 		);
 	}
 
-	public function reloadAll(): void {
-		foreach ($this->getAll() as $config) {
+	public function reloadAll() : void{
+		foreach($this->getAll() as $config){
 			$config->reload();
 		}
 	}
@@ -107,7 +108,7 @@ class FlareConfig {
 	 *
 	 * @return Config
 	 */
-	public function getProfileDefault(): Config {
+	public function getProfileDefault() : Config{
 		return $this->profileDefault;
 	}
 
@@ -116,7 +117,7 @@ class FlareConfig {
 	 *
 	 * @return Config
 	 */
-	public function getConsole(): Config {
+	public function getConsole() : Config{
 		return $this->console;
 	}
 
@@ -125,7 +126,7 @@ class FlareConfig {
 	 *
 	 * @return Config
 	 */
-	public function getGeneric(): Config {
+	public function getGeneric() : Config{
 		return $this->generic;
 	}
 
@@ -134,7 +135,7 @@ class FlareConfig {
 	 *
 	 * @return PlayerConfigStore
 	 */
-	public function getPlayerConfigStore(): PlayerConfigStore {
+	public function getPlayerConfigStore() : PlayerConfigStore{
 		return $this->playerConfig;
 	}
 }

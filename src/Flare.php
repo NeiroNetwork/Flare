@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare;
 
-use Closure;
-use Exception;
 use NeiroNetwork\Flare\config\FlareConfig;
 use NeiroNetwork\Flare\data\report\DataReportManager;
 use NeiroNetwork\Flare\player\WatchBotTask;
@@ -17,24 +15,18 @@ use NeiroNetwork\Flare\profile\style\PeekAntiCheatStyle;
 use NeiroNetwork\Flare\reporter\Reporter;
 use NeiroNetwork\Flare\support\Supports;
 use NeiroNetwork\Flare\utils\Utils;
-use pocketmine\block\utils\SupportType;
-use pocketmine\console\ConsoleCommandSender;
-use pocketmine\event\EventPriority;
 use pocketmine\event\HandlerListManager;
-use pocketmine\event\RegisteredListener;
-use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\plugin\PluginBase;
-use pocketmine\plugin\PluginLogger;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskHandler;
 use pocketmine\scheduler\TaskScheduler;
-use pocketmine\Server;
-use pocketmine\utils\MainLogger;
+use pocketmine\snooze\SleeperHandlerEntry;
 use Symfony\Component\Filesystem\Path;
 
-class Flare {
+class Flare{
 
 	public const PREFIX = "§e☄ §r";
+	public const DEBUG_PREFIX = "§c☄ §r";
 
 	protected PluginBase $plugin;
 
@@ -60,13 +52,16 @@ class Flare {
 
 	protected ?TaskHandler $schedulerHeartbeater;
 
+	protected TransactionPairingHost $transactionPairingHost;
+	protected SleeperHandlerEntry $heartbeatCheckNotifier;
+
 	protected Supports $supports;
 
 	protected bool $started;
 
-	public function __construct(PluginBase $plugin) {
-		if (!$plugin->isEnabled()) {
-			throw new \Exception("plugin not enabled");
+	public function __construct(PluginBase $plugin){
+		if(!$plugin->isEnabled()){
+			throw new \RuntimeException("plugin not enabled");
 		}
 
 		FlarePermissionNames::init();
@@ -96,11 +91,13 @@ class Flare {
 
 		$this->supports = new Supports();
 
+		$this->transactionPairingHost = new TransactionPairingHost($this->profileManager);
+
 		$this->schedulerHeartbeater = null;
 	}
 
-	public function start(): void {
-		if (!$this->started) {
+	public function start() : void{
+		if(!$this->started){
 			$this->started = true;
 
 			$this->plugin->getServer()->getPluginManager()->registerEvents($this->eventListener, $this->plugin);
@@ -111,19 +108,43 @@ class Flare {
 			$this->reporter = new Reporter($this->plugin);
 			$this->reporter->autoSubscribe($this->consoleProfile->getCommandSender()); // todo: 
 
-			$this->schedulerHeartbeater = $this->plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function () {
+			$this->schedulerHeartbeater = $this->plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function(){
 				$this->scheduler->mainThreadHeartbeat($this->plugin->getServer()->getTick());
 				// PluginManager::tickSchedulers
 			}), 1);
 
-			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function () {
+			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function(){
 				$this->tickProcessor->execute();
 			}), 1);
+
+			// transaction pairing
+
+
+			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function(){
+				$this->transactionPairingHost->onStartOfTick($this->plugin->getServer()->getTick());
+
+				$this->heartbeatCheckNotifier->createNotifier()->wakeupSleeper();
+			}), 1);
+
+			$handlerEntry = $this->plugin->getServer()->getTickSleeper()->addNotifier(function() use (&$handlerEntry) : void{
+				$this->transactionPairingHost->onEndOfTick($this->plugin->getServer()->getTick());
+			});
+
+			$this->heartbeatCheckNotifier = $handlerEntry;
 		}
 	}
 
-	public function shutdown(bool $saveConfig = true): void {
-		if ($this->started) {
+	/**
+	 * Get the value of scheduler
+	 *
+	 * @return TaskScheduler
+	 */
+	public function getScheduler() : TaskScheduler{
+		return $this->scheduler;
+	}
+
+	public function shutdown(bool $saveConfig = true) : void{
+		if($this->started){
 
 			HandlerListManager::global()->unregisterAll($this->eventListener, $this->plugin);
 
@@ -132,7 +153,7 @@ class Flare {
 			// todo: broadcast channel unscribe
 			$this->config->close($saveConfig);
 
-			if ($saveConfig) {
+			if($saveConfig){
 				$this->dataReportManager->save();
 			}
 
@@ -143,25 +164,34 @@ class Flare {
 			assert($this->schedulerHeartbeater instanceof TaskHandler);
 
 			$this->schedulerHeartbeater->cancel();
+
+			$this->plugin->getServer()->getTickSleeper()->removeNotifier($this->heartbeatCheckNotifier->getNotifierId());
 		}
 	}
 
-	public function getPlugin(): PluginBase {
+	public function getPlugin() : PluginBase{
 		return $this->plugin;
+	}
+
+	/**
+	 * @return TransactionPairingHost
+	 */
+	public function getTransactionPairingHost() : TransactionPairingHost{
+		return $this->transactionPairingHost;
 	}
 
 	/**
 	 * Get the value of eventEmitter
 	 */
-	public function getEventEmitter(): FlareEventEmitter {
+	public function getEventEmitter() : FlareEventEmitter{
 		return $this->eventEmitter;
 	}
 
-	public function getProfileManager(): ProfileManager {
+	public function getProfileManager() : ProfileManager{
 		return $this->started ? $this->profileManager : Utils::mustStartedException();
 	}
 
-	public function getConsoleProfile(): ConsoleProfile {
+	public function getConsoleProfile() : ConsoleProfile{
 		return $this->started ? $this->consoleProfile : Utils::mustStartedException();
 	}
 
@@ -170,7 +200,7 @@ class Flare {
 	 *
 	 * @return Reporter
 	 */
-	public function getReporter(): Reporter {
+	public function getReporter() : Reporter{
 		return $this->started ? $this->reporter : Utils::mustStartedException();
 	}
 
@@ -179,7 +209,7 @@ class Flare {
 	 *
 	 * @return WatchBotTask
 	 */
-	public function getWatchBotTask(): WatchBotTask {
+	public function getWatchBotTask() : WatchBotTask{
 		return $this->started ? $this->watchBotTask : Utils::mustStartedException();
 	}
 
@@ -188,7 +218,7 @@ class Flare {
 	 *
 	 * @return FlareConfig
 	 */
-	public function getConfig(): FlareConfig {
+	public function getConfig() : FlareConfig{
 		return $this->config;
 	}
 
@@ -197,17 +227,8 @@ class Flare {
 	 *
 	 * @return DataReportManager
 	 */
-	public function getDataReportManager(): DataReportManager {
+	public function getDataReportManager() : DataReportManager{
 		return $this->dataReportManager;
-	}
-
-	/**
-	 * Get the value of scheduler
-	 *
-	 * @return TaskScheduler
-	 */
-	public function getScheduler(): TaskScheduler {
-		return $this->scheduler;
 	}
 
 	/**
@@ -215,7 +236,7 @@ class Flare {
 	 *
 	 * @return TickProcessor
 	 */
-	public function getTickProcessor(): TickProcessor {
+	public function getTickProcessor() : TickProcessor{
 		return $this->tickProcessor;
 	}
 
@@ -224,7 +245,7 @@ class Flare {
 	 *
 	 * @return Supports
 	 */
-	public function getSupports(): Supports {
+	public function getSupports() : Supports{
 		return $this->started ? $this->supports : Utils::mustStartedException();
 	}
 }

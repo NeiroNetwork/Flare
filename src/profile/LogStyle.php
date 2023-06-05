@@ -6,9 +6,8 @@ namespace NeiroNetwork\Flare\profile;
 
 use NeiroNetwork\Flare\profile\check\FailReason;
 use NeiroNetwork\Flare\profile\check\ICheck;
-use pocketmine\utils\Utils;
 
-abstract class LogStyle {
+abstract class LogStyle{
 
 	/**
 	 * @var LogStyle[]
@@ -18,18 +17,18 @@ abstract class LogStyle {
 	/**
 	 * @return LogStyle[]
 	 */
-	public static function getAllRegistered(): array {
+	public static function getAllRegistered() : array{
 		return array_values(self::$registered);
 	}
 
-	public static function register(LogStyle $style): void {
+	public static function register(LogStyle $style) : void{
 		self::$registered[$style::class] = $style;
 	}
 
-	public static function search(string $needle): ?LogStyle {
+	public static function search(string $needle) : ?LogStyle{
 		$needle = strtolower($needle);
-		foreach (self::$registered as $style) {
-			if (in_array($needle, array_map("strtolower", $style->getAliases()), true)) {
+		foreach(self::$registered as $style){
+			if(in_array($needle, array_map("strtolower", $style->getAliases()), true)){
 				return $style;
 			}
 		}
@@ -38,16 +37,17 @@ abstract class LogStyle {
 	}
 
 	/**
-	 * @param Profile $profile
-	 * @param ICheck $cause
-	 * @param FailReason $reason
-	 * 
-	 * @return string
-	 */
-	abstract public function fail(Profile $profile, ICheck $cause, FailReason $reason): string;
-
-	/**
 	 * @return string[]
 	 */
-	abstract public function getAliases(): array;
+	abstract public function getAliases() : array;
+
+	/**
+	 * @param Profile    $profile
+	 * @param Profile    $viewer
+	 * @param ICheck     $cause
+	 * @param FailReason $reason
+	 *
+	 * @return string
+	 */
+	abstract public function fail(Profile $profile, Profile $viewer, ICheck $cause, FailReason $reason) : string;
 }

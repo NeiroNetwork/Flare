@@ -10,38 +10,47 @@ use NeiroNetwork\Flare\command\GiveModerationItemCommand;
 use NeiroNetwork\Flare\command\ParameterCommand;
 use NeiroNetwork\Flare\command\ReloadCommand;
 use NeiroNetwork\Flare\command\SettingsCommand;
-use NeiroNetwork\Flare\form\PlayerSettingsForm;
 use NeiroNetwork\Flare\moderation\ModerationItemListener;
 use NeiroNetwork\Flare\network\NACKHandler;
-use pocketmine\network\mcpe\raklib\RakLibInterface;
+use NeiroNetwork\Flare\support\MoveDelaySupport;
 use pocketmine\plugin\PluginBase;
-use pocketmine\snooze\SleeperNotifier;
 
-class Main extends PluginBase {
+class Main extends PluginBase{
 
 	private static ?self $instance = null;
 
 	protected Flare $flare;
 
-	public static function getInstance(): ?self {
+	public static function getInstance() : ?self{
 		return self::$instance;
 	}
 
-	protected function onLoad(): void {
+	/**
+	 * Get the value of flare
+	 *
+	 * @return Flare
+	 */
+	public function getMainFlare() : Flare{
+		return $this->flare;
+	}
+
+	protected function onLoad() : void{
 		self::$instance = $this;
 	}
 
-	protected function onEnable(): void {
+	protected function onEnable() : void{
+		MoveDelaySupport::init(2, true);
+
 		$this->flare = new Flare($this);
 
 		// task or sleeper
-		$notifier = new SleeperNotifier();
-		$this->getServer()->getTickSleeper()->addNotifier($notifier, function () use ($notifier): void {
+		$handlerEntry = $this->getServer()->getTickSleeper()->addNotifier(function() use (&$handlerEntry) : void{
 			$this->flare->start();
-			$this->getServer()->getTickSleeper()->removeNotifier($notifier);
+
+			$this->getServer()->getTickSleeper()->removeNotifier($handlerEntry->getNotifierId());
 		});
 
-		$notifier->wakeupSleeper(); // ??? main -> main
+		$handlerEntry->createNotifier()->wakeupSleeper();
 
 		$map = $this->getServer()->getCommandMap();
 
@@ -57,8 +66,8 @@ class Main extends PluginBase {
 
 		$vanillaCommands = $this->getServer()->getPluginManager()->getPlugin("VanillaCommands") !== null;
 
-		foreach ($list as $command) {
-			if ($command instanceof ParameterCommand && $vanillaCommands) {
+		foreach($list as $command){
+			if($command instanceof ParameterCommand && $vanillaCommands){
 				$command->registerParameters();
 			}
 		}
@@ -66,16 +75,7 @@ class Main extends PluginBase {
 		$this->getServer()->getPluginManager()->registerEvents(new ModerationItemListener, $this);
 	}
 
-	protected function onDisable(): void {
+	protected function onDisable() : void{
 		$this->flare->shutdown();
-	}
-
-	/**
-	 * Get the value of flare
-	 *
-	 * @return Flare
-	 */
-	public function getMainFlare(): Flare {
-		return $this->flare;
 	}
 }

@@ -7,31 +7,32 @@ namespace NeiroNetwork\Flare\profile\check\list\combat\aim;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\NumericalSampling;
-use NeiroNetwork\Flare\utils\Statistics;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 
-class AimA extends BaseCheck implements HandleInputPacketCheck {
+class AimA extends BaseCheck{
+
 	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+	use HandleEventCheckTrait;
 
 	protected NumericalSampling $deltaPitch;
 
-	public function getCheckGroup(): int {
+	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
 
-	public function onLoad(): void {
+	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+
 		$this->deltaPitch = new NumericalSampling(24);
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
-		if ($this->profile->getInputMode() !== InputMode::MOUSE_KEYBOARD) {
+	public function handle(PlayerAuthInputPacket $packet) : void{
+		if($this->profile->getInputMode() !== InputMode::MOUSE_KEYBOARD){
 			return;
 		}
 
@@ -41,17 +42,17 @@ class AimA extends BaseCheck implements HandleInputPacketCheck {
 		$md = $this->profile->getMovementData();
 		$rotDelta = $md->getRotationDelta()->abs();
 
-		if (
+		if(
 			abs($md->getRotation()->pitch) < 80 &&
 			$rotDelta->yaw >= 1 &&
 			$rotDelta->yaw <= 6
-		) {
+		){
 			$this->deltaPitch->add($rotDelta->pitch);
 
-			if (
+			if(
 				$this->deltaPitch->isMax() &&
 				Utils::equalsArrayValues($this->deltaPitch->getAll(), 0.0)
-			) {
+			){
 				$this->fail(new ViolationFailReason(""));
 			}
 		}

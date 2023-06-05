@@ -7,7 +7,7 @@ namespace NeiroNetwork\Flare;
 use NeiroNetwork\Flare\profile\data\ActionRecord;
 use NeiroNetwork\Flare\utils\Utils;
 
-class TickProcessor {
+class TickProcessor{
 
 	protected float $lastTime;
 
@@ -20,16 +20,16 @@ class TickProcessor {
 	 */
 	protected ActionRecord $overload;
 
-	public function __construct() {
+	public function __construct(){
 		$this->lastTime = 0;
 		$this->currentTime = 0;
 		$this->deltaTime = 0;
 		$this->overload = new ActionRecord;
 	}
 
-	public function execute(): void {
+	public function execute() : void{
 		$this->lastTime = $this->currentTime;
-		$this->currentTime = Utils::getTimeMilis();
+		$this->currentTime = Utils::getTimeMillis();
 
 		$this->deltaTime = $this->currentTime - $this->lastTime;
 
@@ -41,7 +41,7 @@ class TickProcessor {
 	 *
 	 * @return float
 	 */
-	public function getLastTime(): float {
+	public function getLastTime() : float{
 		return $this->lastTime;
 	}
 
@@ -50,7 +50,7 @@ class TickProcessor {
 	 *
 	 * @return float
 	 */
-	public function getCurrentTime(): float {
+	public function getCurrentTime() : float{
 		return $this->currentTime;
 	}
 
@@ -59,7 +59,7 @@ class TickProcessor {
 	 *
 	 * @return float
 	 */
-	public function getDeltaTime(): float {
+	public function getDeltaTime() : float{
 		return $this->deltaTime;
 	}
 
@@ -68,11 +68,11 @@ class TickProcessor {
 	 *
 	 * @return ActionRecord
 	 */
-	public function getOverloadRecord(): ActionRecord {
+	public function getOverloadRecord() : ActionRecord{
 		return $this->overload;
 	}
 
-	public function getTimeSinceLastTick(): float {
-		return Utils::getTimeMilis() - $this->currentTime;
+	public function getTimeSinceLastTick() : float{
+		return Utils::getTimeMillis() - $this->currentTime;
 	}
 }

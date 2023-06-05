@@ -12,28 +12,33 @@ use pjz9n\advancedform\custom\element\Dropdown;
 use pjz9n\advancedform\custom\element\SelectorOption;
 use pjz9n\advancedform\custom\element\Slider;
 use pjz9n\advancedform\custom\element\Toggle;
-use pocketmine\player\Player;
 use pjz9n\advancedform\custom\response\CustomFormResponse;
 use pjz9n\advancedform\custom\result\exception\InvalidResponseException;
+use pocketmine\player\Player;
 
-class PlayerSettingsForm extends CustomForm {
+class PlayerSettingsForm extends CustomForm{
 
 	public function __construct(
 		string $title,
 		protected PlayerProfile $profile
-	) {
+	){
 		parent::__construct($title, [
 			new Toggle("Alert", $profile->isAlertEnabled(), "alert_enabled"),
 			new Toggle("Log", $profile->isLogEnabled(), "log_enabled"),
 			new Toggle("Verbose", $profile->isVerboseEnabled(), "verbose_enabled"),
-			new Slider("Alert Cooldown", 0, 50, 1, $profile->getAlertCooldown(), "alert_cooldown"),
-			new Slider("Log Cooldown", 0, 50, 1, $profile->getLogCooldown(), "log_cooldown"),
+			new Toggle("Debug", $profile->isDebugEnabled(), "debug_enabled"),
+			new Toggle("Transaction Pairing", $this->profile->isTransactionPairingEnabled(), "transaction_pairing_enabled"),
+			new Toggle("Observer: Check", $profile->getObserver()->isEnabled(), "check_enabled"),
+			new Toggle("Observer: Punishment", $profile->getObserver()->isPunishEnabled(), "punishment_enabled"),
+			new Slider("Alert Cool Down", 0, 50, 1, $profile->getAlertCoolDown(), "alert_cool_down"),
+			new Slider("Log Cool Down", 0, 50, 1, $profile->getLogCoolDown(), "log_cool_down"),
 			new Dropdown(
 				"Style",
 				array_map(
-					function (LogStyle $style) {
-						$name = count($style->getAliases()) > 0 ? ($style->getAliases()[array_key_first($style->getAliases())]) : null;
-						if ($name !== null) {
+					function(LogStyle $style){
+						$name = count($style->getAliases()) > 0 ?
+							($style->getAliases()[array_key_first($style->getAliases())]) : null;
+						if($name !== null){
 							return new SelectorOption($name, null, $name);
 						}
 					},
@@ -45,29 +50,38 @@ class PlayerSettingsForm extends CustomForm {
 		]);
 	}
 
-	protected function handleSubmit(Player $player, CustomFormResponse $response): void {
-		try {
+	protected function handleSubmit(Player $player, CustomFormResponse $response) : void{
+		try{
 			$alertEnabled = $response->getToggleResult("alert_enabled")->getValue();
 			$logEnabled = $response->getToggleResult("log_enabled")->getValue();
 			$verboseEnabled = $response->getToggleResult("verbose_enabled")->getValue();
-			$alertCooldown = $response->getSliderResult("alert_cooldown")->getInt();
-			$logCooldown = $response->getSliderResult("log_cooldown")->getInt();
+			$debugEnabled = $response->getToggleResult("debug_enabled")->getValue();
+			$checkEnabled = $response->getToggleResult("check_enabled")->getValue();
+			$punishEnabled = $response->getToggleResult("punishment_enabled")->getValue();
+			$alertCoolDown = $response->getSliderResult("alert_cool_down")->getInt();
+			$logCoolDown = $response->getSliderResult("log_cool_down")->getInt();
+			$transactionPairingEnabled = $response->getToggleResult("transaction_pairing_enabled")->getValue();
 			$styleName = $response->getSelectorResult("style")->getOptionName() ?? throw new InvalidResponseException("Option name: null");
-		} catch (InvalidResponseException $e) {
+		}catch(InvalidResponseException $e){
 			return;
 		}
 
 		$this->profile->setAlertEnabled($alertEnabled);
 		$this->profile->setLogEnabled($logEnabled);
 		$this->profile->setVerboseEnabled($verboseEnabled);
+		$this->profile->setDebugEnabled($debugEnabled);
+		$this->profile->setTransactionPairingEnabled($transactionPairingEnabled);
 
-		$this->profile->setAlertCooldown($alertCooldown);
-		$this->profile->setLogCooldown($logCooldown);
+		$this->profile->getObserver()->setEnabled($checkEnabled);
+		$this->profile->getObserver()->setPunishEnabled($punishEnabled);
+
+		$this->profile->setAlertCoolDown($alertCoolDown);
+		$this->profile->setLogCoolDown($logCoolDown);
 
 		$style = LogStyle::search($styleName);
-		if ($style !== null) {
+		if($style !== null){
 			$this->profile->setLogStyle($style);
-		} else {
+		}else{
 			$player->sendMessage(Flare::PREFIX . "§cスタイル {$styleName} が見つかりませんでした");
 		}
 	}

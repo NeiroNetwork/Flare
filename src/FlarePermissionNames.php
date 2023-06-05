@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare;
 
-use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\permission\Permission;
 use pocketmine\permission\PermissionManager;
 
-class FlarePermissionNames {
+class FlarePermissionNames{
 
 	public const TEAM = "flare.group.team";
 
@@ -17,7 +16,7 @@ class FlarePermissionNames {
 
 	public const OPERATOR = "flare.group.operator";
 
-	public static function init(): void {
+	public static function init() : void{
 		$operator = PermissionManager::getInstance()->getPermission(DefaultPermissions::ROOT_OPERATOR);
 
 		DefaultPermissions::registerPermission(

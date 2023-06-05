@@ -6,40 +6,43 @@ namespace NeiroNetwork\Flare\utils;
 
 use pocketmine\block\Air;
 use pocketmine\block\Block;
-use pocketmine\block\Cobweb;
 use pocketmine\block\Door;
 use pocketmine\block\FenceGate;
 use pocketmine\block\SnowLayer;
 use pocketmine\block\Trapdoor;
 use pocketmine\block\WaterLily;
-use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\entity\Entity;
 use pocketmine\item\Item;
-use pocketmine\item\ItemIds;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
-use pocketmine\player\Player;
 use pocketmine\world\World;
 
-class BlockUtil {
+class BlockUtil{
 
-	public static function canChangeCollisionBoxByInteract(Block $block): bool {
+	public static function canChangeCollisionBoxByInteract(Block $block) : bool{
 		return ($block instanceof Trapdoor ||
 			$block instanceof Door ||
 			$block instanceof FenceGate
 		);
 	}
 
-	public static function calculateBreakBlockTick(Player $player, Item $item, Block $block): int {
+	public static function getMaxCollisionY(Block $block) : float{
+		return max($block->getPosition()->y, ...array_map(fn(AxisAlignedBB $bb) => $bb->maxY, $block->getCollisionBoxes()));
+	}
+
+	public static function isAbleToStep(Block $block) : bool{
+		if(count($block->getCollisionBoxes()) <= 0){
+			return false;
+		}
+
+		// heavy?
+		return min(array_map(fn(AxisAlignedBB $bb) => $bb->maxY - $block->getPosition()->y, $block->getCollisionBoxes())) <= 0.6;
+	}
+
+	public static function calculateBreakBlockTick(Item $item, Block $block, int $hasteLevel = 0, int $fatigueLevel = 0) : int{
 		$time = ceil($block->getBreakInfo()->getBreakTime($item) * 20); #完全なコピペ
 
-		if (($haste = $player->getEffects()->get(VanillaEffects::HASTE())) !== null) {
-			$time *= 1 - (0.25 * $haste->getEffectLevel());
-		}
+		$time *= 1 - (0.25 * $hasteLevel);
 
-		if (($miningFatigue = $player->getEffects()->get(VanillaEffects::MINING_FATIGUE())) !== null) {
-			$time *= 1 + (0.3 * $miningFatigue->getEffectLevel());
-		}
+		$time *= 1 + (0.3 * $fatigueLevel);
 
 		$time -= 1.0;
 
@@ -48,12 +51,12 @@ class BlockUtil {
 
 	/**
 	 * @param AxisAlignedBB $bb
-	 * @param World $world
-	 * @param float $inset
-	 * 
+	 * @param World         $world
+	 * @param float         $inset
+	 *
 	 * @return Block[]
 	 */
-	public static function getEntityBlocksAround(AxisAlignedBB $bb, World $world, float $inset = 0.001): array {
+	public static function getEntityBlocksAround(AxisAlignedBB $bb, World $world, float $inset = 0.001) : array{
 		$minX = (int) floor($bb->minX + $inset);
 		$minY = (int) floor($bb->minY + $inset);
 		$minZ = (int) floor($bb->minZ + $inset);
@@ -62,11 +65,11 @@ class BlockUtil {
 		$maxZ = (int) floor($bb->maxZ - $inset);
 
 		$blocksAround = [];
-		for ($z = $minZ; $z <= $maxZ; ++$z) {
-			for ($x = $minX; $x <= $maxX; ++$x) {
-				for ($y = $minY; $y <= $maxY; ++$y) {
+		for($z = $minZ; $z <= $maxZ; ++$z){
+			for($x = $minX; $x <= $maxX; ++$x){
+				for($y = $minY; $y <= $maxY; ++$y){
 					$block = $world->getBlockAt($x, $y, $z);
-					if (!$block instanceof Air) {
+					if(!$block instanceof Air){
 						$blocksAround[] = $block;
 					}
 				}
@@ -76,39 +79,9 @@ class BlockUtil {
 	}
 
 	/**
-	 * @param Block $block
-	 *
-	 * @return AxisAlignedBB[]
-	 */
-	public static function getFixedCollisionBoxes(Block $block): array {
-		$boxes = $block->getCollisionBoxes();
-
-		if ($block instanceof SnowLayer) {
-			$height = match (true) {
-				$block->getLayers() == SnowLayer::MAX_LAYERS => 1,
-				$block->getLayers() >= 4 => 0.5,
-				default => 0
-			};
-
-			# SnowLayer の recalculateCollisionBoxes おかしくないですか
-
-			foreach ($boxes as $bb) {
-				$bb->maxY = $bb->minY + $height;
-			}
-		}
-		if ($block instanceof WaterLily) {
-			foreach ($boxes as $bb) {
-				$bb->expand(1 / 16, 0, 1 / 16);
-			}
-		}
-
-		return $boxes;
-	}
-
-	/**
 	 * @return Block[]
 	 */
-	public static function getFixedCollisionBlocks(World $world, AxisAlignedBB $bb, bool $targetFirst = false): array {
+	public static function getFixedCollisionBlocks(World $world, AxisAlignedBB $bb, bool $targetFirst = false) : array{
 		$minX = (int) floor($bb->minX - 1);
 		$minY = (int) floor($bb->minY - 1);
 		$minZ = (int) floor($bb->minZ - 1);
@@ -118,23 +91,23 @@ class BlockUtil {
 
 		$collides = [];
 
-		if ($targetFirst) {
-			for ($z = $minZ; $z <= $maxZ; ++$z) {
-				for ($x = $minX; $x <= $maxX; ++$x) {
-					for ($y = $minY; $y <= $maxY; ++$y) {
+		if($targetFirst){
+			for($z = $minZ; $z <= $maxZ; ++$z){
+				for($x = $minX; $x <= $maxX; ++$x){
+					for($y = $minY; $y <= $maxY; ++$y){
 						$block = $world->getBlockAt($x, $y, $z);
-						if (self::getCollidesWithFixedBB($block, $bb)) {
+						if(self::getCollidesWithFixedBB($block, $bb)){
 							return [$block];
 						}
 					}
 				}
 			}
-		} else {
-			for ($z = $minZ; $z <= $maxZ; ++$z) {
-				for ($x = $minX; $x <= $maxX; ++$x) {
-					for ($y = $minY; $y <= $maxY; ++$y) {
+		}else{
+			for($z = $minZ; $z <= $maxZ; ++$z){
+				for($x = $minX; $x <= $maxX; ++$x){
+					for($y = $minY; $y <= $maxY; ++$y){
 						$block = $world->getBlockAt($x, $y, $z);
-						if (self::getCollidesWithFixedBB($block, $bb)) {
+						if(self::getCollidesWithFixedBB($block, $bb)){
 							$collides[] = $block;
 						}
 					}
@@ -145,13 +118,43 @@ class BlockUtil {
 		return $collides;
 	}
 
-	public static function getCollidesWithFixedBB(Block $block, AxisAlignedBB $bb): bool {
-		foreach (self::getFixedCollisionBoxes($block) as $box) {
-			if ($bb->intersectsWith($box)) {
+	public static function getCollidesWithFixedBB(Block $block, AxisAlignedBB $bb) : bool{
+		foreach(self::getFixedCollisionBoxes($block) as $box){
+			if($bb->intersectsWith($box)){
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * @param Block $block
+	 *
+	 * @return AxisAlignedBB[]
+	 */
+	public static function getFixedCollisionBoxes(Block $block) : array{
+		$boxes = $block->getCollisionBoxes();
+
+		if($block instanceof SnowLayer){
+			$height = match (true) {
+				$block->getLayers() == SnowLayer::MAX_LAYERS => 1,
+				$block->getLayers() >= 4 => 0.5,
+				default => 0
+			};
+
+			# SnowLayer の recalculateCollisionBoxes おかしくないですか
+
+			foreach($boxes as $bb){
+				$bb->maxY = $bb->minY + $height;
+			}
+		}
+		if($block instanceof WaterLily){
+			foreach($boxes as $bb){
+				$bb->expand(1 / 16, 0, 1 / 16);
+			}
+		}
+
+		return $boxes;
 	}
 }

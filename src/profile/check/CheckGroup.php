@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\check;
 
-final class CheckGroup {
+final class CheckGroup{
 
 	const COMBAT = 0;
 	const MOVEMENT = 1;

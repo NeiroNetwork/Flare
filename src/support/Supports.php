@@ -4,32 +4,23 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\support;
 
-use NeiroNetwork\Flare\utils\PlayerUtil;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\Server;
 
-class Supports {
+/**
+ * @deprecated
+ */
+class Supports{
 
 	protected EntityMoveRecorder $recorder;
 
-	protected MoveDelaySupport $moveDelay;
-
 	protected LagCompensator $lagCompensator;
 
-	public function __construct() {
+	public function __construct(){
 		$this->recorder = new EntityMoveRecorder(60);
-		$this->moveDelay = MoveDelaySupport::default($this->recorder);
 		$this->lagCompensator = new LagCompensator($this->recorder);
-	}
-
-	/**
-	 * Get the value of moveDelay
-	 *
-	 * @return MoveDelaySupport
-	 */
-	public function getMoveDelay(): MoveDelaySupport {
-		return $this->moveDelay;
 	}
 
 	/**
@@ -37,13 +28,13 @@ class Supports {
 	 *
 	 * @return EntityMoveRecorder
 	 */
-	public function getEntityMoveRecorder(): EntityMoveRecorder {
+	public function getEntityMoveRecorder() : EntityMoveRecorder{
 		return $this->recorder;
 	}
 
-	public function fullSupportMove(Player $viewer, int $runtimeId): ?Vector3 {
+	public function fullSupportMove(Player $viewer, int $runtimeId) : ?Vector3{
 		$histories = $this->recorder->get($viewer, $runtimeId);
-		if (count($histories) <= 0) {
+		if(count($histories) <= 0){
 			return null;
 		}
 
@@ -51,12 +42,13 @@ class Supports {
 
 		$before = $histories[max(array_keys($histories))];
 		$diff = Vector3::zero();
+		$currentTick = Server::getInstance()->getTick();
 
-		foreach ([
-			$this->lagCompensator->compensate($viewer, Utils::getPing($viewer), $runtimeId),
-			$this->moveDelay->predict($viewer, $runtimeId)
-		] as $result) {
-			if (is_null($result)) {
+		foreach([
+					$this->lagCompensator->compensate($viewer, Utils::getBestPing($viewer), $runtimeId),
+					MoveDelaySupport::getInstance()->predict($histories, $currentTick)
+				] as $result){
+			if(is_null($result)){
 				continue;
 			}
 
@@ -67,7 +59,7 @@ class Supports {
 			$diff = $diff->addVector($currentDiff);
 		}
 
-		if (!$applied) {
+		if(!$applied){
 			return null;
 		}
 
@@ -79,7 +71,7 @@ class Supports {
 	 *
 	 * @return LagCompensator
 	 */
-	public function getLagCompensator(): LagCompensator {
+	public function getLagCompensator() : LagCompensator{
 		return $this->lagCompensator;
 	}
 }

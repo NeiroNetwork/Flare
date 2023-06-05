@@ -7,7 +7,7 @@ namespace NeiroNetwork\Flare\reporter;
 use pocketmine\command\CommandSender;
 use pocketmine\lang\Translatable;
 
-interface ReportContent {
+interface ReportContent{
 
-	public function getText(CommandSender $target): null|string|Translatable;
+	public function getText(CommandSender $target) : null|string|Translatable;
 }

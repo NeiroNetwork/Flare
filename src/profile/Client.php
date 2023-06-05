@@ -6,65 +6,46 @@ namespace NeiroNetwork\Flare\profile;
 
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use pocketmine\player\Player;
 use pocketmine\player\PlayerInfo;
 use pocketmine\player\XboxLivePlayerInfo;
-use Ramsey\Uuid\Rfc4122\Validator;
-use Ramsey\Uuid\Validator\GenericValidator;
 
-final class Client {
+final class Client{
 
 	private const ID_PATTERNS = [ # :person_bowing:
-		DeviceOS::ANDROID => '/^[0-9a-f]{12}4[0-9a-f]{19}$/',    // UUIDv4 (no hyphen)    // Android
-		DeviceOS::IOS => '/^[0-9A-F]{12}4[0-9A-F]{19}$/',    // UUIDv4 (no hyphen, upper case)    // iOS
-		DeviceOS::AMAZON => '/^[0-9a-f]{12}4[0-9a-f]{19}$/',    // UUIDv4 (no hyphen)    // FireOS (Android)
-		DeviceOS::WINDOWS_10 => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',    // UUIDv3    // Windows
-		DeviceOS::PLAYSTATION => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',    // UUIDv3    // PlayStation 4
-		DeviceOS::NINTENDO => '/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',    // UUIDv5    // Nintendo Switch
-		DeviceOS::XBOX => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',    // UUIDv3    // Xbox One
+		DeviceOS::ANDROID => '/^[0-9a-f]{12}4[0-9a-f]{19}$/',
+		// UUIDv4 (no hyphen)    // Android
+		DeviceOS::IOS => '/^[0-9A-F]{12}4[0-9A-F]{19}$/',
+		// UUIDv4 (no hyphen, upper case)    // iOS
+		DeviceOS::AMAZON => '/^[0-9a-f]{12}4[0-9a-f]{19}$/',
+		// UUIDv4 (no hyphen)    // FireOS (Android)
+		DeviceOS::WINDOWS_10 => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+		// UUIDv3    // Windows
+		DeviceOS::PLAYSTATION => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+		// UUIDv3    // PlayStation 4
+		DeviceOS::NINTENDO => '/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+		// UUIDv5    // Nintendo Switch
+		DeviceOS::XBOX => '/^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+		// UUIDv3    // Xbox One
 	];
+	public readonly string $locale;
+	public readonly string $clientUuid;
+	public readonly int $device;
+	public readonly string $model;
+	public readonly string $gameVersion;
+	public readonly string $deviceId;
+	public readonly int $clientRandomId;
+	public readonly string $selfSignedId;
+	public readonly int $guiScale;
+	public readonly string $langCode;
+	public readonly string $playfabId;
+	public readonly string $serverAddress;
+	public readonly string $address;
+	public readonly int $uiProfile;
+	public readonly string $xuid;
+	public readonly bool $xboxLive;
+	public readonly string $name;
 
-	private string $name;
-	private string $locale;
-	private string $clientUuid;
-	private int $device;
-	private string $model;
-	private string $gameVersion;
-	private string $deviceId;
-	private int $clientId;
-	private int $guiScale;
-	private string $langCode;
-	private string $playfabId;
-	private string $serverAddress;
-	private string $address;
-	private int $uiProfile;
-	private string $xuid;
-
-	private bool $xboxLive;
-
-	/**
-	 * @param NetworkSession $session
-	 * 
-	 * @return self
-	 */
-	public static function create(NetworkSession $session): self {
-		return new self($session->getPlayerInfo(), $session->getIp());
-	}
-
-	public function isValid(): bool {
-		if ($this->isUnknownDevice()) return false;
-
-		$didPattern = self::ID_PATTERNS[$this->device] ?? null;
-		if ($didPattern !== null) {
-			if (!preg_match($didPattern, $this->deviceId)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	public function __construct(PlayerInfo $info, string $address) {
+	public function __construct(PlayerInfo $info, string $address){
 		$this->name = $info->getUsername();
 		$e = $info->getExtraData();
 		$this->locale = $info->getLocale();
@@ -73,27 +54,41 @@ final class Client {
 		$this->model = $e["DeviceModel"];
 		$this->gameVersion = $e["GameVersion"];
 		$this->deviceId = $e["DeviceId"];
-		$this->clientId = $e["ClientRandomId"];
+		$this->clientRandomId = $e["ClientRandomId"];
 		$this->guiScale = $e["GuiScale"];
 		$this->langCode = $e["LanguageCode"];
 		$this->playfabId = $e["PlayFabId"];
+		$this->selfSignedId = $e["SelfSignedId"];
 		$this->serverAddress = $e["ServerAddress"];
 		$this->address = $address;
 		$this->uiProfile = $e["UIProfile"];
-		$this->xuid = "unknown";
-		if ($info instanceof XboxLivePlayerInfo) {
+		if($info instanceof XboxLivePlayerInfo){
 			$this->xuid = $info->getXuid();
 			$this->xboxLive = true;
-		} else {
+		}else{
+			$this->xuid = "unknown";
 			$this->xboxLive = false;
 		}
 	}
 
-	public function isXboxLive(): bool {
-		return $this->xboxLive;
+	public function getLocale() : string{
+		return $this->locale;
 	}
 
-	public static function convertDeviceIdToString(int $deviceId) {
+	public function getXuid() : string{
+		return $this->xuid;
+	}
+
+	/**
+	 * @param NetworkSession $session
+	 *
+	 * @return self
+	 */
+	public static function create(NetworkSession $session) : self{
+		return new self($session->getPlayerInfo(), $session->getIp());
+	}
+
+	public static function convertDeviceIdToString(int $deviceId) : string{
 		$string = match ($deviceId) {
 			DeviceOS::ANDROID => "Android",
 			DeviceOS::IOS => "iOS",
@@ -114,89 +109,31 @@ final class Client {
 		return $string;
 	}
 
-	public function intersects(Client $client): bool {
+	public function isValid() : bool{
+		if($this->isUnknownDevice()){
+			return false;
+		}
+
+		$didPattern = self::ID_PATTERNS[$this->device] ?? null;
+		if($didPattern !== null){
+			if(!preg_match($didPattern, $this->deviceId)){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public function isUnknownDevice(){
 		return
-			$this->name === $client->getName() ||
-			$this->deviceId === $client->getDeviceId() ||
-			$this->clientId === $client->getClientId() ||
-			$this->clientUuid === $client->getClientUuid() ||
-			$this->playfabId === $client->getPlayfabId() ||
-			#$this->address === $client->getAddress() ||
-			($this->xuid === $client->getXuid() && ($client->isXboxLive() || $this->isXboxLive()));
+			!$this->isTap() &&
+			!$this->isDesktop() &&
+			!$this->isController() &&
+			!$this->isVR() &&
+			!$this->isDedicatedDevice();
 	}
 
-	public function equal(Client $client): bool {
-		return
-			$this->name === $client->getName() &&
-			$this->deviceId === $client->getDeviceId() &&
-			$this->clientId === $client->getClientId() &&
-			$this->clientUuid === $client->getClientUuid() &&
-			$this->playfabId === $client->getPlayfabId() &&
-			#$this->address === $client->getAddress() &&
-			($this->xuid === $client->getXuid() && ($client->isXboxLive() || $this->isXboxLive()));
-	}
-
-	public function getName(): string {
-		return $this->name;
-	}
-
-	public function getLocale(): string {
-		return $this->locale;
-	}
-
-	public function getClientUuid(): string {
-		return $this->clientUuid;
-	}
-
-	public function getDevice(): int {
-		return $this->device;
-	}
-
-	public function getModel(): string {
-		return $this->model;
-	}
-
-	public function getGameVersion(): string {
-		return $this->gameVersion;
-	}
-
-	public function getDeviceId(): string {
-		return $this->deviceId;
-	}
-
-	public function getClientId(): int {
-		return $this->clientId;
-	}
-
-	public function getGuiScale(): int {
-		return $this->guiScale;
-	}
-
-	public function getLangCode(): string {
-		return $this->langCode;
-	}
-
-	public function getPlayfabId(): string {
-		return $this->playfabId;
-	}
-
-	public function getServerAddress(): string {
-		return $this->serverAddress;
-	}
-
-	public function getAddress(): string {
-		return $this->address;
-	}
-
-	public function getUiProfile(): int {
-		return $this->uiProfile;
-	}
-
-	public function getXuid(): string {
-		return $this->xuid;
-	}
-
-	public function isTap() {
+	public function isTap(){
 		return
 			$this->device === DeviceOS::ANDROID ||
 			$this->device === DeviceOS::WINDOWS_PHONE ||
@@ -205,36 +142,117 @@ final class Client {
 			$this->device === DeviceOS::TVOS;
 	}
 
-	public function isDesktop() {
+	public function isDesktop(){
 		return
 			$this->device === DeviceOS::WIN32 ||
 			$this->device === DeviceOS::WINDOWS_10 ||
 			$this->device === DeviceOS::OSX;
 	}
 
-	public function isController() {
+	public function isController(){
 		return
 			$this->device === DeviceOS::NINTENDO ||
 			$this->device === DeviceOS::PLAYSTATION ||
 			$this->device === DeviceOS::XBOX;
 	}
 
-	public function isVR() {
+	public function isVR(){
 		return
 			$this->device === DeviceOS::HOLOLENS ||
 			$this->device === DeviceOS::GEAR_VR;
 	}
 
-	public function isDedicatedDevice() {
+	public function isDedicatedDevice(){
 		return $this->device === DeviceOS::DEDICATED;
 	}
 
-	public function isUnknownDevice() {
+	public function intersects(Client $client) : bool{
 		return
-			!$this->isTap() &&
-			!$this->isDesktop() &&
-			!$this->isController() &&
-			!$this->isVR() &&
-			!$this->isDedicatedDevice();
+			$this->name === $client->getName() ||
+			$this->deviceId === $client->getDeviceId() ||
+			$this->clientUuid === $client->getClientUuid() ||
+			$this->playfabId === $client->getPlayfabId() ||
+			#$this->address === $client->getAddress() ||
+			($this->xuid === $client->getXuid() && ($client->isXboxLive() || $this->isXboxLive()));
+	}
+
+	public function getName() : string{
+		return $this->name;
+	}
+
+	public function getDeviceId() : string{
+		return $this->deviceId;
+	}
+
+	public function getClientUuid() : string{
+		return $this->clientUuid;
+	}
+
+	public function getPlayfabId() : string{
+		return $this->playfabId;
+	}
+
+	public function isXboxLive() : bool{
+		return $this->xboxLive;
+	}
+
+	public function equal(Client $client) : bool{
+		return
+			$this->name === $client->getName() &&
+			$this->deviceId === $client->getDeviceId() &&
+			$this->clientUuid === $client->getClientUuid() &&
+			$this->playfabId === $client->getPlayfabId() &&
+			#$this->address === $client->getAddress() &&
+			($this->xuid === $client->getXuid() && ($client->isXboxLive() || $this->isXboxLive()));
+	}
+
+	public function getDevice() : int{
+		return $this->device;
+	}
+
+	public function getModel() : string{
+		return $this->model;
+	}
+
+	public function getGameVersion() : string{
+		return $this->gameVersion;
+	}
+
+	/**
+	 * @return int
+	 *
+	 * warning: この値は信用できません！BANデータなどに使用しないでください
+	 */
+	public function getClientRandomId() : int{
+		return $this->clientRandomId;
+	}
+
+	public function getGuiScale() : int{
+		return $this->guiScale;
+	}
+
+	public function getLangCode() : string{
+		return $this->langCode;
+	}
+
+	public function getServerAddress() : string{
+		return $this->serverAddress;
+	}
+
+	public function getAddress() : string{
+		return $this->address;
+	}
+
+	public function getUiProfile() : int{
+		return $this->uiProfile;
+	}
+
+	/**
+	 * @return string
+	 *
+	 * note: 一定時間ごとに変化する
+	 */
+	public function getSelfSignedId() : string{
+		return $this->selfSignedId;
 	}
 }

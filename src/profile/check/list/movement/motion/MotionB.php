@@ -7,22 +7,26 @@ namespace NeiroNetwork\Flare\profile\check\list\movement\motion;
 use NeiroNetwork\Flare\profile\check\BaseCheck;
 use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheck;
-use NeiroNetwork\Flare\profile\check\HandleInputPacketCheckTrait;
+use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-class MotionB extends BaseCheck implements HandleInputPacketCheck {
-	use ClassNameAsCheckIdTrait;
-	use HandleInputPacketCheckTrait;
+class MotionB extends BaseCheck{
 
-	public function getCheckGroup(): int {
+	use ClassNameAsCheckIdTrait;
+	use HandleEventCheckTrait;
+
+	public function getCheckGroup() : int{
 		return CheckGroup::MOVEMENT;
 	}
 
-	public function handle(PlayerAuthInputPacket $packet): void {
+	public function onLoad() : void{
+		$this->registerPacketHandler($this->handle(...));
+	}
+
+	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
@@ -42,8 +46,8 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 
 		// $player->sendMessage("air: {$air->getLength()}, rair: {$rair->getLength()}");
 
-		if (!$climb) {
-			if (
+		if(!$climb){
+			if(
 				(
 					($air->getLength() >= 6 && $ronGround->getLength() >= 5) || # RonGround を bypass した場合は Air が対応する
 					($rair->getLength() >= 16 && $onGround->getLength() >= 5) || # OnGround を bypass した場合は Rair が対応する
@@ -60,7 +64,8 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 				$sd->getHitHeadRecord()->getTickSinceAction() >= 4 &&
 				$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
 				$cd->getKnockbackRecord()->getTickSinceAction() >= 20
-			) {
+			){
+
 				$this->preReward();
 				$deltaY = ($to->y - $from->y);
 				$lastDeltaY = ($from->y - $lastFrom->y);
@@ -70,8 +75,8 @@ class MotionB extends BaseCheck implements HandleInputPacketCheck {
 				$diff = abs($expectedDeltaY - $deltaY);
 				$squaredDiff = $diff * 100;
 				// $player->sendMessage("diff: $squaredDiff");
-				if ($squaredDiff > 0.6) {
-					if ($this->preFail()) {
+				if($squaredDiff > 0.6){
+					if($this->preFail()){
 						$this->fail(new ViolationFailReason("Diff: $diff"));
 					}
 				}

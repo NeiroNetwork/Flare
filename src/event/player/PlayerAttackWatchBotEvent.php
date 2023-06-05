@@ -8,14 +8,14 @@ use NeiroNetwork\Flare\player\FakePlayer;
 use pocketmine\event\player\PlayerEvent;
 use pocketmine\player\Player;
 
-class PlayerAttackWatchBotEvent extends PlayerEvent {
+class PlayerAttackWatchBotEvent extends PlayerEvent{
 
 	/**
 	 * @var FakePlayer
 	 */
 	protected FakePlayer $fakePlayer;
 
-	public function __construct(Player $player, FakePlayer $fakePlayer) {
+	public function __construct(Player $player, FakePlayer $fakePlayer){
 		$this->player = $player;
 		$this->fakePlayer = $fakePlayer;
 	}
@@ -23,7 +23,7 @@ class PlayerAttackWatchBotEvent extends PlayerEvent {
 	/**
 	 * @return FakePlayer
 	 */
-	public function getFakePlayer(): FakePlayer {
+	public function getFakePlayer() : FakePlayer{
 		return $this->fakePlayer;
 	}
 }
