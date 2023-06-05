@@ -38,6 +38,8 @@ use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidB;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidE;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidF;
+use NeiroNetwork\Flare\profile\check\list\packet\pingspoof\PingSpoofA;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerA;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerB;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerC;
@@ -317,14 +319,21 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new InvalidC($o));
 			$o->registerCheck(new InvalidD($o));
 			$o->registerCheck(new InvalidE($o));
+			$o->registerCheck(new InvalidF($o));
 		} {
 			$o->registerCheck(new TimerA($o));
 			$o->registerCheck(new TimerB($o));
 			$o->registerCheck(new TimerC($o));
-		} {
+
+		}
+		{
+			$o->registerCheck(new PingSpoofA($o));
+		}
+		{
 			$o->registerCheck(new AimA($o));
 			$o->registerCheck(new AimC($o));
-		} {
+		}
+		{
 			$o->registerCheck(new ReachA($o));
 			$o->registerCheck(new ReachB($o));
 			$o->registerCheck(new ReachC($o));
