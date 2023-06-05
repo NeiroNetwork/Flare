@@ -109,6 +109,11 @@ class ReachA extends BaseCheck{
 
 			if($pos !== null){
 				$size = $this->profile->getSupport()->getSize($runtimeId);
+
+				if(is_null($size)){
+					return;
+				}
+				
 				$h = $size->getHeight();
 				$w = $size->getWidth() / 2;
 				$bb = new AxisAlignedBB(

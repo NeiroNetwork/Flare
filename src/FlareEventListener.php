@@ -20,6 +20,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
+use pocketmine\lang\Translatable;
 use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -82,14 +83,17 @@ class FlareEventListener implements Listener{
 		$address = (new InternetAddress($session->getIp(), $session->getPort(), 4))->toString(); // todo: ipv6
 		unset($this->playerFromAddress[$address]);
 
+		$reason = $event->getQuitReason() instanceof Translatable ?
+			$this->server->getLanguage()->translate($event->getQuitReason()) :
+			$event->getQuitReason();
+
 		if($this->flare->getProfileManager()->fetch($session->getPlayerInfo()->getUuid()->toString())){
 			$this->flare->getProfileManager()->remove($player->getUniqueId()->toString());
 
 			$this->flare->getReporter()->autoUnsubscribe($player);
-
-			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$event->getQuitReason()->getText()}§f", $this->flare));
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが退出しました: §c{$reason}§f", $this->flare));
 		}else{
-			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが §c§l参加前に §r§f退出しました: §c{$event->getQuitReason()}§f", $this->flare));
+			$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§b{$player->getName()} §fが §c§l参加前に §r§f退出しました: §c{$reason}§f", $this->flare));
 		}
 	}
 
