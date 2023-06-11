@@ -27,7 +27,9 @@ use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
+use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\network\mcpe\raklib\RakLibServer;
 use pocketmine\network\query\DedicatedQueryNetworkInterface;
@@ -144,6 +146,10 @@ class FlareEventListener implements Listener{
 							$this->flare->getPlugin()->getServer()->getTick()
 						);
 					}
+
+					if($packet instanceof StartGamePacket){
+						$packet->networkPermissions = new NetworkPermissions(false);
+					}
 				}
 			}
 		}
@@ -175,6 +181,9 @@ class FlareEventListener implements Listener{
 					] as $entry){
 				if(is_infinite($entry) || is_nan($entry)){
 					$event->cancel();
+					$origin->disconnect(FlareKickReasons::bad_packet($origin->getPlayerInfo()->getUsername()));
+
+					$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§c{$origin->getPlayerInfo()->getUsername()} が送信した　PlayerAuthInputPacket で一部のプロパティの値が不正です", $this->flare));
 					break;
 				}
 			}

@@ -28,6 +28,7 @@ class FlareKickReasons{
 	private static int $UNFAIR_ADVANTAGE = 0x02;
 	private static int $INVALID_CLIENT = 0x03;
 	private static int $PAIRING_NOT_RESPONDED = 0x04;
+	private static int $BAD_PACKET = 0x05;
 
 	public static function too_many_inputs(int $violations, string $username) : string{
 		return
@@ -84,5 +85,17 @@ class FlareKickReasons{
 				)
 				:
 				"§cNot responded to packets.\n§dID: " . self::$PAIRING_NOT_RESPONDED;
+	}
+
+	public static function bad_packet(string $username) : string{
+		return
+			self::$obfuscation
+				?
+				"§7Reason: §d" . base64_encode(
+					Binary::writeInt(self::$BAD_PACKET) .
+					self::binaryWriteUTF8($username)
+				)
+				:
+				"§cError.\n§dID: " . self::$BAD_PACKET;
 	}
 }
