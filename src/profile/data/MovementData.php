@@ -692,7 +692,7 @@ class MovementData{
 
 		$this->immobile->update($providerSupport->checkActorMetadataGenericFlag(
 			$player->getId(),
-			EntityMetadataFlags::NO_AI // todo: player client predictions is working?
+			EntityMetadataFlags::NO_AI // it's working!
 		) ?? $player->hasNoClientPredictions());
 
 		$this->void->update($position->y <= -39.75);
@@ -720,7 +720,6 @@ class MovementData{
 			}
 
 			if($this->getJumpRecord()->getFlag()){
-				$player->sendMessage("jump");
 				$lastClientPredictedDelta->y = $this->jumpVelocity;
 			}
 
@@ -744,7 +743,6 @@ class MovementData{
 		}
 
 
-		$player->sendMessage($this->onGround->getFlag() ? "true" : "false");
 		$this->air->update(!$this->onGround->getFlag());
 
 		if($this->movementSpeed !== $this->lastMovementSpeed){
