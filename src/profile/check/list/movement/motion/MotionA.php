@@ -35,11 +35,10 @@ class MotionA extends BaseCheck{
 		$to = $md->getTo();
 
 		if(
-			$md->getAirRecord()->getLength() >= 2 &&
 			$md->getImmobileRecord()->getTickSinceAction() >= 2 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 4 &&
 			$md->getVoidRecord()->getTickSinceAction() >= 2 &&
-			($md->getRairRecord()->getLength() >= 2 || $md->getAirRecord()->getLength() >= 6) &&
+			$md->getAirRecord()->getLength() >= 5 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
 			$md->getAirRecord()->getLength() <= 300 && # 空中にいる時間が長くなるにつれて $accel は 0 に近づいてくるため
 			$sd->getFlowRecord()->getTickSinceAction() >= 5 &&

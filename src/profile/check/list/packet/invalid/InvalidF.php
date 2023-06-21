@@ -27,6 +27,8 @@ class InvalidF extends BaseCheck{
 		$forward = $ki->w() && !$ki->s();
 		$right = $ki->d() && !$ki->a();
 
+		return;
+
 		if($forward && abs($packet->getMoveVecZ()) <= 0.0){
 			$this->fail(new ViolationFailReason("Cheating MoveVecZ"));
 		}elseif(!$forward && abs($packet->getMoveVecZ()) > 0.0){

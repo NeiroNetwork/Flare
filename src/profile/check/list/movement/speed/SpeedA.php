@@ -36,7 +36,7 @@ class SpeedA extends BaseCheck{
 		$dist = $md->getRealDeltaXZ();
 		$lastDist = $md->getLastRealDeltaXZ();
 		if(
-			($md->getAirRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 5) &&
+			$md->getAirRecord()->getLength() >= 5 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 10 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 8 &&
 			$ki->getGlideRecord()->getTickSinceAction() >= 10 &&
@@ -49,6 +49,8 @@ class SpeedA extends BaseCheck{
 			if($diff > 0.00762){ #0.00745 -> 0.00762
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
+
+			$this->broadcastDebugMessage("Dist: {$dist}, Diff: {$diff}");
 		}
 	}
 }

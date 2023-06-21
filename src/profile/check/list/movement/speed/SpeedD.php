@@ -40,7 +40,7 @@ class SpeedD extends BaseCheck{
 		$diffYaw = abs($md->getRotationDelta()->yaw);
 		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
-			$md->getJumpRecord()->getTickSinceAction() >= 10 &&
+			$md->getJumpRecord()->getTickSinceAction() >= 20 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
 			$sd->getCollideUpdateRecord()->getTickSinceAction() >= 20 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 22 &&
@@ -51,11 +51,7 @@ class SpeedD extends BaseCheck{
 			count($sd->getComplexBlocks()) <= 0 &&
 			$diffYaw < 20 &&
 			$md->getMoveRecord()->getLength() >= 12 &&
-			(
-				($md->getRonGroundRecord()->getLength() >= 5 && $md->getAirRecord()->getLength() >= 3) || #Motion(D) の説明と同じ
-				($md->getOnGroundRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 3) ||
-				($md->getRonGroundRecord()->getLength() >= 7 && $md->getOnGroundRecord()->getLength() >= 7)
-			)
+			$md->getOnGroundRecord()->getLength() >= 5
 		){
 			$expected = MinecraftPhysics::moveDistancePerTick($md->getMovementSpeed(), $ki->sneak());
 			$diff = sqrt($md->getRealDeltaXZ()) - $expected;

@@ -25,7 +25,7 @@ class BlockUtil{
 	}
 
 	public static function getMaxCollisionY(Block $block) : float{
-		return max($block->getPosition()->y, ...array_map(fn(AxisAlignedBB $bb) => $bb->maxY, $block->getCollisionBoxes()));
+		return max(PHP_INT_MIN, $block->getPosition()->y, ...array_map(fn(AxisAlignedBB $bb) => $bb->maxY, $block->getCollisionBoxes()));
 	}
 
 	public static function isAbleToStep(Block $block) : bool{
@@ -56,12 +56,12 @@ class BlockUtil{
 	 *
 	 * @return Block[]
 	 */
-	public static function getEntityBlocksAround(AxisAlignedBB $bb, World $world, float $inset = 0.001) : array{
+	public static function getEntityBlocksAround(AxisAlignedBB $bb, World $world, float $inset = 0.001, float $yInset = 0.0) : array{
 		$minX = (int) floor($bb->minX + $inset);
-		$minY = (int) floor($bb->minY + $inset);
+		$minY = (int) floor($bb->minY + $inset + $yInset);
 		$minZ = (int) floor($bb->minZ + $inset);
 		$maxX = (int) floor($bb->maxX - $inset);
-		$maxY = (int) floor($bb->maxY - $inset);
+		$maxY = (int) floor($bb->maxY - $inset - $yInset);
 		$maxZ = (int) floor($bb->maxZ - $inset);
 
 		$blocksAround = [];

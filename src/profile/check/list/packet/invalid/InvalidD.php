@@ -29,7 +29,7 @@ class InvalidD extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$ki = $this->profile->getKeyInputs();
-		$delta = $md->getDelta();
+		$delta = $md->getClientPredictedDelta();
 		$realDelta = $md->getRealDelta();
 
 		if($delta->y == 0 && $realDelta->y == 0){
@@ -39,16 +39,17 @@ class InvalidD extends BaseCheck{
 				$ki->getSwimRecord()->getTickSinceAction() >= 20 &&
 				$md->getImmobileRecord()->getTickSinceAction() >= 5
 			){
-				$this->fail(new ViolationFailReason(""));
+				$this->fail(new ViolationFailReason("A"));
 			}
 		}
 
-		$grd = ($md->getAirRecord()->getLength() >= 5 || $md->getRairRecord()->getLength() >= 4);
-		if($grd){
-			$grd = ($md->getRonGroundRecord()->getLength() >= 3);
-		}
-		if($md->getClientOnGroundRecord()->getLength() > 1 && $grd){
-			$this->fail(new ViolationFailReason(""));
-		}
+		// todo: check
+		// $grd = ($md->getAirRecord()->getLength() >= 5 || $md->getRairRecord()->getLength() >= 4);
+		// if($grd){
+		// 	$grd = ($md->getRonGroundRecord()->getLength() >= 3);
+		// }
+		// if($md->getClientOnGroundRecord()->getLength() > 1 && $grd){
+		// 	$this->fail(new ViolationFailReason("B"));
+		// }
 	}
 }

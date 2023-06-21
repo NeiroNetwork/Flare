@@ -7,8 +7,8 @@ namespace NeiroNetwork\Flare\profile\data;
 use NeiroNetwork\Flare\data\report\DataReport;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
-use NeiroNetwork\Flare\utils\BlockUtil;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
+use pocketmine\data\bedrock\EffectIds;
 use pocketmine\event\entity\EntityMotionEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\EventPriority;
@@ -16,6 +16,7 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerJumpEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
@@ -40,6 +41,8 @@ class MovementData{
 	 */
 	protected AxisAlignedBB $boundingBox;
 
+	protected float $jumpVelocity;
+
 	/**
 	 * @var int
 	 */
@@ -58,7 +61,7 @@ class MovementData{
 	/**
 	 * @var Vector3
 	 */
-	protected Vector3 $delta;
+	protected Vector3 $clientPredictedDelta;
 
 	/**
 	 * @var float
@@ -68,7 +71,7 @@ class MovementData{
 	/**
 	 * @var Vector3
 	 */
-	protected Vector3 $lastDelta;
+	protected Vector3 $lastClientPredictedDelta;
 
 	/**
 	 * @var float
@@ -114,6 +117,8 @@ class MovementData{
 
 	protected float $eyeHeight;
 
+	protected ActionRecord $onGround;
+
 	/**
 	 * @var EntityRotation
 	 */
@@ -132,10 +137,6 @@ class MovementData{
 	/**
 	 * @var ActionRecord
 	 */
-	protected ActionRecord $onGround;
-	/**
-	 * @var ActionRecord
-	 */
 	protected ActionRecord $clientOnGround;
 	/**
 	 * @var ActionRecord
@@ -145,14 +146,6 @@ class MovementData{
 	 * @var ActionRecord
 	 */
 	protected ActionRecord $fly;
-	/**
-	 * @var ActionRecord
-	 */
-	protected ActionRecord $ronGround;
-	/**
-	 * @var ActionRecord
-	 */
-	protected ActionRecord $rair;
 	/**
 	 * @var ActionRecord
 	 */
@@ -318,8 +311,8 @@ class MovementData{
 	 *
 	 * @return Vector3
 	 */
-	public function getLastDelta() : Vector3{
-		return $this->lastDelta;
+	public function getLastClientPredictedDelta() : Vector3{
+		return $this->lastClientPredictedDelta;
 	}
 
 	/**
@@ -341,15 +334,6 @@ class MovementData{
 	}
 
 	/**
-	 * Get the value of onGround
-	 *
-	 * @return ActionRecord
-	 */
-	public function getOnGroundRecord() : ActionRecord{
-		return $this->onGround;
-	}
-
-	/**
 	 * Get the value of air
 	 *
 	 * @return ActionRecord
@@ -365,24 +349,6 @@ class MovementData{
 	 */
 	public function getFlyRecord() : ActionRecord{
 		return $this->fly;
-	}
-
-	/**
-	 * Get the value of ronGround
-	 *
-	 * @return ActionRecord
-	 */
-	public function getRonGroundRecord() : ActionRecord{
-		return $this->ronGround;
-	}
-
-	/**
-	 * Get the value of rair
-	 *
-	 * @return ActionRecord
-	 */
-	public function getRairRecord() : ActionRecord{
-		return $this->rair;
 	}
 
 	/**
@@ -410,24 +376,6 @@ class MovementData{
 	 */
 	public function getJoinRecord() : InstantActionRecord{
 		return $this->join;
-	}
-
-	/**
-	 * Get the value of motion
-	 *
-	 * @return InstantActionRecord
-	 */
-	public function getMotionRecord() : InstantActionRecord{
-		return $this->motion;
-	}
-
-	/**
-	 * Get the value of jump
-	 *
-	 * @return InstantActionRecord
-	 */
-	public function getJumpRecord() : InstantActionRecord{
-		return $this->jump;
 	}
 
 	/**
@@ -575,6 +523,13 @@ class MovementData{
 	}
 
 	/**
+	 * @return ActionRecord
+	 */
+	public function getOnGroundRecord() : ActionRecord{
+		return $this->onGround;
+	}
+
+	/**
 	 * @return int
 	 */
 	public function getInputCount() : int{
@@ -600,6 +555,31 @@ class MovementData{
 	 */
 	public function getMovementSpeed() : float{
 		return $this->movementSpeed;
+	}
+
+	/**
+	 * Get the value of delta
+	 *
+	 * @return Vector3
+	 */
+	public function getClientPredictedDelta() : Vector3{
+		return $this->clientPredictedDelta;
+	}
+
+	/**
+	 * Get the value of motion
+	 *
+	 * @return InstantActionRecord
+	 */
+	public function getMotionRecord() : InstantActionRecord{
+		return $this->motion;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getJumpVelocity() : float{
+		return $this->jumpVelocity;
 	}
 
 	protected function handleJump(PlayerJumpEvent $event) : void{
@@ -657,11 +637,11 @@ class MovementData{
 
 		$this->clientTick = $packet->getTick();
 
-		$this->lastDelta = clone $this->delta;
-		$this->delta = clone $packet->getDelta();
+		$this->lastClientPredictedDelta = clone $this->clientPredictedDelta;
+		$this->clientPredictedDelta = clone $packet->getDelta();
 
 		$this->lastDeltaXZ = $this->deltaXZ;
-		$this->deltaXZ = $this->delta->x ** 2 + $this->delta->z ** 2;
+		$this->deltaXZ = $this->clientPredictedDelta->x ** 2 + $this->clientPredictedDelta->z ** 2;
 
 		$this->lastRotation = clone $this->rotation;
 		$this->rotation = clone $rot;
@@ -705,26 +685,10 @@ class MovementData{
 		$this->eyeHeight = (MinecraftPhysics::PLAYER_EYE_HEIGHT) + ($ki->sneak() ? -0.15 : 0.0);
 		$this->eyePosition = $this->rawPosition->add(0, $this->eyeHeight, 0);
 
-		/**
-		 * @see Player::syncNetworkData()
-		 */
-		if(!$providerSupport->checkActorMetadataGenericFlag($player->getId(), EntityMetadataFlags::HAS_COLLISION)){
-			$this->onGround->update(false);
-		}else{
-			$bb = clone $this->boundingBox;
-			$bb->minY = $bb->minY - 0.2;
-			$bb->maxY = $bb->maxY + 0.1;
 
-			// $bb = $bb->addCoord(-$d->x, -$d->y, -$d->z);
+		$this->jumpVelocity = MinecraftPhysics::JUMP_VELOCITY + ($providerSupport->getEffect($player->getId(), EffectIds::JUMP_BOOST)?->getEffectLevel() ?? 0) / 10;
 
-			$this->onGround->update(
-				count(BlockUtil::getFixedCollisionBlocks($player->getWorld(), $bb, true)) > 0
-			);
-		}
-
-		$this->clientOnGround->update(abs($this->delta->y - MinecraftPhysics::nextFreefallVelocity(Vector3::zero())->y) < 1.0E-8);
-
-		$this->air->update(!$this->onGround->getFlag());
+		$this->clientOnGround->update(abs($this->clientPredictedDelta->y - MinecraftPhysics::nextFreefallVelocity(Vector3::zero())->y) < 1.0E-8);
 
 		$this->immobile->update($providerSupport->checkActorMetadataGenericFlag(
 			$player->getId(),
@@ -741,20 +705,47 @@ class MovementData{
 
 		$this->move->update($packet->getMoveVecX() > 0 || $packet->getMoveVecZ() > 0);
 
-		$roundedY = $this->roundedPosition->y;
-		$m = fmod($roundedY, 1 / 64);
-		$step = round($roundedY - floor($roundedY), 4);
-		if(
-			$step == 0.1825 || #忘れた
-			$step == 0.9999 || #スポーンブロック
-			$step == 0.95 || #チェスト
-			$step == 0.0156
-		){ #蓮の葉
-			$m = 0;
-		} #todo: これを元にbypassされる可能性があるので解決策を探す
+		/**
+		 * @see Player::syncNetworkData()
+		 */
+		if(!$providerSupport->checkActorMetadataGenericFlag($player->getId(), EntityMetadataFlags::HAS_COLLISION)){
+			$this->onGround->update(false);
+		}else{
+			$lastClientPredictedDelta = clone $this->lastClientPredictedDelta;
 
-		$this->ronGround->update(!$m);
-		$this->rair->update(!$this->ronGround->getFlag());
+			$pairedMotion = $this->profile->getActorStateProvider()->getMotionTickMap()->get($player->getId())?->get($this->profile->getServerTick()) ?? null;
+
+			if(!is_null($pairedMotion)){
+				$lastClientPredictedDelta->y = $pairedMotion->y;
+			}
+
+			if($this->getJumpRecord()->getFlag()){
+				$player->sendMessage("jump");
+				$lastClientPredictedDelta->y = $this->jumpVelocity;
+			}
+
+			$collidedVertically = abs($lastClientPredictedDelta->y - $this->realDelta->y) > 0.001;
+			$shouldBeStand = false;
+
+			// 半ブロックはマジでゴミです。消えてください。
+			$bb = $this->boundingBox->extendedCopy(Facing::DOWN, 2 / 64)->addCoord($d->x, $d->y, $d->z)->expand(1 / 3, 1 / 3, 1 / 3);
+			foreach($this->profile->getSurroundData()->getStepBlocks() as $block){
+				if($block->collidesWithBB($bb)){
+					$shouldBeStand = true;
+					break;
+				}
+			}
+
+			$this->onGround->update(
+				$collidedVertically &&
+				($lastClientPredictedDelta->y < 0 || count($this->profile->getSurroundData()->getTouchingBlocks()) >= 1) &&
+				$shouldBeStand
+			);
+		}
+
+
+		$player->sendMessage($this->onGround->getFlag() ? "true" : "false");
+		$this->air->update(!$this->onGround->getFlag());
 
 		if($this->movementSpeed !== $this->lastMovementSpeed){
 			$this->speedChange->onAction();
@@ -779,11 +770,11 @@ class MovementData{
 	}
 
 	/**
-	 * Get the value of delta
+	 * Get the value of jump
 	 *
-	 * @return Vector3
+	 * @return InstantActionRecord
 	 */
-	public function getDelta() : Vector3{
-		return $this->delta;
+	public function getJumpRecord() : InstantActionRecord{
+		return $this->jump;
 	}
 }

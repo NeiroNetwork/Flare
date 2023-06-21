@@ -11,6 +11,8 @@ class MinecraftPhysics{
 	const FRICTION_AIR = 0.02;
 	const FRICTION_GROUND = 0.2;
 
+	const JUMP_VELOCITY = 0.42;
+
 	const PLAYER_EYE_HEIGHT = 1.62;
 
 	/**
@@ -29,7 +31,7 @@ class MinecraftPhysics{
 		return self::applyAirFriction($v);
 	}
 
-	public static function applyAirFriction(Vector3 $velocity){
+	public static function applyAirFriction(Vector3 $velocity) : Vector3{
 		$v = clone $velocity;
 		$v->y *= 0.9800000116229;
 		$v->x *= 0.91;

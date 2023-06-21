@@ -6,6 +6,7 @@ namespace NeiroNetwork\Flare\profile\data;
 
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
+use NeiroNetwork\Flare\utils\Map;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
@@ -49,6 +50,11 @@ class SurroundData{
 	 * @var Block[]
 	 */
 	protected array $ableToStepBlocks;
+
+	/**
+	 * @var Map<int, Block[]>
+	 */
+	protected Map $touchingBlockTypeMap;
 
 	/**
 	 * @var Block
@@ -98,7 +104,7 @@ class SurroundData{
 			PlayerAuthInputPacket::NETWORK_ID,
 			$this->handleInput(...),
 			false,
-			EventPriority::NORMAL
+			EventPriority::LOWEST
 		));
 
 		($hash = $emitter->registerEventHandler(
@@ -118,6 +124,7 @@ class SurroundData{
 
 		ProfileData::autoPropertyValue($this);
 
+		$this->touchingBlockTypeMap = new Map();
 		$this->step = VanillaBlocks::AIR();
 	}
 
@@ -214,6 +221,13 @@ class SurroundData{
 		return $this->complexBlocks;
 	}
 
+	/**
+	 * @return Map
+	 */
+	public function getTouchingBlockTypeMap() : Map{
+		return $this->touchingBlockTypeMap;
+	}
+
 	protected function handleBlockUpdate(BlockUpdateEvent $event) : void{
 		$this->handleBlockChanges($event);
 	}
@@ -243,7 +257,7 @@ class SurroundData{
 		$block = $player->getWorld()->getBlock($position);
 
 		$playerBB = $this->profile->getMovementData()->getBoundingBox();
-		$this->nearbyBlocks = BlockUtil::getEntityBlocksAround($playerBB, $player->getWorld(), -0.2);
+		$this->nearbyBlocks = BlockUtil::getEntityBlocksAround($playerBB, $player->getWorld(), -0.2, -0.5);
 
 		$stepPos = $position->subtract(0, 0.74, 0);
 		$stepBlock = $player->getWorld()->getBlock($stepPos);
@@ -257,6 +271,7 @@ class SurroundData{
 		$this->overheadBlocks = [];
 		$this->complexBlocks = [];
 		$this->ableToStepBlocks = [];
+		$this->touchingBlockTypeMap->clear();
 
 		$cobweb = false;
 		$flow = false;
@@ -306,6 +321,10 @@ class SurroundData{
 
 			if($block->collidesWithBB($touchBB)){
 				$this->touchingBlocks[] = $block;
+
+				$arr = $this->touchingBlockTypeMap->get($block->getTypeId()) ?? [];
+				$arr[] = $block;
+				$this->touchingBlockTypeMap->put($block->getTypeId(), $arr);
 			}
 
 			if(BlockUtil::isAbleToStep($block)){

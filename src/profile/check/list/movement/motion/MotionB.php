@@ -39,20 +39,12 @@ class MotionB extends BaseCheck{
 
 		$step = $sd->getStep();
 		$climb = $step->canClimb();
-		$rair = $md->getRairRecord();
-		$air = $md->getAirRecord();
-		$ronGround = $md->getRonGroundRecord();
-		$onGround = $md->getOnGroundRecord();
 
 		// $player->sendMessage("air: {$air->getLength()}, rair: {$rair->getLength()}");
 
 		if(!$climb){
 			if(
-				(
-					($air->getLength() >= 6 && $ronGround->getLength() >= 5) || # RonGround を bypass した場合は Air が対応する
-					($rair->getLength() >= 16 && $onGround->getLength() >= 5) || # OnGround を bypass した場合は Rair が対応する
-					($rair->getLength() >= 12 && $air->getLength() >= 12)
-				) &&
+				$md->getAirRecord()->getLength() >= 5 &&
 				$md->getImmobileRecord()->getTickSinceAction() >= 2 &&
 				$md->getFlyRecord()->getTickSinceAction() >= 4 &&
 				$md->getVoidRecord()->getTickSinceAction() >= 2 &&
@@ -80,6 +72,8 @@ class MotionB extends BaseCheck{
 						$this->fail(new ViolationFailReason("Diff: $diff"));
 					}
 				}
+
+				$this->broadcastDebugMessage("dy: {$deltaY}, exp: {$expectedDeltaY}");
 			}
 		}
 	}

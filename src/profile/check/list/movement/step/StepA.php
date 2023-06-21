@@ -34,7 +34,7 @@ class StepA extends BaseCheck{
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
 
-		$delta = $md->getDelta(); // client motion
+		$delta = $md->getClientPredictedDelta(); // client motion
 		$realDelta = $md->getRealDelta(); // position delta
 
 		if(

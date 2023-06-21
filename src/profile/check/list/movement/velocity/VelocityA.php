@@ -210,7 +210,7 @@ class VelocityA extends BaseCheck{
 				$this->predictList[] = clone $this->predict;
 				$this->deltaList[] = clone $delta;
 
-				if(($delta->y < 0 && $this->predict->y < 0 && ($md->getOnGroundRecord()->getFlag() || $md->getRonGroundRecord()->getFlag())) || count($this->predictList) > 75){
+				if(($delta->y < 0 && $this->predict->y < 0 && $md->getOnGroundRecord()->getFlag()) || count($this->predictList) > 75){
 					$this->resetAndCheck();
 				}
 			}
