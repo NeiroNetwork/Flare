@@ -29,8 +29,8 @@ class JumpB extends BaseCheck{
 			$player = $this->profile->getPlayer();
 			$md = $this->profile->getMovementData();
 			$sd = $this->profile->getSurroundData();
-			$deltaY = $this->profile->getMovementData()->getRealDelta()->y;
-			$expectY = $player->getJumpVelocity();
+			$deltaY = $this->profile->getMovementData()->getClientPredictedDelta()->y;
+			$expectY = $md->getJumpVelocity();
 
 			if(
 				$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
@@ -44,7 +44,7 @@ class JumpB extends BaseCheck{
 				}
 			}
 		});
-		$this->profile->getMovementData()->getJumpRecord()->notify($notifier);
+		$this->profile->getKeyInputs()->getStartJumpRecord()->notify($notifier);
 
 	}
 

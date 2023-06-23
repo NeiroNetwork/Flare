@@ -104,7 +104,7 @@ class SurroundData{
 			PlayerAuthInputPacket::NETWORK_ID,
 			$this->handleInput(...),
 			false,
-			EventPriority::LOWEST
+			EventPriority::LOW
 		));
 
 		($hash = $emitter->registerEventHandler(

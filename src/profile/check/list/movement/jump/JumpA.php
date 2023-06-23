@@ -38,10 +38,9 @@ class JumpA extends BaseCheck{
 			$this->motion = $md->getClientPredictedDelta();
 			$this->motion->y = $this->profile->getMovementData()->getJumpVelocity();
 
-			$this->motion = MinecraftPhysics::previousFreefallVelocity($this->motion);
 			$this->jumpSprinting = $this->profile->getPlayer()->isSprinting();
 		});
-		$this->profile->getMovementData()->getJumpRecord()->notify($notifier);
+		$this->profile->getKeyInputs()->getStartJumpRecord()->notify($notifier);
 
 		$this->motion = null;
 		$this->jumpSprinting = false;

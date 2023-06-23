@@ -13,7 +13,6 @@ use pocketmine\event\entity\EntityMotionEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\player\PlayerDeathEvent;
-use pocketmine\event\player\PlayerJumpEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
@@ -22,7 +21,6 @@ use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
-use pocketmine\player\Player;
 
 class MovementData{
 
@@ -169,10 +167,6 @@ class MovementData{
 	/**
 	 * @var InstantActionRecord
 	 */
-	protected InstantActionRecord $jump;
-	/**
-	 * @var InstantActionRecord
-	 */
 	protected InstantActionRecord $teleport;
 	/**
 	 * @var InstantActionRecord
@@ -216,7 +210,7 @@ class MovementData{
 			PlayerAuthInputPacket::NETWORK_ID,
 			$this->handleInput(...),
 			false,
-			EventPriority::LOW
+			EventPriority::NORMAL
 		));
 
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
@@ -249,14 +243,6 @@ class MovementData{
 		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
 			PlayerRespawnEvent::class,
 			$this->handleRespawn(...),
-			EventPriority::MONITOR,
-			$plugin,
-			false
-		));
-
-		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
-			PlayerJumpEvent::class,
-			$this->handleJump(...),
 			EventPriority::MONITOR,
 			$plugin,
 			false
@@ -582,12 +568,6 @@ class MovementData{
 		return $this->jumpVelocity;
 	}
 
-	protected function handleJump(PlayerJumpEvent $event) : void{
-		if($event->getPlayer() === $this->profile->getPlayer()){
-			$this->jump->onAction();
-		}
-	}
-
 	protected function handleRespawn(PlayerRespawnEvent $event) : void{
 		if($event->getPlayer() === $this->profile->getPlayer()){
 			$this->respawn->onAction();
@@ -716,10 +696,12 @@ class MovementData{
 			$pairedMotion = $this->profile->getActorStateProvider()->getMotionTickMap()->get($player->getId())?->get($this->profile->getServerTick()) ?? null;
 
 			if(!is_null($pairedMotion)){
+				$player->sendMessage("motion");
 				$lastClientPredictedDelta->y = $pairedMotion->y;
 			}
 
-			if($this->getJumpRecord()->getFlag()){
+			if($this->profile->getKeyInputs()->getStartJumpRecord()->getFlag()){
+				$player->sendMessage("jump");
 				$lastClientPredictedDelta->y = $this->jumpVelocity;
 			}
 
@@ -729,7 +711,7 @@ class MovementData{
 			// 半ブロックはマジでゴミです。消えてください。
 			$bb = $this->boundingBox->extendedCopy(Facing::DOWN, 2 / 64)->addCoord($d->x, $d->y, $d->z)->expand(1 / 3, 1 / 3, 1 / 3);
 			foreach($this->profile->getSurroundData()->getStepBlocks() as $block){
-				if($block->collidesWithBB($bb)){
+				if($block->collidesWithBB($bb) && floor($block->getPosition()->y) <= floor($position->y)){
 					$shouldBeStand = true;
 					break;
 				}
@@ -737,7 +719,7 @@ class MovementData{
 
 			$this->onGround->update(
 				$collidedVertically &&
-				($lastClientPredictedDelta->y < 0 || count($this->profile->getSurroundData()->getTouchingBlocks()) >= 1) &&
+				($lastClientPredictedDelta->y < 0) &&
 				$shouldBeStand
 			);
 		}
@@ -755,7 +737,6 @@ class MovementData{
 		$this->teleport->update();
 		$this->death->update();
 		$this->respawn->update();
-		$this->jump->update();
 	}
 
 	/**
@@ -765,14 +746,5 @@ class MovementData{
 	 */
 	public function getBoundingBox() : AxisAlignedBB{
 		return $this->boundingBox;
-	}
-
-	/**
-	 * Get the value of jump
-	 *
-	 * @return InstantActionRecord
-	 */
-	public function getJumpRecord() : InstantActionRecord{
-		return $this->jump;
 	}
 }

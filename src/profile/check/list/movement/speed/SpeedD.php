@@ -40,7 +40,7 @@ class SpeedD extends BaseCheck{
 		$diffYaw = abs($md->getRotationDelta()->yaw);
 		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
-			$md->getJumpRecord()->getTickSinceAction() >= 20 &&
+			$ki->getStartJumpRecord()->getTickSinceAction() >= 20 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
 			$sd->getCollideUpdateRecord()->getTickSinceAction() >= 20 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 22 &&
@@ -54,13 +54,16 @@ class SpeedD extends BaseCheck{
 			$md->getOnGroundRecord()->getLength() >= 5
 		){
 			$expected = MinecraftPhysics::moveDistancePerTick($md->getMovementSpeed(), $ki->sneak());
-			$diff = sqrt($md->getRealDeltaXZ()) - $expected;
+			$deltaXZ = sqrt($md->getRealDeltaXZ());
+			$diff = $deltaXZ - $expected;
 			$diffScaled = $diff * 100;
 
 			// $player->sendMessage("diff: {$diff}");
 			if($diffScaled > 1.5){
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
+
+			$this->broadcastDebugMessage("deltaXZ: {$deltaXZ} diff: {$diff}");
 		}
 	}
 }

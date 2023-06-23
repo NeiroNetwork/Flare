@@ -180,6 +180,7 @@ class VelocityA extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
+		$ki = $this->profile->getKeyInputs();
 		$deltaTick = $packet->getTick() - $this->lastTick;
 
 
@@ -188,7 +189,7 @@ class VelocityA extends BaseCheck{
 				$sd->getClimbRecord()->getTickSinceAction() <= 5 ||
 				$sd->getBounceRecord()->getTickSinceAction() <= 5 ||
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
-				($md->getJumpRecord()->getEndTick() > $this->predictStartTick && $md->getJumpRecord()->getEndTick() < $this->predictStartTick + 5) || // ジャンプリセットによる誤検知無効化
+				($ki->getStartJumpRecord()->getEndTick() > $this->predictStartTick && $ki->getStartJumpRecord()->getEndTick() < $this->predictStartTick + 5) || // ジャンプリセットによる誤検知無効化
 				$sd->getHitHeadRecord()->getTickSinceAction() <= 2 ||
 				$sd->getFlowRecord()->getTickSinceAction() <= 4 ||
 				$md->getFlyRecord()->getTickSinceAction() <= 4

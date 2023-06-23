@@ -44,7 +44,7 @@ class SpeedE extends BaseCheck{
 		$diffYaw = abs($md->getRotationDelta()->yaw);
 		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
-			$md->getJumpRecord()->getTickSinceAction() >= 6 &&
+			$ki->getStartJumpRecord()->getTickSinceAction() >= 6 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
 			$sd->getCobwebRecord()->getTickSinceAction() >= 10 &&
 			$sd->getCollideUpdateRecord()->getTickSinceAction() >= 20 &&
