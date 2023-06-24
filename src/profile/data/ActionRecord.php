@@ -43,14 +43,14 @@ class ActionRecord{
 	 */
 	protected array $notifiers;
 
-	protected self $last;
+	protected ?self $last;
 
 	public function __construct(){
 		$this->tickSinceAction = 0;
 		$this->length = 0;
 		$this->endTick = 0;
 		$this->startTick = 0;
-		$this->last = clone $this;
+		$this->last = null;
 
 		$this->lastFlag = false;
 		$this->flag = false;
@@ -90,10 +90,14 @@ class ActionRecord{
 		return $this->flag;
 	}
 
+	public function getLastOrSelf() : ActionRecord{
+		return $this->getLast() ?? $this;
+	}
+
 	/**
 	 * @return ActionRecord
 	 */
-	public function getLast() : ActionRecord{
+	public function getLast() : ?ActionRecord{
 		return $this->last;
 	}
 
@@ -101,6 +105,7 @@ class ActionRecord{
 		$this->notifyUpdate($flag);
 		$currentTick ??= Server::getInstance()->getTick();
 		$this->last = clone $this;
+		$this->last->last = null;
 
 		#ここにおいて $this->flag は 一つまえのflag
 		if($this->flag && !$flag){ #off

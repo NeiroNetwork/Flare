@@ -34,7 +34,7 @@ class AuraA extends BaseCheck{
 			return;
 		}
 
-		if($cd->getAttackRecord()->getLast()->getTickSinceAction() > 15){
+		if($cd->getAttackRecord()->getLastOrSelf()->getTickSinceAction() > 15){
 			return;
 		}
 
