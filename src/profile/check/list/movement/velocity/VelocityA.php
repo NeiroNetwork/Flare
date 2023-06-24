@@ -101,7 +101,7 @@ class VelocityA extends BaseCheck{
 		$predictList = array_values($this->predictList);
 
 		$pingValue = $this->profile->getLatencyTick();
-		$min = $pingValue;
+		$min = max(0, $pingValue - 1);
 		$allow = 5;
 		$allow += $pingValue;
 

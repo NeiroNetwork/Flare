@@ -493,15 +493,13 @@ class PlayerProfile implements Profile{
 		if($enabled){
 			$this->transactionPairing = new TransactionPairing($this, 20);
 			$provider = new TransactionPairingActorStateProvider($this->transactionPairing, 40);
-			$this->actorStateProvider->copy($provider);
-			$this->actorStateProvider = $provider;
 		}else{
 			unset($this->transactionPairing);
 			$this->transactionPairing = null;
 			$provider = new SimpleActorStateProvider($this, 40);
-			$this->actorStateProvider->copy($provider);
-			$this->actorStateProvider = $provider;
 		}
+		$this->actorStateProvider->copy($provider);
+		$this->actorStateProvider = $provider;
 
 	}
 

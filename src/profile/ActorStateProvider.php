@@ -8,6 +8,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\types\AbilitiesData;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
+use pocketmine\utils\ObjectSet;
 
 interface ActorStateProvider{
 
@@ -100,4 +101,6 @@ interface ActorStateProvider{
 	public function getAbilitiesTickMap() : Map;
 
 	public function dispose() : void;
+
+	public function getOnMotionHooks() : ObjectSet;
 }

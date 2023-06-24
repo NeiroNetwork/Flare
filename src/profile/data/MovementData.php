@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
+use Closure;
 use NeiroNetwork\Flare\data\report\DataReport;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\data\bedrock\EffectIds;
-use pocketmine\event\entity\EntityMotionEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\player\PlayerDeathEvent;
@@ -164,6 +164,8 @@ class MovementData{
 	 * @var InstantActionRecord
 	 */
 	protected InstantActionRecord $motion;
+
+	protected ?Vector3 $motionVector;
 	/**
 	 * @var InstantActionRecord
 	 */
@@ -189,6 +191,8 @@ class MovementData{
 
 	protected ?DataReport $rotationDataReport;
 
+	protected Closure $motionHookClosure;
+
 	protected int $inputCount;
 
 	public function __construct(protected PlayerProfile $profile){
@@ -212,15 +216,6 @@ class MovementData{
 			false,
 			EventPriority::NORMAL
 		));
-
-		$links->add($plugin->getServer()->getPluginManager()->registerEvent(
-			EntityMotionEvent::class,
-			$this->handleMotion(...),
-			EventPriority::MONITOR,
-			$plugin,
-			false
-		));
-
 		//todo: EventEmitter を改良する。 (軽量化)
 		// eventListenersにpriorityのキーを作って引数にそれも追加
 
@@ -248,6 +243,11 @@ class MovementData{
 			false
 		));
 
+		$this->profile->getActorStateProvider()->getOnMotionHooks()->add($this->motionHookClosure = function(int $runtimeId, int $tick, Vector3 $motion) : void{
+			$this->motion->onAction();
+			$this->motionVector = $motion;
+		});
+
 		$this->clientTick = 0;
 
 		$this->deltaXZ = 0.0;
@@ -260,6 +260,8 @@ class MovementData{
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 
 		$this->join->onAction();
+
+		$this->motionVector = null;
 	}
 
 	/**
@@ -586,12 +588,6 @@ class MovementData{
 		}
 	}
 
-	protected function handleMotion(EntityMotionEvent $event) : void{
-		if($event->getEntity() === $this->profile->getPlayer()){
-			$this->motion->onAction();
-		}
-	}
-
 	protected function handleInput(PlayerAuthInputPacket $packet) : void{
 		$player = $this->profile->getPlayer();
 		$ki = $this->profile->getKeyInputs();
@@ -685,6 +681,8 @@ class MovementData{
 
 		$this->move->update($packet->getMoveVecX() > 0 || $packet->getMoveVecZ() > 0);
 
+		$this->motion->update();
+
 		/**
 		 * @see Player::syncNetworkData()
 		 */
@@ -693,15 +691,12 @@ class MovementData{
 		}else{
 			$lastClientPredictedDelta = clone $this->lastClientPredictedDelta;
 
-			$pairedMotion = $this->profile->getActorStateProvider()->getMotionTickMap()->get($player->getId())?->get($this->profile->getServerTick()) ?? null;
-
-			if(!is_null($pairedMotion)){
-				$player->sendMessage("motion");
-				$lastClientPredictedDelta->y = $pairedMotion->y;
+			if(!is_null($this->motionVector)){
+				$lastClientPredictedDelta->y = $this->motionVector->y;
+				$this->motionVector = null;
 			}
 
 			if($this->profile->getKeyInputs()->getStartJumpRecord()->getFlag()){
-				$player->sendMessage("jump");
 				$lastClientPredictedDelta->y = $this->jumpVelocity;
 			}
 
@@ -732,8 +727,8 @@ class MovementData{
 		}
 
 		$this->speedChange->update();
+
 		$this->join->update();
-		$this->motion->update();
 		$this->teleport->update();
 		$this->death->update();
 		$this->respawn->update();
