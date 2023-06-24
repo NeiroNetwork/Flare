@@ -44,7 +44,7 @@ class SpeedE extends BaseCheck{
 		$diffYaw = abs($md->getRotationDelta()->yaw);
 		if(
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
-			$md->getJumpRecord()->getTickSinceAction() >= 6 &&
+			$ki->getStartJumpRecord()->getTickSinceAction() >= 6 &&
 			$sd->getSlipRecord()->getTickSinceAction() >= 6 &&
 			$sd->getCobwebRecord()->getTickSinceAction() >= 10 &&
 			$sd->getCollideUpdateRecord()->getTickSinceAction() >= 20 &&
@@ -56,11 +56,7 @@ class SpeedE extends BaseCheck{
 			count($sd->getComplexBlocks()) <= 0 &&
 			count($sd->getTouchingBlocks()) <= 0 &&
 			$diffYaw < 20 &&
-			(
-				($md->getRonGroundRecord()->getLength() >= 5 && $md->getAirRecord()->getLength() >= 3) || #Motion(D) の説明と同じ
-				($md->getOnGroundRecord()->getLength() >= 5 && $md->getRairRecord()->getLength() >= 3) ||
-				($md->getRonGroundRecord()->getLength() >= 7 && $md->getOnGroundRecord()->getLength() >= 7)
-			)
+			$md->getOnGroundRecord()->getLength() >= 5
 		){
 
 			if($md->getMoveRecord()->getLength() < 8 && $md->getMoveRecord()->getLength() > 2){

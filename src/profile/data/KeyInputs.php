@@ -17,7 +17,7 @@ class KeyInputs{
 	protected bool $a;
 	protected bool $s;
 	protected bool $d;
-	protected bool $jump;
+	protected bool $jumping;
 
 	protected bool $sneaking;
 	protected bool $sprinting;
@@ -48,6 +48,10 @@ class KeyInputs{
 	 * @var ActionRecord
 	 */
 	protected ActionRecord $swim;
+
+	protected ActionRecord $jump;
+
+	protected InstantActionRecord $startJump;
 
 	/**
 	 * @var InstantActionRecord
@@ -103,7 +107,21 @@ class KeyInputs{
 	}
 
 	public function jump() : bool{
+		return $this->jumping;
+	}
+
+	/**
+	 * @return ActionRecord
+	 */
+	public function getJumpingRecord() : ActionRecord{
 		return $this->jump;
+	}
+
+	/**
+	 * @return InstantActionRecord
+	 */
+	public function getStartJumpRecord() : InstantActionRecord{
+		return $this->startJump;
 	}
 
 	/**
@@ -238,11 +256,12 @@ class KeyInputs{
 		$this->sprint->update($this->sprinting);
 		$this->sneak->update($this->sneaking);
 
-		$this->sneakChange->update();
 
 		if($this->sneak->getFlag() !== $this->sneak->getLastFlag()){
 			$this->sneakChange->onAction();
 		}
+
+		$this->sneakChange->update();
 
 		$this->lastForwardValue = $this->forwardValue;
 		$this->forwardValue = $vz * 0.98;
@@ -256,6 +275,13 @@ class KeyInputs{
 			$this->moveVecChange->onAction();
 		}
 
-		$this->jump = ($packet->hasFlag(PlayerAuthInputFlags::JUMPING));
+		$this->jumping = ($packet->hasFlag(PlayerAuthInputFlags::JUMPING));
+		$this->jump->update($this->jumping);
+
+		if($packet->hasFlag(PlayerAuthInputFlags::START_JUMPING)){
+			$this->startJump->onAction();
+		}
+
+		$this->startJump->update();
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace NeiroNetwork\Flare\profile;
 
+use Closure;
 use NeiroNetwork\Flare\utils\IntegerSortSizeMap;
 use NeiroNetwork\Flare\utils\Map;
 use pocketmine\data\bedrock\EffectIdMap;
@@ -16,6 +17,7 @@ use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
+use pocketmine\utils\ObjectSet;
 
 abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
@@ -81,6 +83,11 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
 	protected int $tickMapSize;
 
+	/**
+	 * @var ObjectSet<Closure(int $runtimeId, int $tick, Vector3 $motion): void>
+	 */
+	protected ObjectSet $onMotionHooks;
+
 	public function __construct(int $tickMapSize){
 		$this->position = new Map();
 		$this->tickPosition = new Map();
@@ -94,8 +101,16 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		$this->tickEffects = new Map();
 		$this->abilities = new Map();
 		$this->tickAbilities = new Map();
+		$this->onMotionHooks = new ObjectSet();
 
 		$this->tickMapSize = $tickMapSize;
+	}
+
+	/**
+	 * @return ObjectSet<Closure(int $runtimeId, int $tick, Vector3 $motion): void>
+	 */
+	public function getOnMotionHooks() : ObjectSet{
+		return $this->onMotionHooks;
 	}
 
 	public function getMotion(int $runtimeId) : ?Vector3{
@@ -191,6 +206,7 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		$provider->tickAbilities = clone $this->tickAbilities;
 		$provider->tickAttributes = clone $this->tickAttributes;
 		$provider->tickEffects = clone $this->tickEffects;
+		$provider->onMotionHooks = clone $this->onMotionHooks;
 	}
 
 	public function handleMoveActorAbsolute(MoveActorAbsolutePacket $packet, int $tick) : void{
@@ -212,6 +228,10 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		$this->motion->put($packet->actorRuntimeId, $packet->motion);
 		$this->tickMotion->putIfAbsent($packet->actorRuntimeId, new IntegerSortSizeMap($this->tickMapSize));
 		$this->tickMotion->get($packet->actorRuntimeId)->put($tick, $packet->motion);
+
+		foreach($this->onMotionHooks as $hook){
+			$hook($packet->actorRuntimeId, $tick, $packet->motion);
+		}
 	}
 
 	public function handleUpdateAttributes(UpdateAttributesPacket $packet, int $tick) : void{

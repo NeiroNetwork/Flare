@@ -101,7 +101,7 @@ class VelocityA extends BaseCheck{
 		$predictList = array_values($this->predictList);
 
 		$pingValue = $this->profile->getLatencyTick();
-		$min = $pingValue;
+		$min = max(0, $pingValue - 1);
 		$allow = 5;
 		$allow += $pingValue;
 
@@ -180,6 +180,7 @@ class VelocityA extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 		$sd = $this->profile->getSurroundData();
+		$ki = $this->profile->getKeyInputs();
 		$deltaTick = $packet->getTick() - $this->lastTick;
 
 
@@ -188,7 +189,7 @@ class VelocityA extends BaseCheck{
 				$sd->getClimbRecord()->getTickSinceAction() <= 5 ||
 				$sd->getBounceRecord()->getTickSinceAction() <= 5 ||
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
-				($md->getJumpRecord()->getEndTick() > $this->predictStartTick && $md->getJumpRecord()->getEndTick() < $this->predictStartTick + 5) || // ジャンプリセットによる誤検知無効化
+				($ki->getStartJumpRecord()->getEndTick() > $this->predictStartTick && $ki->getStartJumpRecord()->getEndTick() < $this->predictStartTick + 5) || // ジャンプリセットによる誤検知無効化
 				$sd->getHitHeadRecord()->getTickSinceAction() <= 2 ||
 				$sd->getFlowRecord()->getTickSinceAction() <= 4 ||
 				$md->getFlyRecord()->getTickSinceAction() <= 4
@@ -210,7 +211,7 @@ class VelocityA extends BaseCheck{
 				$this->predictList[] = clone $this->predict;
 				$this->deltaList[] = clone $delta;
 
-				if(($delta->y < 0 && $this->predict->y < 0 && ($md->getOnGroundRecord()->getFlag() || $md->getRonGroundRecord()->getFlag())) || count($this->predictList) > 75){
+				if(($delta->y < 0 && $this->predict->y < 0 && $md->getOnGroundRecord()->getFlag()) || count($this->predictList) > 75){
 					$this->resetAndCheck();
 				}
 			}

@@ -33,6 +33,11 @@ class ProfileSupport{
 		}
 	}
 
+	public function getLatestTick() : int{
+		return $this->profile->isTransactionPairingEnabled() ?
+			$this->profile->getTransactionPairing()->getLatestConfirmedTick() : $this->profile->getServerTick();
+	}
+
 	public function createVirtualActor(int $runtimeId) : ?VirtualActor{
 		$provider = $this->profile->getActorStateProvider();
 		$position = $provider->getPosition($runtimeId);

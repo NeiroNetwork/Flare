@@ -28,6 +28,6 @@ class MotionD extends BaseCheck{
 		$player = $this->profile->getPlayer();
 		$md = $this->profile->getMovementData();
 
-		$this->broadcastDebugMessage("Real: {$md->getRealDelta()->y}, Pos: {$md->getDelta()->y}");
+		$this->broadcastDebugMessage("Real: {$md->getRealDelta()->y}, Pos: {$md->getClientPredictedDelta()->y}");
 	}
 }

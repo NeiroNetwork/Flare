@@ -35,13 +35,12 @@ class JumpA extends BaseCheck{
 		$notifier = new ActionNotifier();
 		$notifier->notifyAction(function(ActionRecord $record) : void{
 			$md = $this->profile->getMovementData();
-			$this->motion = $md->getDelta();
-			$this->motion->y = $this->profile->getPlayer()->getJumpVelocity();
+			$this->motion = $md->getClientPredictedDelta();
+			$this->motion->y = $this->profile->getMovementData()->getJumpVelocity();
 
-			$this->motion = MinecraftPhysics::previousFreefallVelocity($this->motion);
 			$this->jumpSprinting = $this->profile->getPlayer()->isSprinting();
 		});
-		$this->profile->getMovementData()->getJumpRecord()->notify($notifier);
+		$this->profile->getKeyInputs()->getStartJumpRecord()->notify($notifier);
 
 		$this->motion = null;
 		$this->jumpSprinting = false;
@@ -59,8 +58,7 @@ class JumpA extends BaseCheck{
 			if(
 				abs($md->getRotation()->yaw - $md->getLastRotation()->yaw) > 3 ||
 				$sd->getHitHeadRecord()->getLength() >= 1 ||
-				$md->getRonGroundRecord()->getLength() >= 1 ||
-				$md->getOnGroundRecord()->getLength() >= 2 ||
+				$md->getOnGroundRecord()->getLength() >= 1 ||
 				$md->getMotionRecord()->getTickSinceAction() <= 20 ||
 				$md->getTeleportRecord()->getTickSinceAction() <= 6 ||
 				$ki->getGlideRecord()->getTickSinceAction() <= 8 ||
@@ -78,8 +76,9 @@ class JumpA extends BaseCheck{
 				return;
 			}
 
+
 			$rot = $md->getRotation();
-			$motion = $md->getDelta();
+			$motion = $md->getClientPredictedDelta();
 
 			$sprintMotion = MinecraftPhysics::moveFlying(
 				$ki->forwardValue() * ($player->getMovementSpeed() * 10),
@@ -101,6 +100,8 @@ class JumpA extends BaseCheck{
 			if($diff > 0.07 && $md->getAirRecord()->getLength() >= 5){
 				$this->fail(new ViolationFailReason("Diff: $diff"));
 			}
+
+			$this->broadcastDebugMessage("m: {$motionLength} pred: {$predictionLength} diff: {$diff}");
 		}
 	}
 }
