@@ -14,6 +14,8 @@ class PingSpoofA extends BaseCheck{
 	use HandleEventCheckTrait;
 	use ClassNameAsCheckIdTrait;
 
+	protected float $pvlMax = (100 * 30);
+
 	public function getCheckGroup() : int{
 		return CheckGroup::PACKET;
 	}
@@ -46,12 +48,17 @@ class PingSpoofA extends BaseCheck{
 		$diff = abs($estimatePacketPing - $netPing);
 
 		if($netPing > $estimatePacketPing && $diff > 100){
-			$this->fail(new ViolationFailReason("Ping bigger than estimated ping ({$diff}ms)"));
+			if($this->preFail()){
+				$this->fail(new ViolationFailReason("Ping bigger than estimated ping ({$diff}ms)"));
+			}
 		}
 
 		if($netPing < $estimatePacketPing && $diff > 250){
-			$this->fail(new ViolationFailReason("Estimated ping bigger than ping ({$diff}ms)"));
+			if($this->preFail()){
+				$this->fail(new ViolationFailReason("Estimated ping bigger than ping ({$diff}ms)"));
+			}
 		}
+
 
 		$this->broadcastDebugMessage("Estimated: {$estimatePacketPing}ms, Session: {$netPing}ms");
 	}
