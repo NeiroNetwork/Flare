@@ -2,6 +2,7 @@
 
 namespace NeiroNetwork\Flare\profile;
 
+use NeiroNetwork\Flare\support\MoveDelaySupport;
 use NeiroNetwork\Flare\utils\Map;
 use NeiroNetwork\Flare\utils\PlayerUtil;
 use pocketmine\entity\Attribute;
@@ -11,6 +12,7 @@ use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
+use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\FloatMetadataProperty;
@@ -21,16 +23,63 @@ class ProfileSupport{
 
 	protected PlayerProfile $profile;
 
+	/**
+	 * @var Map<int, array>
+	 */
+	protected Map $predictedMoveDelayCache;
+
 	public function __construct(
 		PlayerProfile $profile
 	){
 		$this->profile = $profile;
+		$this->predictedMoveDelayCache = new Map();
 	}
 
 	public function update(int $currentTick) : void{
 		if(is_null($this->profile->getActorStateProvider()->getAbilities($this->profile->getPlayer()->getId()))){
 			$this->profile->getPlayer()->getNetworkSession()->syncAbilities($this->profile->getPlayer());
 		}
+	}
+
+	public function getMoveDelayPredictedPosition(int $runtimeId) : ?Vector3{
+		$currentTick = $this->profile->getServerTick();
+
+		if($this->predictedMoveDelayCache->exists($runtimeId)){
+			[$tick, $position] = $this->predictedMoveDelayCache->get($runtimeId);
+			/**
+			 * @var int     $tick
+			 * @var Vector3 $position
+			 */
+
+			if($currentTick === $tick){
+				return $position;
+			}
+		}
+
+		$histories = $this->getActorPositionHistory($runtimeId)->getAll();
+		$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick, $this->isPlayer($runtimeId) ? -3 : 0);
+
+		if(is_null($pos)){
+			return null;
+		}
+
+		$this->predictedMoveDelayCache->put($runtimeId, [$currentTick, $pos]);
+
+		return $pos;
+	}
+
+	/**
+	 * @param int $runtimeId
+	 *
+	 * @return Map<int, Vector3>
+	 */
+	public function getActorPositionHistory(int $runtimeId) : Map{
+		$map = $this->profile->getActorStateProvider()->getPositionTickMap()->get($runtimeId);
+		return new Map($map?->getAll() ?? []);
+	}
+
+	public function isPlayer(int $runtimeId) : ?bool{
+		return $this->profile->getActorStateProvider()->getType($runtimeId) === EntityIds::PLAYER;
 	}
 
 	public function getLatestTick() : int{
@@ -65,16 +114,6 @@ class ProfileSupport{
 		}
 
 		return null;
-	}
-
-	/**
-	 * @param int $runtimeId
-	 *
-	 * @return Map<int, Vector3>
-	 */
-	public function getActorPositionHistory(int $runtimeId) : Map{
-		$map = $this->profile->getActorStateProvider()->getPositionTickMap()->get($runtimeId);
-		return new Map($map?->getAll() ?? []);
 	}
 
 	public function getActorMotionHistory(int $runtimeId) : Map{
@@ -167,10 +206,17 @@ class ProfileSupport{
 		return $attributes[Attribute::MOVEMENT_SPEED] ?? null;
 	}
 
-	public function getBoundingBox(int $runtimeId, ?Vector3 $pos = null) : ?AxisAlignedBB{
+	public function getBoundingBox(int $runtimeId, ?Vector3 $rpos = null, ?Vector3 $overridePos = null) : ?AxisAlignedBB{
 		$size = $this->getSize($runtimeId);
 		if(!is_null($size)){
-			$pos ??= $this->getActorPosition($runtimeId);
+			$pos = $this->getActorPosition($runtimeId);
+			$pos ??= $rpos;
+			if(!is_null($overridePos)){
+				$pos = $overridePos;
+			}
+			if(is_null($pos)){
+				return null;
+			}
 			return new AxisAlignedBB(
 				$pos->x - $size->getWidth() / 2,
 				$pos->y,
@@ -189,7 +235,7 @@ class ProfileSupport{
 		$metadata = $collection?->getAll() ?? [];
 		$widthProperty = $metadata[EntityMetadataProperties::BOUNDING_BOX_WIDTH] ?? null;
 		$heightProperty = $metadata[EntityMetadataProperties::BOUNDING_BOX_HEIGHT] ?? null;
-		$scaleProperty = $metadata[EntityMetadataProperties::SCALE] ?? null;
+		$scaleProperty = $metadata[EntityMetadataProperties::SCALE] ?? new FloatMetadataProperty(1.0);
 
 		if($widthProperty instanceof FloatMetadataProperty && $heightProperty instanceof FloatMetadataProperty && $scaleProperty instanceof FloatMetadataProperty){
 			$scale = $scaleProperty->getValue();
