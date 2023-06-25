@@ -2,11 +2,18 @@
 
 namespace NeiroNetwork\Flare\utils;
 
+use ArrayIterator;
+use Countable;
+use IteratorAggregate;
+use Traversable;
+
 /**
  * @template TKey of (int|string)
  * @template TValue of mixed
+ *
+ * @implements  IteratorAggregate<TKey, TValue>
  */
-class Map{
+class Map implements Countable, IteratorAggregate{
 
 	/**
 	 * @var array<TKey, TValue> $map
@@ -15,6 +22,17 @@ class Map{
 
 	public function __construct(array $map = []){
 		$this->map = $map;
+	}
+
+	/**
+	 * @return Traversable<TKey, TValue>
+	 */
+	public function getIterator() : Traversable{
+		return new ArrayIterator($this->map);
+	}
+
+	public function count() : int{
+		return count($this->map);
 	}
 
 	/**
@@ -51,6 +69,10 @@ class Map{
 	 */
 	public function put(mixed $key, mixed $value) : void{
 		$this->map[$key] = $value;
+	}
+
+	public function exists(mixed $key) : bool{
+		return isset($this->map[$key]);
 	}
 
 	/**
