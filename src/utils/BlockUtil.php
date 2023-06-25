@@ -96,7 +96,7 @@ class BlockUtil{
 				for($x = $minX; $x <= $maxX; ++$x){
 					for($y = $minY; $y <= $maxY; ++$y){
 						$block = $world->getBlockAt($x, $y, $z);
-						if(self::getCollidesWithFixedBB($block, $bb)){
+						if(self::collidesWithFixedBB($block, $bb)){
 							return [$block];
 						}
 					}
@@ -107,7 +107,7 @@ class BlockUtil{
 				for($x = $minX; $x <= $maxX; ++$x){
 					for($y = $minY; $y <= $maxY; ++$y){
 						$block = $world->getBlockAt($x, $y, $z);
-						if(self::getCollidesWithFixedBB($block, $bb)){
+						if(self::collidesWithFixedBB($block, $bb)){
 							$collides[] = $block;
 						}
 					}
@@ -118,7 +118,7 @@ class BlockUtil{
 		return $collides;
 	}
 
-	public static function getCollidesWithFixedBB(Block $block, AxisAlignedBB $bb) : bool{
+	public static function collidesWithFixedBB(Block $block, AxisAlignedBB $bb) : bool{
 		foreach(self::getFixedCollisionBoxes($block) as $box){
 			if($bb->intersectsWith($box)){
 				return true;
