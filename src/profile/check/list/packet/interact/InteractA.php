@@ -28,6 +28,10 @@ class InteractA extends BaseCheck{
 		$relatedTouchVector = $event->getTouchVector();
 		$touchVector = $event->getBlock()->getPosition()->addVector($relatedTouchVector);
 
+		if($md->getTeleportRecord()->getTickSinceAction() <= 5){
+			return;
+		}
+
 		$this->broadcastDebugMessage($touchVector);
 
 		$distance = $touchVector->distanceSquared($md->getEyePosition());
