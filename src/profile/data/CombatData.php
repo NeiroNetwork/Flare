@@ -22,8 +22,10 @@ use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 
 class CombatData{
 
+	protected ?Entity $lastClientAiming;
 	protected ?Entity $clientAiming;
 	protected Vector3 $clientAimingAt;
+	protected Vector3 $lastClientAimingAt;
 	protected ?Entity $hitEntity;
 	protected ?Entity $lastHitEntity;
 	protected int $lastHitEntityTime;
@@ -179,6 +181,13 @@ class CombatData{
 	}
 
 	/**
+	 * @return Entity|null
+	 */
+	public function getLastClientAiming() : ?Entity{
+		return $this->lastClientAiming;
+	}
+
+	/**
 	 * Get the value of clientAiming
 	 *
 	 * @return ?Entity
@@ -311,6 +320,13 @@ class CombatData{
 		return $this->clientAimingAt;
 	}
 
+	/**
+	 * @return Vector3
+	 */
+	public function getLastClientAimingAt() : Vector3{
+		return $this->lastClientAimingAt;
+	}
+
 	protected function handleSendAddPlayer(AddPlayerPacket $packet) : void{
 		$this->playerSpawn->onAction();
 	}
@@ -356,7 +372,9 @@ class CombatData{
 		if($packet->action === InteractPacket::ACTION_MOUSEOVER){
 			$target = $packet->targetActorRuntimeId;
 			if($target !== 0){ #target is entity
+				$this->lastClientAiming = $this->clientAiming;
 				$this->clientAiming = $player->getWorld()->getEntity($target);
+				$this->lastClientAimingAt = clone $this->clientAimingAt;
 				$this->clientAimingAt = new Vector3($packet->x, $packet->y, $packet->z);
 				$this->triggerAim->onAction();
 				$this->triggerTicks->add($this->profile->getServerTick());
@@ -364,6 +382,7 @@ class CombatData{
 				if($this->playerSpawn->getTickSinceAction() >= (7 + 0)){ // todo: LagCompensator
 					if(($packet->x !== 0) && ($packet->y !== 0) && $packet->z !== 0){
 						$this->clientAiming = null;
+						$this->lastClientAiming = null;
 					}
 				}
 			}
