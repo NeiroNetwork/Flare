@@ -30,6 +30,7 @@ class PlayerSettingsForm extends CustomForm{
 			new Toggle("Transaction Pairing", $this->profile->isTransactionPairingEnabled(), "transaction_pairing_enabled"),
 			new Toggle("Observer: Check", $profile->getObserver()->isEnabled(), "check_enabled"),
 			new Toggle("Observer: Punishment", $profile->getObserver()->isPunishEnabled(), "punishment_enabled"),
+			new Toggle("Observer: Watch Bot", $this->profile->getObserver()->isWatchBotEnabled(), "watch_bot_enabled"),
 			new Slider("Alert Cool Down", 0, 50, 1, $profile->getAlertCoolDown(), "alert_cool_down"),
 			new Slider("Log Cool Down", 0, 50, 1, $profile->getLogCoolDown(), "log_cool_down"),
 			new Dropdown(
@@ -57,6 +58,7 @@ class PlayerSettingsForm extends CustomForm{
 			$verboseEnabled = $response->getToggleResult("verbose_enabled")->getValue();
 			$debugEnabled = $response->getToggleResult("debug_enabled")->getValue();
 			$checkEnabled = $response->getToggleResult("check_enabled")->getValue();
+			$watchBotEnabled = $response->getToggleResult("watch_bot_enabled")->getValue();
 			$punishEnabled = $response->getToggleResult("punishment_enabled")->getValue();
 			$alertCoolDown = $response->getSliderResult("alert_cool_down")->getInt();
 			$logCoolDown = $response->getSliderResult("log_cool_down")->getInt();
@@ -74,6 +76,7 @@ class PlayerSettingsForm extends CustomForm{
 
 		$this->profile->getObserver()->setEnabled($checkEnabled);
 		$this->profile->getObserver()->setPunishEnabled($punishEnabled);
+		$this->profile->getObserver()->setWatchBotEnabled($watchBotEnabled);
 
 		$this->profile->setAlertCoolDown($alertCoolDown);
 		$this->profile->setLogCoolDown($logCoolDown);
