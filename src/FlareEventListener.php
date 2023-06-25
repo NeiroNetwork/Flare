@@ -11,6 +11,7 @@ use NeiroNetwork\Flare\event\player\PlayerPacketLossEvent;
 use NeiroNetwork\Flare\network\TransparentRakLibInterface;
 use NeiroNetwork\Flare\player\FakePlayer;
 use NeiroNetwork\Flare\profile\Client;
+use NeiroNetwork\Flare\reporter\DebugReportContent;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\event\Listener;
@@ -21,11 +22,9 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
 use pocketmine\lang\Translatable;
-use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
@@ -76,6 +75,12 @@ class FlareEventListener implements Listener{
 		$this->flare->getProfileManager()->start($player);
 
 		$this->flare->getReporter()->autoSubscribe($player);
+
+		$averagePerTick = 2;
+		$budget = 1000;
+
+		PacketRateLimitModifier::modifySession($session, $averagePerTick, $budget);
+		$this->flare->getReporter()->report(new DebugReportContent(Flare::DEBUG_PREFIX . "{$player->getName()} のパケット制限を §9AveragePerTick: §c$averagePerTick, §9Budget: §c$budget §fに変更しました", $this->flare));
 	}
 
 	public function onQuit(PlayerQuitEvent $event) : void{
@@ -125,28 +130,6 @@ class FlareEventListener implements Listener{
 				if(($player = $target->getPlayer()) instanceof Player){
 					$this->flare->getTransactionPairingHost()->onDataPacketSendSpecify($target, [$packet]);
 
-					if($packet instanceof MoveActorAbsolutePacket){
-						$ppos = clone $packet->position;
-						if($player->getWorld()->getEntity($packet->actorRuntimeId) instanceof Player){
-							$ppos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT;
-						}
-						$this->flare->getSupports()->getEntityMoveRecorder()->add(
-							$player,
-							$packet->actorRuntimeId,
-							$ppos,
-							$this->flare->getPlugin()->getServer()->getTick()
-						);
-					}
-
-					if($packet instanceof AddActorPacket){
-						$this->flare->getSupports()->getEntityMoveRecorder()->add(
-							$player,
-							$packet->actorRuntimeId,
-							$packet->position,
-							$this->flare->getPlugin()->getServer()->getTick()
-						);
-					}
-
 					if($packet instanceof StartGamePacket){
 						$packet->networkPermissions = new NetworkPermissions(false);
 					}
@@ -166,6 +149,7 @@ class FlareEventListener implements Listener{
 		$packet = $event->getPacket();
 		$origin = $event->getOrigin();
 
+
 		if($packet instanceof PlayerAuthInputPacket){
 			$position = $packet->getPosition()->subtract(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
 			$yaw = $packet->getYaw();
@@ -183,7 +167,7 @@ class FlareEventListener implements Listener{
 					$event->cancel();
 					$origin->disconnect(FlareKickReasons::bad_packet($origin->getPlayerInfo()->getUsername()));
 
-					$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§c{$origin->getPlayerInfo()->getUsername()} が送信した　PlayerAuthInputPacket で一部のプロパティの値が不正です", $this->flare));
+					$this->flare->getReporter()->report(new LogReportContent(Flare::PREFIX . "§c{$origin->getPlayerInfo()->getUsername()} が送信した PlayerAuthInputPacket で一部のプロパティの値が不正です", $this->flare));
 					break;
 				}
 			}
