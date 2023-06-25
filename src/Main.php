@@ -39,7 +39,7 @@ class Main extends PluginBase{
 	}
 
 	protected function onEnable() : void{
-		MoveDelaySupport::init(2, true);
+		MoveDelaySupport::init(7, true);
 
 		$this->flare = new Flare($this);
 

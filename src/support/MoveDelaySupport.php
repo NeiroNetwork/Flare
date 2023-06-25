@@ -16,7 +16,7 @@ class MoveDelaySupport{
 		protected int $tick,
 		protected bool $interpolate
 	){
-		$this->interpolationRange = 2;
+		$this->interpolationRange = 4;
 	}
 
 	public static function init(int $tick, bool $interpolate) : void{
@@ -37,10 +37,11 @@ class MoveDelaySupport{
 	/**
 	 * @param array<int, Vector3> $histories
 	 * @param int                 $currentTick
+	 * @param int                 $additionalDelayTick
 	 *
 	 * @return Vector3|null
 	 */
-	public function predict(array $histories, int $currentTick) : ?Vector3{
+	public function predict(array $histories, int $currentTick, int $additionalDelayTick = 0) : ?Vector3{
 		$historyCount = count($histories);
 		if($historyCount <= $this->tick){
 			return null;
@@ -48,7 +49,7 @@ class MoveDelaySupport{
 
 		$keys = array_keys($histories);
 
-		$baseTick = $currentTick - $this->tick;
+		$baseTick = $currentTick - $this->tick - $additionalDelayTick;
 
 		$baseResult = Utils::findAscending($keys, $baseTick);
 
@@ -65,19 +66,26 @@ class MoveDelaySupport{
 		// 補完ではない
 		// averaging?
 
-		$regs = Utils::findArrayRange($keys, $baseTick - 1, $this->interpolationRange);
-		$results = array_map(function($v) use ($histories){
-			return $histories[$v];
-		}, $regs);
+		$b = $baseTick - 1;
 
-		$resultCount = count($results);
-		if($resultCount <= 0){
+		$v = Vector3::zero();
+		$count = 0;
+
+		for($i = $b - $this->interpolationRange; $i < $b + $this->interpolationRange; $i++){
+			if(!isset($histories[$i])){
+				continue;
+			}
+
+			$count++;
+
+			$v = $v->addVector($histories[$i]);
+		}
+
+		if($count <= 0){
 			return $base;
 		}
 
-		$sum = Vector3::sum(...$results);
-
-		return $sum->divide($resultCount);
+		return $v->divide($count);
 	}
 
 	public function isInterpolationEnabled() : bool{
