@@ -8,6 +8,7 @@ use Closure;
 use NeiroNetwork\Flare\data\report\DataReport;
 use NeiroNetwork\Flare\math\EntityRotation;
 use NeiroNetwork\Flare\profile\PlayerProfile;
+use NeiroNetwork\Flare\utils\BlockUtil;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\data\bedrock\EffectIds;
 use pocketmine\event\entity\EntityTeleportEvent;
@@ -706,7 +707,7 @@ class MovementData{
 			// 半ブロックはマジでゴミです。消えてください。
 			$bb = $this->boundingBox->extendedCopy(Facing::DOWN, 2 / 64)->addCoord($d->x, $d->y, $d->z)->expand(1 / 3, 1 / 3, 1 / 3);
 			foreach($this->profile->getSurroundData()->getStepBlocks() as $block){
-				if($block->collidesWithBB($bb) && floor($block->getPosition()->y) <= floor($position->y)){
+				if(BlockUtil::collidesWithFixedBB($block, $bb) && floor($block->getPosition()->y) <= floor($position->y)){
 					$shouldBeStand = true;
 					break;
 				}
