@@ -5,6 +5,8 @@ namespace NeiroNetwork\Flare\profile;
 use Closure;
 use NeiroNetwork\Flare\utils\EventHandlerLink;
 use pocketmine\event\EventPriority;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
@@ -42,6 +44,8 @@ class SimpleActorStateProvider extends PacketBaseActorStateProvider{
 		$register(UpdateAttributesPacket::NETWORK_ID, $this->handleUpdateAttributes(...));
 		$register(MobEffectPacket::NETWORK_ID, $this->handleMobEffect(...));
 		$register(UpdateAbilitiesPacket::NETWORK_ID, $this->handleUpdateAbilities(...));
+		$register(AddActorPacket::NETWORK_ID, $this->handleAddActor(...));
+		$register(AddPlayerPacket::NETWORK_ID, $this->handleAddPlayer(...));
 	}
 
 	public function dispose() : void{

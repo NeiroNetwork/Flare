@@ -14,6 +14,13 @@ interface ActorStateProvider{
 
 	public function getPosition(int $runtimeId) : ?Vector3;
 
+	public function getType(int $runtimeId) : ?string;
+
+	/**
+	 * @return Map<int, string>
+	 */
+	public function getTypeMap() : Map;
+
 	/**
 	 * @return Map<int, Vector3>
 	 */

@@ -5,15 +5,20 @@ namespace NeiroNetwork\Flare\profile;
 use Closure;
 use NeiroNetwork\Flare\utils\IntegerSortSizeMap;
 use NeiroNetwork\Flare\utils\Map;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\data\bedrock\EffectIdMap;
 use pocketmine\entity\effect\EffectInstance;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
+use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesData;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
+use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
@@ -25,6 +30,8 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 	 * @var Map<int, Vector3>
 	 */
 	protected Map $position;
+
+	protected Map $type;
 
 	/**
 	 * @var Map<int, IntegerSortSizeMap<Vector3>>
@@ -92,6 +99,7 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		$this->position = new Map();
 		$this->tickPosition = new Map();
 		$this->networkProperties = new Map();
+		$this->type = new Map();
 		$this->tickNetworkProperties = new Map();
 		$this->motion = new Map();
 		$this->tickMotion = new Map();
@@ -134,9 +142,12 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		return $this->attributes->get($runtimeId);
 	}
 
-
 	public function getPositionMap() : Map{
 		return new Map($this->position->getAll());
+	}
+
+	public function getTypeMap() : Map{
+		return new Map($this->type->getAll());
 	}
 
 	public function getNetworkPropertiesMap() : Map{
@@ -191,9 +202,17 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 		return new Map($this->tickAbilities->getAll());
 	}
 
+	public function handleAddActor(AddActorPacket $packet, int $tick) : void{
+		$this->type->putIfAbsent($packet->actorRuntimeId, $packet->type);
+	}
+
+	public function handleAddPlayer(AddPlayerPacket $packet, int $tick) : void{
+		$this->type->putIfAbsent($packet->actorRuntimeId, EntityIds::PLAYER);
+	}
 
 	public function copy(PacketBaseActorStateProvider $provider) : void{
 		$provider->position = clone $this->position;
+		$provider->type = clone $this->type;
 		$provider->motion = clone $this->motion;
 		$provider->networkProperties = clone $this->networkProperties;
 		$provider->abilities = clone $this->abilities;
@@ -211,9 +230,18 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
 	public function handleMoveActorAbsolute(MoveActorAbsolutePacket $packet, int $tick) : void{
 		$pos = $packet->position;
+
+		if($this->getType($packet->actorRuntimeId) === EntityIds::PLAYER){
+			$pos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT; // should I put here?
+		}
+
 		$this->position->put($packet->actorRuntimeId, clone $pos);
 		$this->tickPosition->putIfAbsent($packet->actorRuntimeId, new IntegerSortSizeMap($this->tickMapSize));
 		$this->tickPosition->get($packet->actorRuntimeId)->put($tick, clone $pos);
+	}
+
+	public function getType(int $runtimeId) : ?string{
+		return $this->type->get($runtimeId);
 	}
 
 	public function handleSetActorData(SetActorDataPacket $packet, int $tick) : void{
@@ -231,6 +259,12 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
 		foreach($this->onMotionHooks as $hook){
 			$hook($packet->actorRuntimeId, $tick, $packet->motion);
+		}
+	}
+
+	public function handlePlayerList(PlayerListPacket $packet, int $tick) : void{
+		foreach($packet->entries as $entry){
+			$this->type->putIfAbsent($entry->actorUniqueId, EntityIds::PLAYER);
 		}
 	}
 
