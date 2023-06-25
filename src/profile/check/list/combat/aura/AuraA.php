@@ -16,6 +16,8 @@ class AuraA extends BaseCheck{
 	use ClassNameAsCheckIdTrait;
 	use HandleEventCheckTrait;
 
+	protected float $pvlMax = (100 * 16);
+
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
@@ -38,9 +40,16 @@ class AuraA extends BaseCheck{
 			return;
 		}
 
+		if($this->profile->getMovementData()->getRotationDelta()->yaw > 6 || $this->profile->getMovementData()->getRotationDelta()->headYaw > 6){
+			return;
+		}
 
-		$aiming = $cd->getClientAiming() !== null;
-		$correct = ($cd->getClientAiming() === $event->getEntity()) || ($cd->getClientAiming() === $cd->getLastHitEntity());
+		if($this->profile->getMovementData()->getRotationDelta()->pitch > 6){
+			return;
+		}
+
+		$aiming = $cd->getClientAiming() !== null || $cd->getLastClientAiming() !== null;
+		$correct = ($cd->getClientAiming() === $event->getEntity() || $cd->getLastClientAiming() === $event->getEntity()) || ($cd->getClientAiming() === $cd->getLastHitEntity());
 
 		$verbose = "aiming: " . ($aiming ? "true" :
 				"false") . " correct: " . ($correct ? "true" : "false");
