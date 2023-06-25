@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\utils;
 
 use NeiroNetwork\WaterdogPEAccepter\api\WdpePlayer;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\player\Player;
 use pocketmine\Server;
+use RuntimeException;
 
 class Utils{
 
-	public static function mustStartedException() : void{
-		throw new \RuntimeException("must not be called before started");
+	public static function mustStartedException() : RuntimeException{
+		return new \RuntimeException("must not be called before started");
 	}
 
 	public static function getEnumName(string $enumClass, int $id) : ?string{
@@ -85,7 +90,7 @@ class Utils{
 		return null;
 	}
 
-	public static function findDecending(array $arr, int $key) : mixed{
+	public static function findDescending(array $arr, int $key) : mixed{
 		$results = array_filter($arr, function($v) use ($key){
 			return $v >= $key;
 		});
@@ -104,5 +109,23 @@ class Utils{
 		return array_filter($arr, function($v) use ($min, $max){
 			return $v >= $min && $v <= $max;
 		});
+	}
+
+	public static function debugAxisAlignedBB(AxisAlignedBB $bb, Player $player) : void{
+		self::debugPosition(new Vector3($bb->minX, $bb->minY, $bb->maxZ), $player);
+		self::debugPosition(new Vector3($bb->maxX, $bb->minY, $bb->minZ), $player);
+		self::debugPosition(new Vector3($bb->minX, $bb->minY, $bb->minZ), $player);
+		self::debugPosition(new Vector3($bb->maxX, $bb->minY, $bb->maxZ), $player);
+
+		self::debugPosition(new Vector3($bb->minX, $bb->maxY, $bb->maxZ), $player);
+		self::debugPosition(new Vector3($bb->maxX, $bb->maxY, $bb->minZ), $player);
+		self::debugPosition(new Vector3($bb->minX, $bb->maxY, $bb->minZ), $player);
+		self::debugPosition(new Vector3($bb->maxX, $bb->maxY, $bb->maxZ), $player);
+	}
+
+	public static function debugPosition(Vector3 $pos, Player $player) : void{
+		$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos, "minecraft:balloon_gas_particle", null);
+
+		$player->getNetworkSession()->sendDataPacket($pk);
 	}
 }
