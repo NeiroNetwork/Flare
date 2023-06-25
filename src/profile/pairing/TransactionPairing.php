@@ -9,6 +9,8 @@ use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\IntegerSortSizeMap;
 use NeiroNetwork\Flare\utils\Map;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
@@ -207,7 +209,9 @@ class TransactionPairing{
 			($packet instanceof SetActorMotionPacket) ||
 			($packet instanceof UpdateAttributesPacket) ||
 			($packet instanceof UpdateAbilitiesPacket) ||
-			($packet instanceof MobEffectPacket);
+			($packet instanceof MobEffectPacket) ||
+			($packet instanceof AddActorPacket) ||
+			($packet instanceof AddPlayerPacket);
 		//todo: VirtualWorld でのブロックのペアリングも考える
 		// (コストが高いし、ブロックのずれによる誤検知はそこまで致命的ではないので今のところは必要ない)
 	}
