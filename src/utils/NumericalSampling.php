@@ -31,10 +31,10 @@ class NumericalSampling implements Countable{
 	}
 
 	public function add(float $sample) : void{
-		array_unshift($this->list, $sample);
+		$this->list[] = $sample;
 		if($this->max > 0){
 			if(count($this->list) > $this->max){
-				array_pop($this->list);
+				array_shift($this->list);
 			}
 		}
 	}
@@ -59,10 +59,10 @@ class NumericalSampling implements Countable{
 	}
 
 	public function getFirst() : float{
-		return $this->list[array_key_first($this->list)];
+		return $this->list[array_key_last($this->list)];
 	}
 
 	public function getLast() : float{
-		return $this->list[array_key_last($this->list)];
+		return $this->list[array_key_first($this->list)];
 	}
 }
