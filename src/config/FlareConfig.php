@@ -29,6 +29,7 @@ class FlareConfig{
 			"log" => true,
 			"check" => true,
 			"punish" => true,
+			"watch_bot" => true,
 			"debug" => false,
 			"log_cooldown" => 0,
 			"alert_cooldown" => 4,

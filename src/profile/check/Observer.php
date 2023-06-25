@@ -35,6 +35,8 @@ class Observer{
 	 */
 	protected bool $punishEnabled;
 
+	protected bool $watchBotEnabled;
+
 	public function __construct(PlayerProfile $profile){
 		$this->profile = $profile;
 		$this->list = [];
@@ -45,6 +47,7 @@ class Observer{
 
 		$this->checkEnabled = $conf->get("check");
 		$this->punishEnabled = $conf->get("punish");
+		$this->watchBotEnabled = $conf->get("watch_bot");
 	}
 
 	public function isClosed() : bool{
@@ -53,6 +56,20 @@ class Observer{
 
 	public function getProfile() : PlayerProfile{
 		return $this->profile;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isWatchBotEnabled() : bool{
+		return $this->watchBotEnabled;
+	}
+
+	/**
+	 * @param bool $watchBotEnabled
+	 */
+	public function setWatchBotEnabled(bool $watchBotEnabled) : void{
+		$this->watchBotEnabled = $watchBotEnabled;
 	}
 
 	public function registerCheck(ICheck $check) : void{
@@ -140,6 +157,10 @@ class Observer{
 	}
 
 	public function spawnWatchBot(int $duration) : bool{
+		if(!$this->watchBotEnabled){
+			return false;
+		}
+		
 		if($this->watchBot?->isSpawned() ?? false){
 			return false;
 		}
