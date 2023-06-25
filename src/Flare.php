@@ -88,9 +88,7 @@ class Flare{
 		$this->tickProcessor = new TickProcessor;
 
 		$this->config = new FlareConfig($plugin->getDataFolder());
-
-		$this->supports = new Supports();
-
+		
 		$this->transactionPairingHost = new TransactionPairingHost($this->profileManager);
 
 		$this->schedulerHeartbeater = null;
@@ -188,11 +186,11 @@ class Flare{
 	}
 
 	public function getProfileManager() : ProfileManager{
-		return $this->started ? $this->profileManager : Utils::mustStartedException();
+		return $this->started ? $this->profileManager : throw Utils::mustStartedException();
 	}
 
 	public function getConsoleProfile() : ConsoleProfile{
-		return $this->started ? $this->consoleProfile : Utils::mustStartedException();
+		return $this->started ? $this->consoleProfile : throw Utils::mustStartedException();
 	}
 
 	/**
@@ -201,7 +199,7 @@ class Flare{
 	 * @return Reporter
 	 */
 	public function getReporter() : Reporter{
-		return $this->started ? $this->reporter : Utils::mustStartedException();
+		return $this->started ? $this->reporter : throw Utils::mustStartedException();
 	}
 
 	/**
@@ -210,7 +208,7 @@ class Flare{
 	 * @return WatchBotTask
 	 */
 	public function getWatchBotTask() : WatchBotTask{
-		return $this->started ? $this->watchBotTask : Utils::mustStartedException();
+		return $this->started ? $this->watchBotTask : throw Utils::mustStartedException();
 	}
 
 	/**
@@ -240,12 +238,4 @@ class Flare{
 		return $this->tickProcessor;
 	}
 
-	/**
-	 * Get the value of supports
-	 *
-	 * @return Supports
-	 */
-	public function getSupports() : Supports{
-		return $this->started ? $this->supports : Utils::mustStartedException();
-	}
 }
