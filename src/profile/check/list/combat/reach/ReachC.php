@@ -43,15 +43,18 @@ class ReachC extends BaseCheck{
 
 		$clickedPosition = $cd->getClientAimingAt();
 
-		$eyePos = $event->getPlayerPosition();
+		$eyePos = $event->getPlayerPosition()->subtractVector($this->profile->getMovementData()->getRealDelta());
 
-		$reach = $eyePos->distanceSquared($clickedPosition); // ok, its simple.
+		$reach = $eyePos->distanceSquared($cd->getClientAimingAt());
+		$lastReach = $eyePos->distanceSquared($cd->getLastClientAimingAt());
 
-		if($reach > 9.0 + 0.015){
-			$this->fail(new ViolationFailReason("Attack Reach: {$reach}"));
+		$finalReach = min($reach, $lastReach);
+
+		if($finalReach > 9.0 + 0.015){
+			$this->fail(new ViolationFailReason("Attack Reach: {$finalReach}"));
 		}
 
-		$this->broadcastDebugMessage((string) $reach);
+		$this->broadcastDebugMessage("final: {$finalReach}, curr: {$reach}, last: {$lastReach}");
 	}
 
 	public function isExperimental() : bool{
