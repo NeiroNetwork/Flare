@@ -10,14 +10,13 @@ use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use NeiroNetwork\Flare\support\MoveDelaySupport;
+use NeiroNetwork\Flare\utils\IntegerSortSizeMap;
+use NeiroNetwork\Flare\utils\Map;
 use NeiroNetwork\Flare\utils\Math;
+use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
-use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\Server;
-use SplFixedArray;
 
 class ReachA extends BaseCheck{
 
@@ -25,9 +24,9 @@ class ReachA extends BaseCheck{
 	use HandleEventCheckTrait;
 
 	/**
-	 * @var AxisAlignedBB[]
+	 * @var IntegerSortSizeMap<AxisAlignedBB>
 	 */
-	protected array $list;
+	protected IntegerSortSizeMap $map;
 
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
@@ -37,7 +36,7 @@ class ReachA extends BaseCheck{
 		$this->registerPacketHandler($this->handle(...));
 		$this->registerEventHandler($this->handleAttack(...));
 
-		$this->list = [];
+		$this->map = new IntegerSortSizeMap(3);
 	}
 
 	public function handleAttack(PlayerAttackEvent $event) : void{
@@ -50,26 +49,20 @@ class ReachA extends BaseCheck{
 			return;
 		}
 
-		$eyePos = $md->getEyePosition();
-
-		$refCount = 6;
-		$refs = (SplFixedArray::fromArray(array_reverse($this->list)));
-		$refs->setSize(min($refs->getSize(), $refCount));
-		$realRefCount = $refs->getSize();
-
+		$map = $this->map;
 		/**
-		 * @var SplFixedArray<AxisAlignedBB> $refs
-		 *
-		 * ジェネリクス！
+		 * @var Map<AxisAlignedBB> $map
 		 */
 
-		if($realRefCount >= 2){
-			$first = $this->list[array_key_last($this->list)];
 
-			$freach = Math::distanceSquaredBoundingBox($first, $eyePos);
+		$eyePos = $md->getEyePosition();
+
+		$realRefCount = count($this->map);
+
+		if($realRefCount >= 2){
 			$reaches = [];
 
-			foreach($refs as $targetBB){
+			foreach($map as $targetBB){
 				$reaches[] = Math::distanceSquaredBoundingBox($targetBB, $eyePos);
 			}
 
@@ -79,7 +72,7 @@ class ReachA extends BaseCheck{
 
 				$rootReach = sqrt($minReach);
 
-				$this->broadcastDebugMessage("reach: {$rootReach} f: {$freach}");
+				$this->broadcastDebugMessage("reach: {$rootReach}");
 
 				if($minReach > 9.0){ // (3 ** 2)
 					if($this->preFail()){
@@ -97,23 +90,21 @@ class ReachA extends BaseCheck{
 		$cd = $this->profile->getCombatData();
 
 		if($cd->getHitEntity() !== $cd->getLastHitEntity()){
-			$this->list = [];
+			$this->map->clear();
 		}
 
 		$entity = $cd->getHitEntity();
 		if($entity !== null){
 			$runtimeId = $entity->getId();
 			$currentTick = Server::getInstance()->getTick();
-			$histories = $this->profile->getSupport()->getActorPositionHistory($runtimeId)->getAll();
-			$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick);
-
+			$pos = $this->profile->getSupport()->getMoveDelayPredictedPosition($runtimeId);
 			if($pos !== null){
 				$size = $this->profile->getSupport()->getSize($runtimeId);
 
 				if(is_null($size)){
 					return;
 				}
-				
+
 				$h = $size->getHeight();
 				$w = $size->getWidth() / 2;
 				$bb = new AxisAlignedBB(
@@ -124,11 +115,9 @@ class ReachA extends BaseCheck{
 					$pos->y + $h,
 					$pos->z + $w
 				);
-				$this->list[] = $bb;
+				$this->map->put($currentTick, $bb);
 
-				$pk = SpawnParticleEffectPacket::create(DimensionIds::OVERWORLD, -1, $pos, "minecraft:balloon_gas_particle", null);
-
-				$this->profile->getPlayer()->getNetworkSession()->sendDataPacket($pk);
+				Utils::debugPosition($pos, $this->profile->getPlayer());
 			}
 		}
 	}
