@@ -9,6 +9,9 @@ use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraA;
+use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraA1;
+use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraB;
+use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraC;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraD;
 use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerA;
 use NeiroNetwork\Flare\profile\check\list\combat\autoclicker\AutoClickerB;
@@ -39,7 +42,7 @@ use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidC;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidD;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidE;
 use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidF;
-use NeiroNetwork\Flare\profile\check\list\packet\pingspoof\PingSpoofA;
+use NeiroNetwork\Flare\profile\check\list\packet\invalid\InvalidG;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerA;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerB;
 use NeiroNetwork\Flare\profile\check\list\packet\timer\TimerC;
@@ -58,9 +61,12 @@ use NeiroNetwork\Flare\utils\EventHandlerLink;
 use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\command\CommandSender;
 use pocketmine\event\EventPriority;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
+use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\player\Player;
 use pocketmine\utils\Config;
 use RuntimeException;
@@ -286,9 +292,17 @@ class PlayerProfile implements Profile{
 			$rt = round($t * 1000);
 			$this->flare->getReporter()->report(new DebugReportContent(Flare::DEBUG_PREFIX . "Profile セッションの開始が終了しました: {$rt}ms", $this->flare));
 
-
+			// Simple patch.
+			// このパケットは参加前に送信されるため
+			$this->actorStateProvider->handlePlayerList(PlayerListPacket::add(array_map(function(Player $player) : PlayerListEntry{
+				return PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName(), TypeConverter::getInstance()->getSkinAdapter()->toSkinData($player->getSkin()), $player->getXuid());
+			}, $this->getFlare()->getPlugin()->getServer()->getOnlinePlayers())), $this->getServerTick());
 			$this->registerChecks($this->observer);
 		}
+	}
+
+	public function getServerTick() : int{
+		return $this->flare->getPlugin()->getServer()->getTick();
 	}
 
 	protected function registerChecks(Observer $o) : void{
@@ -324,10 +338,9 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new TimerA($o));
 			$o->registerCheck(new TimerB($o));
 			$o->registerCheck(new TimerC($o));
-
 		}
 		{
-			$o->registerCheck(new PingSpoofA($o));
+			// $o->registerCheck(new PingSpoofA($o));
 		}
 		{
 			$o->registerCheck(new AimA($o));
@@ -339,6 +352,9 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new ReachC($o));
 		} {
 			$o->registerCheck(new AuraA($o));
+			$o->registerCheck(new AuraA1($o));
+			$o->registerCheck(new AuraB($o));
+			$o->registerCheck(new AuraC($o));
 			$o->registerCheck(new AuraD($o));
 		} {
 			$o->registerCheck(new AutoClickerA($o));
@@ -501,10 +517,6 @@ class PlayerProfile implements Profile{
 		$this->actorStateProvider->copy($provider);
 		$this->actorStateProvider = $provider;
 
-	}
-
-	public function getServerTick() : int{
-		return $this->flare->getPlugin()->getServer()->getTick();
 	}
 
 	/**
