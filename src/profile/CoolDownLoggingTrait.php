@@ -33,6 +33,8 @@ trait CoolDownLoggingTrait{
 	 */
 	protected bool $alertEnabled = false;
 
+	protected bool $alertExperimentalChecks = false;
+
 	protected bool $logEnabled = false;
 
 	protected bool $verboseEnabled = false;
@@ -56,6 +58,13 @@ trait CoolDownLoggingTrait{
 		return $this;
 	}
 
+	/**
+	 * @param bool $alertExperimentalChecks
+	 */
+	public function setAlertExperimentalChecks(bool $alertExperimentalChecks) : void{
+		$this->alertExperimentalChecks = $alertExperimentalChecks;
+	}
+
 	public function isLogEnabled() : bool{
 		return $this->logEnabled;
 	}
@@ -65,9 +74,9 @@ trait CoolDownLoggingTrait{
 	 *
 	 * @param bool $logEnabled
 	 *
-	 * @return self
+	 * @return static
 	 */
-	public function setLogEnabled(bool $logEnabled) : self{
+	public function setLogEnabled(bool $logEnabled) : static{
 		$this->logEnabled = $logEnabled;
 
 		return $this;
@@ -82,9 +91,9 @@ trait CoolDownLoggingTrait{
 	 *
 	 * @param bool $debugEnabled
 	 *
-	 * @return self
+	 * @return static
 	 */
-	public function setDebugEnabled(bool $debugEnabled) : self{
+	public function setDebugEnabled(bool $debugEnabled) : static{
 		$this->debugEnabled = $debugEnabled;
 
 		return $this;
@@ -92,6 +101,10 @@ trait CoolDownLoggingTrait{
 
 	public function tryAlert(ICheck $check) : bool{
 		if(!$this->alertEnabled){
+			return false;
+		}
+
+		if($check->isExperimental() && !$this->alertExperimentalChecks()){
 			return false;
 		}
 
@@ -109,6 +122,13 @@ trait CoolDownLoggingTrait{
 		}
 
 		return false;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function alertExperimentalChecks() : bool{
+		return $this->alertExperimentalChecks;
 	}
 
 	public function tryLog() : bool{

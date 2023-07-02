@@ -49,6 +49,16 @@ class SurroundData{
 	/**
 	 * @var Block[]
 	 */
+	protected array $sideBlocks;
+
+	/**
+	 * @var Block[]
+	 */
+	protected array $notStepBlocks;
+
+	/**
+	 * @var Block[]
+	 */
 	protected array $ableToStepBlocks;
 
 	/**
@@ -170,6 +180,13 @@ class SurroundData{
 	}
 
 	/**
+	 * @return Block[]
+	 */
+	public function getSideBlocks() : array{
+		return $this->sideBlocks;
+	}
+
+	/**
 	 * Get the value of stepBlocks
 	 *
 	 * @return Block[]
@@ -203,6 +220,13 @@ class SurroundData{
 	 */
 	public function getTouchingBlocks() : array{
 		return $this->touchingBlocks;
+	}
+
+	/**
+	 * @return Block[]
+	 */
+	public function getNotStepBlocks() : array{
+		return $this->notStepBlocks;
 	}
 
 	/**
@@ -271,6 +295,8 @@ class SurroundData{
 		$this->overheadBlocks = [];
 		$this->complexBlocks = [];
 		$this->ableToStepBlocks = [];
+		$this->sideBlocks = [];
+		$this->notStepBlocks = [];
 		$this->touchingBlockTypeMap->clear();
 
 		$cobweb = false;
@@ -310,6 +336,12 @@ class SurroundData{
 				$this->stepBlocks[] = $block;
 			}elseif($block->getPosition()->y > ($position->y + $this->profile->getMovementData()->getEyeHeight())){
 				$this->overheadBlocks[] = $block;
+			}else{
+				$this->sideBlocks[] = $block;
+			}
+
+			if($block->getPosition()->y > $position->y){
+				$this->notStepBlocks[] = $block;
 			}
 
 			if($checkHittingHead){

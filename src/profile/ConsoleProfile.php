@@ -34,6 +34,7 @@ class ConsoleProfile implements Profile{
 		$conf = $flare->getConfig()->getConsole();
 
 		$this->alertCoolDown = $conf->get("alert_cooldown");
+		$this->alertExperimentalChecks = $conf->get("alert_experimental_checks");
 		$this->alertEnabled = $conf->get("alert");
 
 		$this->logCoolDown = $conf->get("log_cooldown");

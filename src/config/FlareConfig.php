@@ -26,6 +26,7 @@ class FlareConfig{
 
 		$this->profileDefault = new Config(Path::join($folder, "profile_default.yml"), Config::YAML, [
 			"alert" => true,
+			"alert_experimental_checks" => true,
 			"log" => true,
 			"check" => true,
 			"punish" => true,
@@ -48,7 +49,8 @@ class FlareConfig{
 			"log_style" => "flare",
 			"verbose" => false,
 			"log_cooldown" => 0,
-			"alert_cooldown" => 4
+			"alert_cooldown" => 4,
+			"alert_experimental_checks" => true
 		]);
 
 		$this->playerConfig = new PlayerConfigStore($this, Path::join($folder, "player"));

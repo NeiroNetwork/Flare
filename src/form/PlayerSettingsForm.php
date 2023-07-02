@@ -24,6 +24,7 @@ class PlayerSettingsForm extends CustomForm{
 	){
 		parent::__construct($title, [
 			new Toggle("Alert", $profile->isAlertEnabled(), "alert_enabled"),
+			new Toggle("Alert: Experimental Checks", $this->profile->alertExperimentalChecks(), "alert_experimental_checks"),
 			new Toggle("Log", $profile->isLogEnabled(), "log_enabled"),
 			new Toggle("Verbose", $profile->isVerboseEnabled(), "verbose_enabled"),
 			new Toggle("Debug", $profile->isDebugEnabled(), "debug_enabled"),
@@ -42,6 +43,7 @@ class PlayerSettingsForm extends CustomForm{
 						if($name !== null){
 							return new SelectorOption($name, null, $name);
 						}
+						return "";
 					},
 					LogStyle::getAllRegistered()
 				),
@@ -54,6 +56,7 @@ class PlayerSettingsForm extends CustomForm{
 	protected function handleSubmit(Player $player, CustomFormResponse $response) : void{
 		try{
 			$alertEnabled = $response->getToggleResult("alert_enabled")->getValue();
+			$alertExperimentalChecks = $response->getToggleResult("alert_experimental_checks")->getValue();
 			$logEnabled = $response->getToggleResult("log_enabled")->getValue();
 			$verboseEnabled = $response->getToggleResult("verbose_enabled")->getValue();
 			$debugEnabled = $response->getToggleResult("debug_enabled")->getValue();
@@ -69,6 +72,7 @@ class PlayerSettingsForm extends CustomForm{
 		}
 
 		$this->profile->setAlertEnabled($alertEnabled);
+		$this->profile->setAlertExperimentalChecks($alertExperimentalChecks);
 		$this->profile->setLogEnabled($logEnabled);
 		$this->profile->setVerboseEnabled($verboseEnabled);
 		$this->profile->setDebugEnabled($debugEnabled);

@@ -46,6 +46,10 @@ class JumpA extends BaseCheck{
 		$this->jumpSprinting = false;
 	}
 
+	public function isExperimental() : bool{
+		return true;
+	}
+
 	public function handle(PlayerAuthInputPacket $packet) : void{
 		$this->reward();
 		$player = $this->profile->getPlayer();
@@ -69,6 +73,7 @@ class JumpA extends BaseCheck{
 				$md->getFlyRecord()->getTickSinceAction() <= 5 ||
 				$md->getImmobileRecord()->getTickSinceAction() <= 2 ||
 				count($sd->getTouchingBlocks()) > 0 ||
+				$this->motion->y < 0 ||
 				$player->isSprinting() !== $this->jumpSprinting
 			){
 				$this->motion = null;
