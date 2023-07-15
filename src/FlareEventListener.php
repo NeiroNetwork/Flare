@@ -26,9 +26,7 @@ use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
-use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\network\mcpe\raklib\RakLibServer;
 use pocketmine\network\query\DedicatedQueryNetworkInterface;
@@ -129,10 +127,6 @@ class FlareEventListener implements Listener{
 			foreach($event->getTargets() as $target){
 				if(($player = $target->getPlayer()) instanceof Player){
 					$this->flare->getTransactionPairingHost()->onDataPacketSendSpecify($target, [$packet]);
-
-					if($packet instanceof StartGamePacket){
-						$packet->networkPermissions = new NetworkPermissions(false);
-					}
 				}
 			}
 		}
