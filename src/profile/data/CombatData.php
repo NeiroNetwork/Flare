@@ -14,11 +14,10 @@ use pocketmine\event\EventPriority;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\InteractPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
-use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
+use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 
 class CombatData{
 
@@ -122,14 +121,6 @@ class CombatData{
 			$uuid,
 			InteractPacket::NETWORK_ID,
 			$this->handleInteract(...),
-			false,
-			EventPriority::LOWEST
-		));
-
-		$links->add($emitter->registerPacketHandler(
-			$uuid,
-			LevelSoundEventPacket::NETWORK_ID,
-			$this->handleLevelSound(...),
 			false,
 			EventPriority::LOWEST
 		));
@@ -359,13 +350,6 @@ class CombatData{
 		$this->lastClickTime = $time;
 	}
 
-	protected function handleLevelSound(LevelSoundEventPacket $packet) : void{
-		if($packet->sound === LevelSoundEvent::ATTACK_NODAMAGE){
-			$this->handleMouseClick();
-			$this->swing->onAction();
-		}
-	}
-
 	protected function handleInteract(InteractPacket $packet) : void{
 		$player = $this->profile->getPlayer();
 
@@ -404,6 +388,11 @@ class CombatData{
 
 			// SetActorDataPacket を送信することにより、
 			// InteractPacket::ACTION_MOUSEOVER を再送させることができる。
+		}
+
+		if(($packet->getInputFlags() & (1 << PlayerAuthInputFlags::MISSED_SWING)) !== 0){
+			$this->handleMouseClick();
+			$this->swing->onAction();
 		}
 
 		$this->triggerAim->update();
