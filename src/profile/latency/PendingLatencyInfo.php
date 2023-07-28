@@ -30,13 +30,7 @@ class PendingLatencyInfo{
 	}
 
 	public function getExceptResponseTimestamp() : int{
-		// what's wrong with you, mojang?
-		$base = floor($this->request->timestamp / LatencyHandler::TIMESTAMP_SIZE) * LatencyHandler::TIMESTAMP_SIZE;
-
-		if($this->request->timestamp < 0){
-			$base -= 616; // are you okay?
-		}
-
-		return $base;
+		// understandable
+		return $this->request->timestamp * (10 ** 6);
 	}
 }

@@ -8,7 +8,7 @@ use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 
 class LatencyHandler{
 
-	const TIMESTAMP_SIZE = 1000;
+	const TIMESTAMP_SIZE = 1;
 
 	private static int $nextTimestamp = 0;
 	protected PlayerProfile $profile;
