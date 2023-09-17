@@ -78,7 +78,7 @@ class FlareConfig{
 		}
 	}
 
-	public function close(bool $save = true){
+	public function close(bool $save = true) : void{
 		if($save){
 			foreach($this->getAll() as $config){
 				$config->save();

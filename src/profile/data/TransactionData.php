@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare\profile\data;
 
-use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use pocketmine\event\EventPriority;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
@@ -29,7 +28,7 @@ class TransactionData{
 		$emitter->registerPacketHandler(
 			$uuid,
 			PlayerAuthInputPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleInput"]),
+			$this->handleInput(...),
 			false,
 			EventPriority::NORMAL
 		);
@@ -37,7 +36,7 @@ class TransactionData{
 		$emitter->registerSendPacketHandler(
 			$uuid,
 			ContainerOpenPacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleContainerOpen"]),
+			$this->handleContainerOpen(...),
 			false,
 			EventPriority::LOW
 		);
@@ -45,7 +44,7 @@ class TransactionData{
 		$emitter->registerSendPacketHandler(
 			$uuid,
 			ContainerClosePacket::NETWORK_ID,
-			Closure::fromCallable([$this, "handleContainerClose"]),
+			$this->handleContainerClose(...),
 			false,
 			EventPriority::LOW
 		);

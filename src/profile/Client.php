@@ -89,7 +89,7 @@ final class Client{
 	}
 
 	public static function convertDeviceIdToString(int $deviceId) : string{
-		$string = match ($deviceId) {
+		return match ($deviceId) {
 			DeviceOS::ANDROID => "Android",
 			DeviceOS::IOS => "iOS",
 			DeviceOS::OSX => "OSX",
@@ -106,7 +106,6 @@ final class Client{
 			DeviceOS::AMAZON => "Amazon",
 			default => "unknown"
 		};
-		return $string;
 	}
 
 	public function isValid() : bool{
@@ -124,7 +123,7 @@ final class Client{
 		return true;
 	}
 
-	public function isUnknownDevice(){
+	public function isUnknownDevice() : bool{
 		return
 			!$this->isTap() &&
 			!$this->isDesktop() &&
@@ -133,7 +132,7 @@ final class Client{
 			!$this->isDedicatedDevice();
 	}
 
-	public function isTap(){
+	public function isTap() : bool{
 		return
 			$this->device === DeviceOS::ANDROID ||
 			$this->device === DeviceOS::WINDOWS_PHONE ||
@@ -142,27 +141,27 @@ final class Client{
 			$this->device === DeviceOS::TVOS;
 	}
 
-	public function isDesktop(){
+	public function isDesktop() : bool{
 		return
 			$this->device === DeviceOS::WIN32 ||
 			$this->device === DeviceOS::WINDOWS_10 ||
 			$this->device === DeviceOS::OSX;
 	}
 
-	public function isController(){
+	public function isController() : bool{
 		return
 			$this->device === DeviceOS::NINTENDO ||
 			$this->device === DeviceOS::PLAYSTATION ||
 			$this->device === DeviceOS::XBOX;
 	}
 
-	public function isVR(){
+	public function isVR() : bool{
 		return
 			$this->device === DeviceOS::HOLOLENS ||
 			$this->device === DeviceOS::GEAR_VR;
 	}
 
-	public function isDedicatedDevice(){
+	public function isDedicatedDevice() : bool{
 		return $this->device === DeviceOS::DEDICATED;
 	}
 

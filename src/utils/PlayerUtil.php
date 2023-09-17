@@ -23,7 +23,6 @@ class PlayerUtil{
 	}
 
 	public static function getPropertyIdFromGenericFlag(int $flagId) : int{
-		$propertyId = $flagId >= 64 ? EntityMetadataProperties::FLAGS2 : EntityMetadataProperties::FLAGS;
-		return $propertyId;
+		return $flagId >= 64 ? EntityMetadataProperties::FLAGS2 : EntityMetadataProperties::FLAGS;
 	}
 }
