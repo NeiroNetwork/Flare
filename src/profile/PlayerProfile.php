@@ -9,7 +9,6 @@ use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimA;
 use NeiroNetwork\Flare\profile\check\list\combat\aim\AimC;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraA;
-use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraA1;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraB;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraC;
 use NeiroNetwork\Flare\profile\check\list\combat\aura\AuraD;
@@ -353,7 +352,7 @@ class PlayerProfile implements Profile{
 			$o->registerCheck(new ReachC($o));
 		} {
 			$o->registerCheck(new AuraA($o));
-			$o->registerCheck(new AuraA1($o));
+			//$o->registerCheck(new AuraA1($o));
 			$o->registerCheck(new AuraB($o));
 			$o->registerCheck(new AuraC($o));
 			$o->registerCheck(new AuraD($o));
