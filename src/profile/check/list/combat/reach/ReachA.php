@@ -13,7 +13,6 @@ use NeiroNetwork\Flare\profile\check\ViolationFailReason;
 use NeiroNetwork\Flare\utils\IntegerSortSizeMap;
 use NeiroNetwork\Flare\utils\Map;
 use NeiroNetwork\Flare\utils\Math;
-use NeiroNetwork\Flare\utils\Utils;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\Server;
@@ -117,7 +116,7 @@ class ReachA extends BaseCheck{
 				);
 				$this->map->put($currentTick, $bb);
 
-				Utils::debugPosition($pos, $this->profile->getPlayer());
+				//Utils::debugPosition($pos, $this->profile->getPlayer());
 			}
 		}
 	}
