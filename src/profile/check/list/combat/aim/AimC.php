@@ -30,6 +30,10 @@ class AimC extends BaseCheck{
 
 	}
 
+	public function isExperimental() : bool{
+		return true;
+	}
+
 	public function getCheckGroup() : int{
 		return CheckGroup::COMBAT;
 	}
