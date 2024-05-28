@@ -14,6 +14,7 @@ use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
+use pocketmine\network\mcpe\protocol\RemoveActorPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesData;
@@ -131,6 +132,22 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
 	public function getNetworkProperties(int $runtimeId) : ?EntityMetadataCollection{
 		return $this->networkProperties->get($runtimeId);
+	}
+
+	public function handleRemoveActor(RemoveActorPacket $packet, int $tick) : void{
+		$this->motion->remove($packet->actorUniqueId);
+		$this->position->remove($packet->actorUniqueId);
+		$this->type->remove($packet->actorUniqueId);
+		$this->networkProperties->remove($packet->actorUniqueId);
+		$this->attributes->remove($packet->actorUniqueId);
+		$this->effects->remove($packet->actorUniqueId);
+		$this->abilities->remove($packet->actorUniqueId);
+		$this->tickPosition->get($packet->actorUniqueId)?->clear();
+		$this->tickMotion->get($packet->actorUniqueId)?->clear();
+		$this->tickAbilities->get($packet->actorUniqueId)?->clear();
+		$this->tickAttributes->get($packet->actorUniqueId)?->clear();
+		$this->tickEffects->get($packet->actorUniqueId)?->clear();
+		$this->tickNetworkProperties->get($packet->actorUniqueId)?->clear();
 	}
 
 	/**

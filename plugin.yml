@@ -1,5 +1,5 @@
 name: Flare
-version: 0.0.7-dev
+version: 0.0.8-dev
 main: NeiroNetwork\Flare\Main
 api: 5.3.3
 src-namespace-prefix: NeiroNetwork\Flare

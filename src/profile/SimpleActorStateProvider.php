@@ -9,6 +9,7 @@ use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
+use pocketmine\network\mcpe\protocol\RemoveActorPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
@@ -46,6 +47,7 @@ class SimpleActorStateProvider extends PacketBaseActorStateProvider{
 		$register(UpdateAbilitiesPacket::NETWORK_ID, $this->handleUpdateAbilities(...));
 		$register(AddActorPacket::NETWORK_ID, $this->handleAddActor(...));
 		$register(AddPlayerPacket::NETWORK_ID, $this->handleAddPlayer(...));
+		$register(RemoveActorPacket::NETWORK_ID, $this->handleRemoveActor(...));
 	}
 
 	public function dispose() : void{
