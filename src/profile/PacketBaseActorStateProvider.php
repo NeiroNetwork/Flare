@@ -307,14 +307,14 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 			$effectList = $this->effects->get($packet->actorRuntimeId);
 
 			if($packet->eventId === MobEffectPacket::EVENT_ADD){
-				$effectList[] = $effectInstance;
+				$effectList[$packet->effectId] = $effectInstance;
 			}elseif($packet->eventId === MobEffectPacket::EVENT_MODIFY){
 				if(isset($effectList[$packet->effectId])){
 					$effectList[$packet->effectId] = $effectInstance;
 				}
 			}elseif($packet->eventId === MobEffectPacket::EVENT_REMOVE){
-				if(isset($effectList[$packet->eventId])){
-					unset($effectList[$packet->eventId]);
+				if(isset($effectList[$packet->effectId])){
+					unset($effectList[$packet->effectId]);
 				}
 			}
 

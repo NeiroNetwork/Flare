@@ -10,6 +10,7 @@ use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
+use NeiroNetwork\Flare\utils\MinecraftPhysics;
 
 class AuraD extends BaseCheck{
 
@@ -31,7 +32,7 @@ class AuraD extends BaseCheck{
 		$md = $this->profile->getMovementData();
 
 		$clientPosition = $event->getPlayerPosition()->round(4); // server position is fixed to 4
-		$serverPosition = $md->getEyePosition();
+		$serverPosition = $md->getRawPosition()->add(0, MinecraftPhysics::PLAYER_EYE_HEIGHT, 0);
 
 		if(
 			$serverPosition->subtractVector($clientPosition)->lengthSquared() > 0.01
