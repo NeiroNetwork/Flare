@@ -11,6 +11,7 @@ use NeiroNetwork\Flare\profile\PlayerProfile;
 use NeiroNetwork\Flare\utils\BlockUtil;
 use NeiroNetwork\Flare\utils\MinecraftPhysics;
 use pocketmine\data\bedrock\EffectIds;
+use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\event\player\PlayerDeathEvent;
@@ -145,6 +146,7 @@ class MovementData{
 	 * @var ActionRecord
 	 */
 	protected ActionRecord $fly;
+	protected ActionRecord $levitation;
 	/**
 	 * @var ActionRecord
 	 */
@@ -413,6 +415,13 @@ class MovementData{
 	}
 
 	/**
+	 * @return ActionRecord
+	 */
+	public function getLevitationRecord() : ActionRecord{
+		return $this->levitation;
+	}
+
+	/**
 	 * Get the value of rotation
 	 *
 	 * @return EntityRotation
@@ -662,6 +671,7 @@ class MovementData{
 		$this->eyeHeight = (MinecraftPhysics::PLAYER_EYE_HEIGHT) + ($ki->sneak() ? -0.15 : 0.0);
 		$this->eyePosition = $this->rawPosition->add(0, $this->eyeHeight, 0);
 
+		$this->levitation->update(!($this->profile->getSupport()->hasEffect($player->getId(), EffectIds::LEVITATION) ?? $player->getEffects()->has(VanillaEffects::LEVITATION())));
 
 		$this->jumpVelocity = MinecraftPhysics::JUMP_VELOCITY + ($providerSupport->getEffect($player->getId(), EffectIds::JUMP_BOOST)?->getEffectLevel() ?? 0) / 10;
 

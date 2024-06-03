@@ -50,7 +50,8 @@ class SpeedC extends BaseCheck{
 			$md->getTeleportRecord()->getTickSinceAction() >= 10 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 30 &&
 			$md->getFlyRecord()->getTickSinceAction() >= 10 &&
-			$ki->getGlideRecord()->getTickSinceAction() >= 30
+			$ki->getGlideRecord()->getTickSinceAction() >= 30 &&
+			$md->getLevitationRecord()->getTickSinceAction() >= 4
 		){
 
 			$movementSpeed = $md->getMovementSpeed();

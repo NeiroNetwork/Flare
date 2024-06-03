@@ -71,6 +71,7 @@ class JumpA extends BaseCheck{
 				$sd->getSlipRecord()->getTickSinceAction() <= 10 ||
 				$sd->getCobwebRecord()->getTickSinceAction() <= 5 ||
 				$md->getFlyRecord()->getTickSinceAction() <= 5 ||
+				$md->getLevitationRecord()->getTickSinceAction() <= 4 ||
 				$md->getImmobileRecord()->getTickSinceAction() <= 2 ||
 				count($sd->getTouchingBlocks()) > 0 ||
 				$this->motion->y < 0 ||

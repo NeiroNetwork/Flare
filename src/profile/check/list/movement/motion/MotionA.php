@@ -9,7 +9,6 @@ use NeiroNetwork\Flare\profile\check\CheckGroup;
 use NeiroNetwork\Flare\profile\check\ClassNameAsCheckIdTrait;
 use NeiroNetwork\Flare\profile\check\HandleEventCheckTrait;
 use NeiroNetwork\Flare\profile\check\ViolationFailReason;
-use pocketmine\data\bedrock\EffectIds;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
 class MotionA extends BaseCheck{
@@ -45,18 +44,18 @@ class MotionA extends BaseCheck{
 			$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
 			$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
-			$md->getMotionRecord()->getTickSinceAction() >= 3
+			$md->getMotionRecord()->getTickSinceAction() >= 3 &&
+			$md->getLevitationRecord()->getTickSinceAction() >= 4
 		){
-			if(!$this->profile->getSupport()->hasEffect($player->getId(), EffectIds::LEVITATION) ?? false){
-				$distY = ($to->y - $from->y);
-				$lastDistY = ($from->y - $md->getLastFrom()->y);
+			$distY = ($to->y - $from->y);
+			$lastDistY = ($from->y - $md->getLastFrom()->y);
 
-				$accel = abs($distY - $lastDistY);
-				$this->broadcastDebugMessage("accel: $accel");
-				if($accel < 0.0001){
-					$this->fail(new ViolationFailReason("Accel: $accel"));
-				}
+			$accel = abs($distY - $lastDistY);
+			$this->broadcastDebugMessage("accel: $accel");
+			if($accel < 0.0001){
+				$this->fail(new ViolationFailReason("Accel: $accel"));
 			}
+
 		}
 	}
 }

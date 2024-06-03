@@ -55,7 +55,8 @@ class MotionB extends BaseCheck{
 				$sd->getCobwebRecord()->getTickSinceAction() >= 5 &&
 				$sd->getHitHeadRecord()->getTickSinceAction() >= 4 &&
 				$ki->getGlideRecord()->getTickSinceAction() >= 7 &&
-				$cd->getKnockbackRecord()->getTickSinceAction() >= 20
+				$cd->getKnockbackRecord()->getTickSinceAction() >= 20 &&
+				$md->getLevitationRecord()->getTickSinceAction() >= 4
 			){
 
 				$this->preReward();

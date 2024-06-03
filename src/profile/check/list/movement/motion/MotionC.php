@@ -41,7 +41,8 @@ class MotionC extends BaseCheck{
 			$md->getAirRecord()->getLength() <= 50 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 3 &&
 			$md->getMotionRecord()->getTickSinceAction() >= 1 &&
-			$dist >= 0.01
+			$dist >= 0.01 &&
+			$md->getLevitationRecord()->getTickSinceAction() >= 4
 		){
 			$this->preReward();
 			$accel = abs($dist - $lastDist);

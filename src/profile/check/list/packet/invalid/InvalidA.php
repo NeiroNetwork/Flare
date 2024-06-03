@@ -41,7 +41,8 @@ class InvalidA extends BaseCheck{
 				$md->getTeleportRecord()->getTickSinceAction() >= 6 &&
 				$md->getFlyRecord()->getTickSinceAction() >= 20 &&
 				$ki->getSwimRecord()->getTickSinceAction() >= 20 &&
-				$md->getImmobileRecord()->getTickSinceAction() >= 10
+				$md->getImmobileRecord()->getTickSinceAction() >= 10 &&
+				$md->getLevitationRecord()->getTickSinceAction() >= 4
 			){
 				$this->fail(new ViolationFailReason(""));
 			}

@@ -42,7 +42,8 @@ class SpeedA extends BaseCheck{
 			$ki->getGlideRecord()->getTickSinceAction() >= 10 &&
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&
 			$sd->getClimbRecord()->getTickSinceAction() >= 5 &&
-			$md->getFlyRecord()->getTickSinceAction() >= 6
+			$md->getFlyRecord()->getTickSinceAction() >= 6 &&
+			$md->getLevitationRecord()->getTickSinceAction() >= 4
 		){
 			$predict = MinecraftPhysics::nextAirXZ($lastDist);
 			$diff = $dist - $predict;
