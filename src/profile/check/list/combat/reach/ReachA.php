@@ -71,11 +71,11 @@ class ReachA extends BaseCheck{
 
 				$rootReach = sqrt($minReach);
 
-				$this->broadcastDebugMessage("reach: {$rootReach}");
+				$this->broadcastDebugMessage("final: {$rootReach}");
 
 				if($minReach > 9.0){ // (3 ** 2)
 					if($this->preFail()){
-						$this->fail(new ViolationFailReason("Reach: {$minReach}"));
+						$this->fail(new ViolationFailReason("Reach: {$rootReach}"));
 					}
 				}
 

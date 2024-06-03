@@ -37,7 +37,7 @@ class SpeedA extends BaseCheck{
 		$lastDist = $md->getLastRealDeltaXZ();
 		if(
 			$md->getAirRecord()->getLength() >= 5 &&
-			$md->getMotionRecord()->getTickSinceAction() >= 10 &&
+			$md->getMotionRecord()->getTickSinceAction() >= 20 &&
 			$md->getTeleportRecord()->getTickSinceAction() >= 8 &&
 			$ki->getGlideRecord()->getTickSinceAction() >= 10 &&
 			$sd->getFlowRecord()->getTickSinceAction() >= 15 &&

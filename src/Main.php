@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeiroNetwork\Flare;
 
+use NeiroNetwork\Flare\command\ClientInfoCommand;
 use NeiroNetwork\Flare\command\DebugCommand;
 use NeiroNetwork\Flare\command\ForceDefaultCommand;
 use NeiroNetwork\Flare\command\GiveModerationItemCommand;
@@ -61,7 +62,8 @@ class Main extends PluginBase{
 			new ForceDefaultCommand($commandPrefix . "forcedefault", "全てのプレイヤーの設定をデフォルトに強制します"),
 			new SettingsCommand($commandPrefix . "settings", "プレイヤーの設定を行います", null, [$commandPrefix . "s"]),
 			new GiveModerationItemCommand($commandPrefix . "givemod", "モデレーションアイテムを入手します"),
-			new DebugCommand($commandPrefix . "debug", "チェックのデバッグを行います")
+			new DebugCommand($commandPrefix . "debug", "チェックのデバッグを行います"),
+			new ClientInfoCommand($commandPrefix . "info", "クライアントの情報を見ます", null, [$commandPrefix . "i"])
 		]);
 
 		$vanillaCommands = $this->getServer()->getPluginManager()->getPlugin("VanillaCommands") !== null;

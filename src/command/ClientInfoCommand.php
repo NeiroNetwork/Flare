@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\command;
 
 use NeiroNetwork\Flare\Flare;
-use NeiroNetwork\Flare\form\PlayerSettingsForm;
+use NeiroNetwork\Flare\form\PlayerClientInfoForm;
 use NeiroNetwork\Flare\Main;
 use NeiroNetwork\VanillaCommands\parameter\BasicParameters;
 use NeiroNetwork\VanillaCommands\parameter\Parameter;
@@ -15,7 +15,8 @@ use pocketmine\lang\Translatable;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\Player;
 
-class SettingsCommand extends Command implements ParameterCommand{
+class ClientInfoCommand extends Command implements ParameterCommand{
+
 
 	public function __construct(string $name, Translatable|string $description = "", Translatable|string|null $usageMessage = null, array $aliases = []){
 		parent::__construct($name, $description, $usageMessage, $aliases);
@@ -23,13 +24,7 @@ class SettingsCommand extends Command implements ParameterCommand{
 		$this->setPermission(DefaultPermissions::ROOT_OPERATOR);
 	}
 
-	public function registerParameters() : void{
-		Parameter::getInstance()->add($this->getName(), [
-			BasicParameters::targets("target", optional: true)
-		]);
-	}
-
-	public function execute(CommandSender $sender, string $commandLabel, array $args) : void{
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$sender instanceof Player){
 			return;
 		}
@@ -51,7 +46,13 @@ class SettingsCommand extends Command implements ParameterCommand{
 			return;
 		}
 
-		$form = new PlayerSettingsForm(Flare::PREFIX . "§aSettings", $profile);
+		$form = new PlayerClientInfoForm(Flare::PREFIX . "§aClient Info", $profile);
 		$sender->sendForm($form);
+	}
+
+	public function registerParameters() : void{
+		Parameter::getInstance()->add($this->getName(), [
+			BasicParameters::targets("target", optional: true)
+		]);
 	}
 }

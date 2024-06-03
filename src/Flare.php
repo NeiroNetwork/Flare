@@ -88,7 +88,7 @@ class Flare{
 		$this->tickProcessor = new TickProcessor;
 
 		$this->config = new FlareConfig($plugin->getDataFolder());
-		
+
 		$this->transactionPairingHost = new TransactionPairingHost($this->profileManager);
 
 		$this->schedulerHeartbeater = null;
@@ -120,12 +120,10 @@ class Flare{
 
 			$this->scheduler->scheduleRepeatingTask(new ClosureTask(function(){
 				$this->transactionPairingHost->onStartOfTick($this->plugin->getServer()->getTick());
-
-				$this->heartbeatCheckNotifier->createNotifier()->wakeupSleeper();
 			}), 1);
 
 			$handlerEntry = $this->plugin->getServer()->getTickSleeper()->addNotifier(function() use (&$handlerEntry) : void{
-				$this->transactionPairingHost->onEndOfTick($this->plugin->getServer()->getTick());
+				//$this->transactionPairingHost->onEndOfTick($this->plugin->getServer()->getTick());
 			});
 
 			$this->heartbeatCheckNotifier = $handlerEntry;

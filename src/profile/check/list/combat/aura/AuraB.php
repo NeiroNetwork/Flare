@@ -53,7 +53,7 @@ class AuraB extends BaseCheck{
 			$histories = $this->profile->getSupport()->getActorPositionHistory($runtimeId)->getAll();
 			$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick, $this->profile->getSupport()->isPlayer($runtimeId) ?
 				-3 :
-				$this->profile->getTransactionPairing()->getServerTick() - $this->profile->getTransactionPairing()->getLatestConfirmedTick());
+				0);
 			$bb = $this->profile->getSupport()->getBoundingBox($aiming->getId(), overridePos: $pos);
 			if(is_null($bb)){
 				return;

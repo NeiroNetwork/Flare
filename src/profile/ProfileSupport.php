@@ -57,7 +57,8 @@ class ProfileSupport{
 		}
 
 		$histories = $this->getActorPositionHistory($runtimeId)->getAll();
-		$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick, $this->isPlayer($runtimeId) ? -3 : 0);
+		$pos = MoveDelaySupport::getInstance()->predict($histories, $currentTick, $this->isPlayer($runtimeId) ?
+			-3 : 0);
 
 		if(is_null($pos)){
 			return null;
@@ -80,11 +81,6 @@ class ProfileSupport{
 
 	public function isPlayer(int $runtimeId) : ?bool{
 		return $this->profile->getActorStateProvider()->getType($runtimeId) === EntityIds::PLAYER;
-	}
-
-	public function getLatestTick() : int{
-		return $this->profile->isTransactionPairingEnabled() ?
-			$this->profile->getTransactionPairing()->getLatestConfirmedTick() : $this->profile->getServerTick();
 	}
 
 	public function createVirtualActor(int $runtimeId) : ?VirtualActor{

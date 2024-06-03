@@ -246,15 +246,15 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 	}
 
 	public function handleMoveActorAbsolute(MoveActorAbsolutePacket $packet, int $tick) : void{
-		$pos = $packet->position;
+		$pos = clone $packet->position;
 
 		if($this->getType($packet->actorRuntimeId) === EntityIds::PLAYER){
 			$pos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT; // should I put here?
 		}
 
-		$this->position->put($packet->actorRuntimeId, clone $pos);
+		$this->position->put($packet->actorRuntimeId, $pos);
 		$this->tickPosition->putIfAbsent($packet->actorRuntimeId, new IntegerSortSizeMap($this->tickMapSize));
-		$this->tickPosition->get($packet->actorRuntimeId)->put($tick, clone $pos);
+		$this->tickPosition->get($packet->actorRuntimeId)->put($tick, $pos);
 	}
 
 	public function getType(int $runtimeId) : ?string{

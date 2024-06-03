@@ -55,7 +55,7 @@ class AimC extends BaseCheck{
 		}
 
 		$this->reward();
-		$this->preReward();
+		$this->preReward(3);
 
 		$getGCD = function() : float{
 			$list = $this->deltaPitch->getAll();
