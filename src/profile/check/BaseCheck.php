@@ -7,6 +7,7 @@ namespace NeiroNetwork\Flare\profile\check;
 use Closure;
 use NeiroNetwork\Flare\profile\PlayerProfile;
 use pocketmine\command\CommandSender;
+use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 
 abstract class BaseCheck implements ICheck{
@@ -146,9 +147,21 @@ abstract class BaseCheck implements ICheck{
 	}
 
 	public function broadcastDebugMessage(string $message) : void{
-		foreach($this->debuggers as $player){
+		foreach($this->debuggers as $k => $player){
+			if(!$this->validateDebugger($player)){
+				continue;
+			}
 			$player->sendMessage($this->getDebugPrefix() . $message);
 		}
+	}
+
+	protected function validateDebugger(CommandSender $sender) : bool{
+		if($sender instanceof Player && !$sender->isOnline()){
+			unset($this->debuggers[array_search($sender, $this->debuggers)]); // fixme:
+			return false;
+		}
+
+		return true;
 	}
 
 	public function getDebugPrefix() : string{
@@ -165,6 +178,9 @@ abstract class BaseCheck implements ICheck{
 		Utils::validateCallableSignature(function(CommandSender $debugger) : void{}, $closure);
 
 		foreach($this->debuggers as $player){
+			if(!$this->validateDebugger($player)){
+				continue;
+			}
 			($closure)($player);
 		}
 	}
