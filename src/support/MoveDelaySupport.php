@@ -38,10 +38,11 @@ class MoveDelaySupport{
 	 * @param array<int, Vector3> $histories
 	 * @param int                 $currentTick
 	 * @param int                 $additionalDelayTick
+	 * @param int                 $maxTickDiff
 	 *
 	 * @return Vector3|null
 	 */
-	public function predict(array $histories, int $currentTick, int $additionalDelayTick = 0) : ?Vector3{
+	public function predict(array $histories, int $currentTick, int $additionalDelayTick = 0, int $maxTickDiff = PHP_INT_MAX) : ?Vector3{
 		$historyCount = count($histories);
 		if($historyCount <= $this->tick){
 			return null;
@@ -54,6 +55,10 @@ class MoveDelaySupport{
 		$baseResult = Utils::findAscending($keys, $baseTick);
 
 		if(is_null($baseResult)){
+			return null;
+		}
+
+		if(abs($baseResult - $baseTick) >= $maxTickDiff){
 			return null;
 		}
 

@@ -42,12 +42,7 @@ class InvalidE extends BaseCheck{
 		// todo: ActionRecord のcurrentTick引数をサーバーのtickじゃなくする
 		// -> ラグによる誤検知がさらに減る
 		// -> パケットのtickをリスポーン時にずっと固定されたままにされたら予期しない誤検知/検知回避がされる可能性がある(ここでパケットのtick検証をしているが、リスポーン時には一時ストップしているため)
-		if($this->profile->getMovementData()->getRespawnRecord()->getTickSinceAction() <= 10){
-			$this->lastClientTick = $packet->getTick();
-			return;
-		}
-
-		if($packet->getTick() - $this->lastClientTick !== 1){
+		if($packet->getTick() - $this->lastClientTick !== 1 && $this->profile->getMovementData()->getRespawnRecord()->getTickSinceAction() >= 10){
 			$this->fail(new ViolationFailReason("Invalid auth tick"));
 		}
 

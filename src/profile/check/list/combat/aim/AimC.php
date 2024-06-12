@@ -46,7 +46,7 @@ class AimC extends BaseCheck{
 		$rotDelta = $md->getRotationDelta()->abs();
 		$rot = $md->getRotation();
 
-		if($rotDelta->pitch <= 10 && $rotDelta->pitch > 0.1 && abs($rot->pitch) <= 70){
+		if($rotDelta->pitch <= 0.96 && $rotDelta->pitch > 0.1 && abs($rot->pitch) <= 70){
 			$this->deltaPitch->add($rotDelta->pitch);
 		}
 
@@ -74,7 +74,7 @@ class AimC extends BaseCheck{
 			}
 		}
 
-		if($gcd < 0.0005){
+		if($gcd < 0.00001){
 			if($this->preFail()){
 				$this->fail(new ViolationFailReason("GCD: {$gcd}"));
 			}

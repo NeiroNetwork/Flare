@@ -41,19 +41,21 @@ class ReachB extends BaseCheck{
 		$aiming = $cd->getClientAiming();
 		$player = $this->profile->getPlayer();
 
-		if($aiming instanceof Entity){
-			$pos = $md->getEyePosition()->subtractVector($this->profile->getMovementData()->getRealDelta());
+		if($md->getTeleportRecord()->getTickSinceAction() >= 10){
+			if($aiming instanceof Entity){
+				$pos = $md->getEyePosition()->subtractVector($this->profile->getMovementData()->getRealDelta());
 
-			$reach = $pos->distanceSquared($aimingAt);
-			$lastReach = $pos->distanceSquared($cd->getLastClientAimingAt());
+				$reach = $pos->distanceSquared($aimingAt);
+				$lastReach = $pos->distanceSquared($cd->getLastClientAimingAt());
 
-			$finalReach = min($reach, $lastReach);
+				$finalReach = min($reach, $lastReach);
 
-			if($finalReach > 9.0 + 0.015){ // bb error + epsilon
-				$this->fail(new ViolationFailReason("Aim Reach: {$finalReach}"));
+				if($finalReach > 9.0 + 0.015){ // bb error + epsilon
+					$this->fail(new ViolationFailReason("Aim Reach: {$finalReach}"));
+				}
+
+				$this->broadcastDebugMessage("final: {$finalReach}, curr: {$reach}, last: {$lastReach}");
 			}
-
-			$this->broadcastDebugMessage("final: {$finalReach}, curr: {$reach}, last: {$lastReach}");
 		}
 	}
 

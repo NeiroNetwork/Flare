@@ -35,7 +35,7 @@ class InteractA extends BaseCheck{
 		$this->broadcastDebugMessage($touchVector);
 
 		$distance = $touchVector->distanceSquared($md->getEyePosition());
-		if($distance > 49){ // 7
+		if($distance > 8 ** 2){ // 7
 			$this->fail(new ViolationFailReason("dist(sq): {$distance}"));
 		}
 	}

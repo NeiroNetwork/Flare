@@ -221,10 +221,47 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 
 	public function handleAddActor(AddActorPacket $packet, int $tick) : void{
 		$this->type->putIfAbsent($packet->actorRuntimeId, $packet->type);
+
+		$this->internalSetActorPosition($packet->actorRuntimeId, $packet->position, $tick);
+		if($packet->motion !== null){
+			$this->internalSetActorMotion($packet->actorRuntimeId, $packet->motion, $tick);
+		}
+	}
+
+	protected function internalSetActorPosition(int $actorId, Vector3 $position, int $tick) : void{
+		$pos = clone $position;
+
+		if($this->getType($actorId) === EntityIds::PLAYER){
+			$pos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT; // should I put here?
+		}
+
+		$this->position->put($actorId, $pos);
+		$this->tickPosition->putIfAbsent($actorId, new IntegerSortSizeMap($this->tickMapSize));
+		$this->tickPosition->get($actorId)->put($tick, $pos);
+	}
+
+	public function getType(int $runtimeId) : ?string{
+		return $this->type->get($runtimeId);
+	}
+
+	protected function internalSetActorMotion(int $actorId, Vector3 $motion, int $tick) : void{
+		$mot = clone $motion;
+		$this->motion->put($actorId, $mot);
+		$this->tickMotion->putIfAbsent($actorId, new IntegerSortSizeMap($this->tickMapSize));
+		$this->tickMotion->get($actorId)->put($tick, $mot);
+
+		foreach($this->onMotionHooks as $hook){
+			$hook($actorId, $tick, $mot);
+		}
 	}
 
 	public function handleAddPlayer(AddPlayerPacket $packet, int $tick) : void{
 		$this->type->putIfAbsent($packet->actorRuntimeId, EntityIds::PLAYER);
+		
+		$this->internalSetActorPosition($packet->actorRuntimeId, $packet->position, $tick);
+		if($packet->motion !== null){
+			$this->internalSetActorMotion($packet->actorRuntimeId, $packet->motion, $tick);
+		}
 	}
 
 	public function copy(PacketBaseActorStateProvider $provider) : void{
@@ -246,19 +283,7 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 	}
 
 	public function handleMoveActorAbsolute(MoveActorAbsolutePacket $packet, int $tick) : void{
-		$pos = clone $packet->position;
-
-		if($this->getType($packet->actorRuntimeId) === EntityIds::PLAYER){
-			$pos->y -= MinecraftPhysics::PLAYER_EYE_HEIGHT; // should I put here?
-		}
-
-		$this->position->put($packet->actorRuntimeId, $pos);
-		$this->tickPosition->putIfAbsent($packet->actorRuntimeId, new IntegerSortSizeMap($this->tickMapSize));
-		$this->tickPosition->get($packet->actorRuntimeId)->put($tick, $pos);
-	}
-
-	public function getType(int $runtimeId) : ?string{
-		return $this->type->get($runtimeId);
+		$this->internalSetActorPosition($packet->actorRuntimeId, $packet->position, $tick);
 	}
 
 	public function handleSetActorData(SetActorDataPacket $packet, int $tick) : void{
@@ -270,13 +295,7 @@ abstract class PacketBaseActorStateProvider implements ActorStateProvider{
 	}
 
 	public function handleSetActorMotion(SetActorMotionPacket $packet, int $tick) : void{
-		$this->motion->put($packet->actorRuntimeId, $packet->motion);
-		$this->tickMotion->putIfAbsent($packet->actorRuntimeId, new IntegerSortSizeMap($this->tickMapSize));
-		$this->tickMotion->get($packet->actorRuntimeId)->put($tick, $packet->motion);
-
-		foreach($this->onMotionHooks as $hook){
-			$hook($packet->actorRuntimeId, $tick, $packet->motion);
-		}
+		$this->internalSetActorMotion($packet->actorRuntimeId, $packet->motion, $tick);
 	}
 
 	public function handlePlayerList(PlayerListPacket $packet, int $tick) : void{
