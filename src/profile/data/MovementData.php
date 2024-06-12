@@ -671,7 +671,7 @@ class MovementData{
 		$this->eyeHeight = (MinecraftPhysics::PLAYER_EYE_HEIGHT) + ($ki->sneak() ? -0.15 : 0.0);
 		$this->eyePosition = $this->rawPosition->add(0, $this->eyeHeight, 0);
 
-		$this->levitation->update(!($this->profile->getSupport()->hasEffect($player->getId(), EffectIds::LEVITATION) ?? $player->getEffects()->has(VanillaEffects::LEVITATION())));
+		$this->levitation->update($this->profile->getSupport()->hasEffect($player->getId(), EffectIds::LEVITATION) ?? $player->getEffects()->has(VanillaEffects::LEVITATION()));
 
 		$this->jumpVelocity = MinecraftPhysics::JUMP_VELOCITY + ($providerSupport->getEffect($player->getId(), EffectIds::JUMP_BOOST)?->getEffectLevel() ?? 0) / 10;
 
