@@ -60,8 +60,4 @@ class ReachB extends BaseCheck{
 	}
 
 	public function onUnload() : void{}
-
-	public function isExperimental() : bool{
-		return true;
-	}
 }
