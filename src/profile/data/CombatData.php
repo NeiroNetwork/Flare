@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace NeiroNetwork\Flare\profile\data;
 
 use NeiroNetwork\Flare\event\player\PlayerAttackEvent;
+use NeiroNetwork\Flare\Flare;
 use NeiroNetwork\Flare\profile\PlayerProfile;
+use NeiroNetwork\Flare\reporter\LogReportContent;
 use NeiroNetwork\Flare\utils\NumericalSampling;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -361,7 +363,7 @@ class CombatData{
 				$this->lastClientAimingAt = clone $this->clientAimingAt;
 				$this->clientAimingAt = new Vector3($packet->x, $packet->y, $packet->z);
 				$this->triggerAim->onAction();
-				$this->triggerTicks->add($this->profile->getServerTick());
+				$this->triggerTicks->add($this->profile->getMovementData()->getInputCount());
 			}else{
 				if($this->playerSpawn->getTickSinceAction() >= (7 + 0)){ // todo: LagCompensator
 					if(($packet->x !== 0) && ($packet->y !== 0) && $packet->z !== 0){
@@ -383,7 +385,7 @@ class CombatData{
 				new PropertySyncData([], []),
 				0
 			);
-			$player->getNetworkSession()->sendDataPacket($pk, true);
+			$player->getNetworkSession()->sendDataPacket($pk);
 			// todo: 代替パケットを探す
 
 			// SetActorDataPacket を送信することにより、
@@ -407,7 +409,12 @@ class CombatData{
 
 		if($this->triggerTicks->isMax()){
 			$diff = $this->triggerTicks->getFirst() - $this->triggerTicks->getLast();
-			$this->aimTriggerPerSecond = (int) ((20 / $diff) * 20);
+			if($diff > 0){
+				$this->aimTriggerPerSecond = (int) ((20 / $diff) * 20);
+			}else{
+				$this->profile->getFlare()->getReporter()->report(new LogReportContent(Flare::PREFIX . "{$this->profile->getPlayer()->getName()} がエイム位置検知を1シミュレーションティックの間に20回送信しました (変更されたクライアントを使用している可能性があります)", $this->profile->getFlare()));
+				$this->aimTriggerPerSecond = 20;
+			}
 		}
 
 		if($this->hitEntity !== null){
